@@ -6,6 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $produto->nome }} - JFXTECH</title>
+
+    {{-- Open Graph (WhatsApp, Facebook) --}}
+    <meta property="og:type" content="product">
+    <meta property="og:site_name" content="JFXTECH">
+    <meta property="og:title" content="{{ $produto->nome }} - JFXTECH">
+    <meta property="og:description" content="{{ Str::limit($produto->descricao, 160) }}">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:image" content="{{ $produto->imagemCapa ? url('storage/' . $produto->imagemCapa->caminho) : url('storage/images/jfxtech-link-preiew-opt.jpg') }}">
+
+    {{-- Twitter Card --}}
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $produto->nome }} - JFXTECH">
+    <meta name="twitter:description" content="{{ Str::limit($produto->descricao, 160) }}">
+    <meta name="twitter:image" content="{{ $produto->imagemCapa ? url('storage/' . $produto->imagemCapa->caminho) : url('storage/images/jfxtech-link-preiew-opt.jpg') }}">
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="{{ asset('css/site-styles.css') }}">
 </head>

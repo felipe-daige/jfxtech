@@ -1,9 +1,10 @@
 {{-- JFXTECH - Top Bar --}}
 <div class="bg-black text-white text-[10px] font-mono py-1 px-4 flex justify-between items-center tracking-widest uppercase opacity-90">
     <span class="flex items-center gap-1">STATUS: ONLINE <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span></span></span>
-    <div class="flex gap-4">
-        <span>LATÊNCIA: 12ms</span>
-        <span class="hidden sm:inline">TEMP: 34°C</span>
+    <div class="flex gap-4 items-center">
+        <span id="jfx-date">---</span>
+        <span class="hidden sm:inline" id="jfx-tz">---</span>
+        <span class="hidden sm:inline" id="jfx-clock">--:--:--</span>
     </div>
 </div>
 
@@ -229,3 +230,4 @@
 {{-- Scripts --}}
 <script src="{{ asset('js/dropdowns.js') }}"></script>
 <script src="{{ asset('js/cart.js') }}"></script>
+<script src="{{ asset('js/topbar.js') }}?v=2"></script>

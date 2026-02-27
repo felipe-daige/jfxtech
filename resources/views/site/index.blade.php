@@ -6,6 +6,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>JFXTECH - Hardware Gamer de Alta Performance</title>
+
+    {{-- Open Graph (WhatsApp, Facebook) --}}
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="JFXTECH">
+    <meta property="og:title" content="JFXTECH - Hardware Gamer de Alta Performance">
+    <meta property="og:description" content="Equipamentos de alta performance para motocross e hardware gamer. Entrega 24h, 100% original, suporte 24/7.">
+    <meta property="og:url" content="{{ url('/') }}">
+    <meta property="og:image" content="{{ url('storage/images/jfxtech-link-preiew-opt.jpg') }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    {{-- Twitter Card --}}
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="JFXTECH - Hardware Gamer de Alta Performance">
+    <meta name="twitter:description" content="Equipamentos de alta performance para motocross e hardware gamer. Entrega 24h, 100% original, suporte 24/7.">
+    <meta name="twitter:image" content="{{ url('storage/images/jfxtech-link-preiew-opt.jpg') }}">
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="{{ asset('css/site-styles.css') }}">
 </head>
@@ -17,7 +34,6 @@
         <section class="relative h-[70vh] min-h-[500px] w-full bg-black overflow-hidden group">
             {{-- Slide 1 --}}
             <div class="carousel-slide active">
-                <img src="{{ asset('storage/images/52-1920x800.jpg') }}" alt="JFXTECH Novos Produtos" class="w-full h-full object-cover opacity-50">
                 <div class="absolute inset-0 bg-tech-grid-dark pointer-events-none opacity-30"></div>
                 <div class="absolute inset-0 flex flex-col justify-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div class="max-w-2xl">
@@ -51,7 +67,6 @@
 
             {{-- Slide 2 --}}
             <div class="carousel-slide">
-                <img src="{{ asset('storage/images/hero-motocross (1).jpg') }}" alt="JFXTECH Performance Extrema" class="w-full h-full object-cover opacity-50">
                 <div class="absolute inset-0 bg-tech-grid-dark pointer-events-none opacity-30"></div>
                 <div class="absolute inset-0 flex flex-col justify-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div class="max-w-2xl">
@@ -85,7 +100,6 @@
 
             {{-- Slide 3 --}}
             <div class="carousel-slide">
-                <img src="{{ asset('storage/images/845-800x800.jpg') }}" alt="JFXTECH Ofertas Especiais" class="w-full h-full object-cover opacity-50">
                 <div class="absolute inset-0 bg-tech-grid-dark pointer-events-none opacity-30"></div>
                 <div class="absolute inset-0 flex flex-col justify-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div class="max-w-2xl">
@@ -196,7 +210,6 @@
                     </div>
                     <div class="w-full md:w-1/2 order-1 md:order-2 reveal-right">
                         <div class="aspect-square bg-gray-100 border border-[var(--color-lab-border)] overflow-hidden">
-                            <img src="{{ asset('storage/images/hero-motocross (1).jpg') }}" alt="Qualidade Profissional" class="w-full h-full object-cover" loading="lazy">
                         </div>
                     </div>
                 </div>
@@ -205,7 +218,6 @@
                 <div class="flex flex-col md:flex-row items-center gap-16">
                     <div class="w-full md:w-1/2 reveal-left">
                         <div class="aspect-square bg-gray-100 border border-[var(--color-lab-border)] overflow-hidden">
-                            <img src="{{ asset('storage/images/hero-motocross (1).jpg') }}" alt="Entrega Rápida" class="w-full h-full object-cover" loading="lazy">
                         </div>
                     </div>
                     <div class="w-full md:w-1/2 reveal-right">
