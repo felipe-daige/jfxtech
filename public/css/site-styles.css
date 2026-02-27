@@ -1,0 +1,617 @@
+/* ========================================
+   JFXTECH - Design System Global Styles
+   ======================================== */
+
+/* Base */
+* {
+    font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+body {
+    background-color: var(--color-lab-bg, #FAFAFA);
+    color: var(--color-lab-ink, #111111);
+}
+
+/* Fix para dropdowns não serem cortados */
+.cart-dropdown,
+.user-dropdown {
+    position: relative;
+    overflow: visible !important;
+}
+
+.cart-dropdown button,
+.user-dropdown button {
+    overflow: visible !important;
+}
+
+.cart-dropdown-menu,
+.user-dropdown-menu {
+    position: absolute !important;
+    overflow: visible !important;
+}
+
+/* Fix para tremida do header no mobile */
+header {
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+@media (max-width: 768px) {
+    header {
+        position: sticky;
+        top: 0;
+        transform: translate3d(0, 0, 0);
+        -webkit-transform: translate3d(0, 0, 0);
+    }
+}
+
+/* ========================================
+   TECHNICAL GRID PATTERNS
+   ======================================== */
+
+.bg-tech-grid {
+    background-image:
+        linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+.bg-tech-grid-dark {
+    background-image:
+        linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+/* ========================================
+   CUSTOM SCROLLBAR
+   ======================================== */
+
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--color-lab-bg, #FAFAFA);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-lab-silver, #D1D5DB);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-lab-muted, #666666);
+}
+
+/* ========================================
+   ANIMATIONS (replacing Motion/Framer)
+   ======================================== */
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-50px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInRight {
+    from { opacity: 0; transform: translateX(50px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideOutRight {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes imageFadeIn {
+    from { opacity: 0; transform: scale(1.05); filter: blur(5px); }
+    to { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+
+@keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+    60% { transform: translateY(-5px); }
+}
+
+@keyframes progressFill {
+    from { width: 0%; }
+    to { width: 100%; }
+}
+
+/* ========================================
+   ANIMATION UTILITY CLASSES
+   ======================================== */
+
+.animate-fade-in { animation: fadeIn 0.6s ease-out both; }
+.animate-fade-in-up { animation: fadeInUp 0.8s ease-out both; }
+.animate-fade-in-down { animation: fadeInDown 0.6s ease-out both; }
+.animate-slide-left { animation: slideInLeft 0.8s ease-out both; }
+.animate-slide-right { animation: slideInRight 0.8s ease-out both; }
+.animate-image-fade { animation: imageFadeIn 0.8s ease-out both; }
+
+/* Staggered delays for child elements */
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.2s; }
+.stagger-3 { animation-delay: 0.3s; }
+.stagger-4 { animation-delay: 0.4s; }
+.stagger-5 { animation-delay: 0.5s; }
+
+/* ========================================
+   INTERSECTION OBSERVER ANIMATION CLASSES
+   ======================================== */
+
+.reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.reveal-left {
+    opacity: 0;
+    transform: translateX(-50px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.reveal-left.visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.reveal-right {
+    opacity: 0;
+    transform: translateX(50px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.reveal-right.visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* ========================================
+   PRODUCT CARD STYLES
+   ======================================== */
+
+.product-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.15);
+}
+
+.product-card .card-overlay {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.product-card:hover .card-overlay {
+    opacity: 1;
+}
+
+.product-card .card-image {
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.product-card:hover .card-image {
+    transform: scale(1.05);
+}
+
+/* ========================================
+   HOVER & INTERACTION EFFECTS
+   ======================================== */
+
+.hover-lift {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.15);
+}
+
+/* Technical button style */
+.btn-tech {
+    font-family: "JetBrains Mono", monospace;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    font-weight: 700;
+    transition: all 0.2s ease;
+}
+
+.btn-tech-primary {
+    background-color: #111111;
+    color: #FFFFFF;
+}
+
+.btn-tech-primary:hover {
+    background-color: #333333;
+}
+
+.btn-tech-outline {
+    border: 2px solid #111111;
+    color: #111111;
+    background: transparent;
+}
+
+.btn-tech-outline:hover {
+    background-color: #111111;
+    color: #FFFFFF;
+}
+
+/* ========================================
+   LOADING STATES
+   ======================================== */
+
+.loading-spinner {
+    animation: spin 1s linear infinite;
+}
+
+.button-loading {
+    position: relative;
+    color: transparent;
+}
+
+.button-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.image-loading {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+.image-fade-in {
+    animation: imageFadeIn 0.8s ease-out;
+}
+
+/* ========================================
+   FILTER SIDEBAR STYLES
+   ======================================== */
+
+.filter-section {
+    border-bottom: 1px solid var(--color-lab-border, #E5E5E5);
+}
+
+.filter-section-header {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 0;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.filter-section-content {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+}
+
+.filter-section-content.open {
+    max-height: 500px;
+    padding-bottom: 1rem;
+}
+
+.filter-chevron {
+    transition: transform 0.3s ease;
+}
+
+.filter-chevron.rotated {
+    transform: rotate(180deg);
+}
+
+/* Custom checkbox */
+.tech-checkbox {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--color-lab-border, #E5E5E5);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.tech-checkbox:checked {
+    background-color: #111111;
+    border-color: #111111;
+    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
+}
+
+/* Custom slider */
+.tech-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--color-lab-border, #E5E5E5);
+    outline: none;
+    height: 2px;
+    width: 100%;
+}
+
+.tech-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    background: #111111;
+    cursor: pointer;
+    border-radius: 0;
+}
+
+.tech-slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    background: #111111;
+    cursor: pointer;
+    border-radius: 0;
+    border: none;
+}
+
+/* ========================================
+   STAT CARD SHIMMER EFFECT
+   ======================================== */
+
+.stat-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    transition: left 0.5s;
+}
+
+.stat-card:hover::before {
+    left: 100%;
+}
+
+/* ========================================
+   CAROUSEL
+   ======================================== */
+
+.carousel-slide {
+    opacity: 0;
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    transition: opacity 0.8s ease-in-out;
+}
+
+.carousel-slide.active {
+    opacity: 1;
+    z-index: 1;
+}
+
+.carousel-progress-bar {
+    transition: width 0.3s linear;
+}
+
+/* ========================================
+   CART ANIMATIONS
+   ======================================== */
+
+#cart-sidebar {
+    animation: slideInRight 0.3s ease-out;
+}
+
+#cart-sidebar.closing {
+    animation: slideOutRight 0.3s ease-in;
+}
+
+#cart-overlay {
+    animation: fadeIn 0.3s ease-out;
+}
+
+#cart-overlay.closing {
+    animation: fadeOut 0.3s ease-in;
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+.cart-empty-icon {
+    animation: bounce 2s infinite;
+}
+
+.cart-button {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cart-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.cart-progress {
+    animation: progressFill 0.5s ease-out;
+}
+
+.cart-content > * {
+    animation: fadeInUp 0.5s ease-out both;
+}
+
+.cart-content > *:nth-child(1) { animation-delay: 0.1s; }
+.cart-content > *:nth-child(2) { animation-delay: 0.2s; }
+.cart-content > *:nth-child(3) { animation-delay: 0.3s; }
+.cart-content > *:nth-child(4) { animation-delay: 0.4s; }
+
+/* Cart scrollbar */
+.cart-scroll {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    overflow-y: auto;
+}
+
+.cart-scroll::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
+}
+
+.cart-scroll::-webkit-scrollbar-track { display: none; background: transparent; }
+.cart-scroll::-webkit-scrollbar-thumb { display: none; background: transparent; }
+.cart-scroll::-webkit-scrollbar-corner { display: none; background: transparent; }
+
+.cart-scroll.has-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #D1D5DB #FAFAFA;
+}
+
+.cart-scroll.has-scroll::-webkit-scrollbar {
+    display: block !important;
+    width: 4px !important;
+    background: transparent !important;
+}
+
+.cart-scroll.has-scroll::-webkit-scrollbar-track {
+    display: block !important;
+    background: #FAFAFA !important;
+}
+
+.cart-scroll.has-scroll::-webkit-scrollbar-thumb {
+    display: block !important;
+    background: #D1D5DB !important;
+}
+
+.cart-scroll.has-scroll:hover::-webkit-scrollbar { width: 6px !important; }
+.cart-scroll.has-scroll::-webkit-scrollbar-thumb:hover { background: #999 !important; }
+
+.cart-scroll:not(.has-scroll)::-webkit-scrollbar { display: none !important; width: 0 !important; }
+.cart-scroll:not(.has-scroll) { scrollbar-width: none !important; }
+
+/* ========================================
+   ACCESSIBILITY
+   ======================================== */
+
+.focus-visible:focus {
+    outline: 2px solid #111111;
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .animate-fade-in,
+    .animate-fade-in-up,
+    .animate-fade-in-down,
+    .animate-slide-left,
+    .animate-slide-right,
+    .reveal,
+    .reveal-left,
+    .reveal-right {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+    }
+
+    .carousel-slide {
+        transition: none;
+    }
+}
+
+/* ========================================
+   RESPONSIVENESS
+   ======================================== */
+
+@media (max-width: 640px) {
+    #cart-sidebar {
+        width: 100vw;
+        max-width: 100vw;
+        border-left: none;
+    }
+}
+
+@media (max-width: 480px) {
+    #cart-sidebar {
+        width: 100vw;
+        height: 100vh;
+    }
+}
+
+/* Mobile filter sidebar */
+@media (max-width: 1023px) {
+    .filter-sidebar {
+        position: fixed;
+        top: 0;
+        left: -100%;
+        width: 80%;
+        max-width: 320px;
+        height: 100vh;
+        z-index: 50;
+        transition: left 0.3s ease;
+        overflow-y: auto;
+        background: white;
+    }
+
+    .filter-sidebar.open {
+        left: 0;
+    }
+}

@@ -1,0 +1,20 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+    --color-lab-bg: #FAFAFA;
+    --color-lab-surface: #FFFFFF;
+    --color-lab-ink: #111111;
+    --color-lab-muted: #666666;
+    --color-lab-border: #E5E5E5;
+    --color-lab-silver: #D1D5DB;
+    --color-lab-accent: #000000;
+}

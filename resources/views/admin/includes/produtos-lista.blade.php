@@ -1,0 +1,102 @@
+@forelse($produtos as $produto)
+<div class="border border-[var(--color-lab-border)] bg-white p-5">
+    <div class="flex justify-between items-start mb-3">
+        <div class="flex-1 min-w-0">
+            <div class="flex items-center space-x-3 mb-2">
+                @if($produto->imagens->count() > 0)
+                    <img src="{{ asset('storage/' . $produto->imagens->first()->caminho) }}" alt="{{ $produto->nome }}" class="w-10 h-10 object-cover flex-shrink-0 border border-[var(--color-lab-border)]">
+                @else
+                    <div class="w-10 h-10 bg-[var(--color-lab-bg)] border border-[var(--color-lab-border)] flex items-center justify-center flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-[var(--color-lab-muted)]"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                    </div>
+                @endif
+                <div class="flex-1 min-w-0">
+                    <h3 class="font-mono text-sm font-bold text-black truncate">{{ $produto->nome }}</h3>
+                    <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">{{ $produto->categoria->nome }}</p>
+                </div>
+            </div>
+            <p class="font-mono text-xs text-[var(--color-lab-muted)] line-clamp-2 mb-2">{{ Str::limit($produto->descricao, 60) }}</p>
+        </div>
+        <div class="flex space-x-1 ml-2 flex-shrink-0">
+            <button onclick="editarProduto({{ $produto->id }})" class="text-[var(--color-lab-muted)] hover:text-black p-1.5 border border-transparent hover:border-[var(--color-lab-border)] transition-colors" title="Editar produto">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+            </button>
+            @if($produto->destaque)
+                <button onclick="confirmarAlteracaoDestaque({{ $produto->id }}, 0, 'remover do destaque')" class="text-black p-1.5 border border-transparent hover:border-[var(--color-lab-border)] transition-colors" title="Remover do destaque">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                </button>
+            @else
+                <button onclick="confirmarAlteracaoDestaque({{ $produto->id }}, 1, 'adicionar ao destaque')" class="text-[var(--color-lab-muted)] hover:text-black p-1.5 border border-transparent hover:border-[var(--color-lab-border)] transition-colors" title="Adicionar ao destaque">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                </button>
+            @endif
+            @if($produto->ativo)
+                <button onclick="confirmarAlteracaoStatus({{ $produto->id }}, 0, 'desativar')" class="text-[var(--color-lab-muted)] hover:text-black p-1.5 border border-transparent hover:border-[var(--color-lab-border)] transition-colors" title="Desativar produto">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/></svg>
+                </button>
+            @else
+                <button onclick="confirmarAlteracaoStatus({{ $produto->id }}, 1, 'ativar')" class="text-[var(--color-lab-muted)] hover:text-black p-1.5 border border-transparent hover:border-[var(--color-lab-border)] transition-colors" title="Ativar produto">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+                </button>
+            @endif
+            <button onclick="confirmarExclusao({{ $produto->id }})" class="text-[var(--color-lab-muted)] hover:text-black p-1.5 border border-transparent hover:border-[var(--color-lab-border)] transition-colors" title="Excluir produto">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="space-y-2 border-t border-[var(--color-lab-border)] pt-3">
+        <!-- Preco -->
+        <div class="flex items-center justify-between">
+            <span class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Preco:</span>
+            @if($produto->em_promocao && $produto->desconto_percentual > 0)
+                <div class="text-right">
+                    <div class="font-mono text-sm font-bold text-black">R$ {{ number_format($produto->preco, 2, ',', '.') }}</div>
+                    <div class="font-mono text-[10px] text-[var(--color-lab-muted)] line-through">R$ {{ number_format($produto->preco_original, 2, ',', '.') }}</div>
+                    <div class="font-mono text-[10px] font-bold text-black">{{ $produto->desconto_percentual }}% OFF</div>
+                </div>
+            @else
+                <span class="font-mono text-sm font-bold text-black">R$ {{ number_format($produto->preco, 2, ',', '.') }}</span>
+            @endif
+        </div>
+
+        <!-- Estoque -->
+        <div class="flex items-center justify-between">
+            <span class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Estoque:</span>
+            <span class="font-mono text-sm font-bold text-black">{{ $produto->estoque }}</span>
+        </div>
+
+        <!-- Status e Destaque -->
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                @if($produto->ativo)
+                    <span class="inline-block px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest border border-black text-black">
+                        Ativo
+                    </span>
+                @else
+                    <span class="inline-block px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest border border-gray-300 text-gray-400">
+                        Inativo
+                    </span>
+                @endif
+
+                @if($produto->destaque)
+                    <span class="inline-block px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest bg-black text-white flex items-center space-x-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        <span>Destaque</span>
+                    </span>
+                @endif
+            </div>
+        </div>
+    </div>
+</div>
+@empty
+<div class="col-span-full border border-[var(--color-lab-border)] bg-white p-12 text-center">
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="mx-auto text-gray-300 mb-4"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+    <h3 class="font-mono text-sm font-bold uppercase tracking-widest text-black mb-2">Nenhum produto encontrado</h3>
+    <p class="font-mono text-xs text-[var(--color-lab-muted)] mb-6">Nenhum produto corresponde aos criterios de pesquisa.</p>
+    <button onclick="abrirModalProduto()" class="bg-black text-white px-5 py-2.5 text-xs font-bold tracking-widest uppercase hover:bg-gray-800 transition-colors inline-flex items-center space-x-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+        <span>Adicionar Primeiro Produto</span>
+    </button>
+</div>
+@endforelse
