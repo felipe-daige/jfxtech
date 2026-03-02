@@ -55,8 +55,16 @@
             </h3>
         </a>
 
-        @if($produto->descricao)
-            <p class="text-xs text-gray-500 mb-4 line-clamp-2 font-mono">{{ Str::limit($produto->descricao, 60) }}</p>
+        @if($produto->marca)
+            <span class="text-[9px] font-mono text-gray-400 uppercase tracking-widest -mt-1 mb-2 block">
+                {{ $produto->marca }}
+            </span>
+        @endif
+
+        @if($produto->descricao_curta ?? $produto->descricao)
+            <p class="text-xs text-gray-500 mb-4 line-clamp-2 font-mono">
+                {{ $produto->descricao_curta ?? Str::limit(strip_tags($produto->descricao), 120) }}
+            </p>
         @endif
 
         {{-- Price & Action --}}

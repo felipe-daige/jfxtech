@@ -13,7 +13,10 @@ class Produto extends Model
     protected $fillable = [
         'nome',
         'slug',
+        'marca',
         'descricao',
+        'descricao_curta',
+        'specs',
         'preco',
         'peso',
         'preco_original',
@@ -32,7 +35,8 @@ class Produto extends Model
         'em_promocao' => 'boolean',
         'destaque' => 'boolean',
         'estoque' => 'integer',
-        'ativo' => 'boolean'
+        'ativo' => 'boolean',
+        'specs' => 'array',
     ];
 
     /**

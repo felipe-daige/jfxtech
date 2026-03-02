@@ -3,6 +3,11 @@
     <div class="flex justify-between items-start mb-3">
         <div class="flex-1 min-w-0">
             <div class="flex items-center space-x-3 mb-2">
+                {{-- Checkbox de seleção --}}
+                <input type="checkbox"
+                       class="produto-checkbox w-4 h-4 cursor-pointer accent-black flex-shrink-0"
+                       data-id="{{ $produto->id }}"
+                       onclick="event.stopPropagation()">
                 @if($produto->imagens->count() > 0)
                     <img src="{{ asset('storage/' . $produto->imagens->first()->caminho) }}" alt="{{ $produto->nome }}" class="w-10 h-10 object-cover flex-shrink-0 border border-[var(--color-lab-border)]">
                 @else
@@ -17,31 +22,98 @@
             </div>
             <p class="font-mono text-xs text-[var(--color-lab-muted)] line-clamp-2 mb-2">{{ Str::limit($produto->descricao, 60) }}</p>
         </div>
-        <div class="flex space-x-1 ml-2 flex-shrink-0">
-            <button onclick="editarProduto({{ $produto->id }})" class="text-[var(--color-lab-muted)] hover:text-black p-1.5 border border-transparent hover:border-[var(--color-lab-border)] transition-colors" title="Editar produto">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+        <div class="relative ml-2 flex-shrink-0" id="menu-container-{{ $produto->id }}">
+            {{-- Botão três pontos --}}
+            <button
+                onclick="toggleProdutoMenu(event, {{ $produto->id }})"
+                class="w-8 h-8 flex items-center justify-center text-[var(--color-lab-muted)] hover:text-black border border-transparent hover:border-[var(--color-lab-border)] transition-colors"
+                title="Ações">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                     fill="currentColor"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
             </button>
-            @if($produto->destaque)
-                <button onclick="confirmarAlteracaoDestaque({{ $produto->id }}, 0, 'remover do destaque')" class="text-black p-1.5 border border-transparent hover:border-[var(--color-lab-border)] transition-colors" title="Remover do destaque">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+
+            {{-- Dropdown --}}
+            <div id="pdrop-{{ $produto->id }}"
+                 class="hidden fixed w-48 bg-white border border-[var(--color-lab-border)] shadow-lg z-50">
+
+                {{-- Visitar página --}}
+                <a href="{{ route('site.produto.detalhes', $produto->slug) }}"
+                   target="_blank"
+                   class="flex items-center space-x-2 px-3 py-2 text-xs font-mono text-[var(--color-lab-muted)] hover:text-black hover:bg-[var(--color-lab-bg)] transition-colors">
+                    <svg class="w-3.5 h-3.5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M15 3h6v6"/><path d="M10 14 21 3"/>
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                    </svg>
+                    <span>Visitar página</span>
+                </a>
+
+                {{-- Editar --}}
+                <button onclick="closeProdutoMenu({{ $produto->id }}); editarProduto({{ $produto->id }})"
+                        class="w-full flex items-center space-x-2 px-3 py-2 text-xs font-mono text-[var(--color-lab-muted)] hover:text-black hover:bg-[var(--color-lab-bg)] transition-colors">
+                    <svg class="w-3.5 h-3.5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/>
+                    </svg>
+                    <span>Editar</span>
                 </button>
-            @else
-                <button onclick="confirmarAlteracaoDestaque({{ $produto->id }}, 1, 'adicionar ao destaque')" class="text-[var(--color-lab-muted)] hover:text-black p-1.5 border border-transparent hover:border-[var(--color-lab-border)] transition-colors" title="Adicionar ao destaque">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+
+                {{-- Destaque (condicional) --}}
+                @if($produto->destaque)
+                    <button onclick="closeProdutoMenu({{ $produto->id }}); confirmarAlteracaoDestaque({{ $produto->id }}, 0, 'remover do destaque')"
+                            class="w-full flex items-center space-x-2 px-3 py-2 text-xs font-mono text-black hover:bg-[var(--color-lab-bg)] transition-colors">
+                        <svg class="w-3.5 h-3.5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                             fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                        <span>Remover destaque</span>
+                    </button>
+                @else
+                    <button onclick="closeProdutoMenu({{ $produto->id }}); confirmarAlteracaoDestaque({{ $produto->id }}, 1, 'adicionar ao destaque')"
+                            class="w-full flex items-center space-x-2 px-3 py-2 text-xs font-mono text-[var(--color-lab-muted)] hover:text-black hover:bg-[var(--color-lab-bg)] transition-colors">
+                        <svg class="w-3.5 h-3.5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                        <span>Adicionar destaque</span>
+                    </button>
+                @endif
+
+                {{-- Status (condicional) --}}
+                @if($produto->ativo)
+                    <button onclick="closeProdutoMenu({{ $produto->id }}); confirmarAlteracaoStatus({{ $produto->id }}, 0, 'desativar')"
+                            class="w-full flex items-center space-x-2 px-3 py-2 text-xs font-mono text-[var(--color-lab-muted)] hover:text-black hover:bg-[var(--color-lab-bg)] transition-colors">
+                        <svg class="w-3.5 h-3.5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/>
+                        </svg>
+                        <span>Desativar</span>
+                    </button>
+                @else
+                    <button onclick="closeProdutoMenu({{ $produto->id }}); confirmarAlteracaoStatus({{ $produto->id }}, 1, 'ativar')"
+                            class="w-full flex items-center space-x-2 px-3 py-2 text-xs font-mono text-[var(--color-lab-muted)] hover:text-black hover:bg-[var(--color-lab-bg)] transition-colors">
+                        <svg class="w-3.5 h-3.5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="6 3 20 12 6 21 6 3"/>
+                        </svg>
+                        <span>Ativar</span>
+                    </button>
+                @endif
+
+                {{-- Separador --}}
+                <div class="border-t border-[var(--color-lab-border)] my-1"></div>
+
+                {{-- Excluir (destrutivo) --}}
+                <button onclick="closeProdutoMenu({{ $produto->id }}); confirmarExclusao({{ $produto->id }})"
+                        class="w-full flex items-center space-x-2 px-3 py-2 text-xs font-mono text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors">
+                    <svg class="w-3.5 h-3.5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                    </svg>
+                    <span>Excluir</span>
                 </button>
-            @endif
-            @if($produto->ativo)
-                <button onclick="confirmarAlteracaoStatus({{ $produto->id }}, 0, 'desativar')" class="text-[var(--color-lab-muted)] hover:text-black p-1.5 border border-transparent hover:border-[var(--color-lab-border)] transition-colors" title="Desativar produto">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/></svg>
-                </button>
-            @else
-                <button onclick="confirmarAlteracaoStatus({{ $produto->id }}, 1, 'ativar')" class="text-[var(--color-lab-muted)] hover:text-black p-1.5 border border-transparent hover:border-[var(--color-lab-border)] transition-colors" title="Ativar produto">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
-                </button>
-            @endif
-            <button onclick="confirmarExclusao({{ $produto->id }})" class="text-[var(--color-lab-muted)] hover:text-black p-1.5 border border-transparent hover:border-[var(--color-lab-border)] transition-colors" title="Excluir produto">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
-            </button>
+            </div>
         </div>
     </div>
 
@@ -89,6 +161,43 @@
         </div>
     </div>
 </div>
+@once
+<script>
+function toggleProdutoMenu(event, id) {
+    event.stopPropagation();
+    const menu = document.getElementById('pdrop-' + id);
+    const isHidden = menu.classList.contains('hidden');
+
+    // Fecha todos os dropdowns abertos
+    document.querySelectorAll('[id^="pdrop-"]').forEach(m => m.classList.add('hidden'));
+
+    if (isHidden) {
+        // Posiciona no cursor
+        const x = event.clientX;
+        const y = event.clientY;
+        menu.style.left = x + 'px';
+        menu.style.top  = y + 'px';
+
+        // Ajuste para não sair da tela
+        menu.classList.remove('hidden');
+        const rect = menu.getBoundingClientRect();
+        if (rect.right > window.innerWidth)  menu.style.left = (x - rect.width) + 'px';
+        if (rect.bottom > window.innerHeight) menu.style.top = (y - rect.height) + 'px';
+    }
+}
+
+function closeProdutoMenu(id) {
+    document.getElementById('pdrop-' + id).classList.add('hidden');
+}
+
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('[id^="menu-container-"]')) {
+        document.querySelectorAll('[id^="pdrop-"]').forEach(m => m.classList.add('hidden'));
+    }
+});
+</script>
+@endonce
+
 @empty
 <div class="col-span-full border border-[var(--color-lab-border)] bg-white p-12 text-center">
     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="mx-auto text-gray-300 mb-4"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>

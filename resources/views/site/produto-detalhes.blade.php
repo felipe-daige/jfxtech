@@ -11,14 +11,14 @@
     <meta property="og:type" content="product">
     <meta property="og:site_name" content="JFXTECH">
     <meta property="og:title" content="{{ $produto->nome }} - JFXTECH">
-    <meta property="og:description" content="{{ Str::limit($produto->descricao, 160) }}">
+    <meta property="og:description" content="{{ $produto->descricao_curta ?? Str::limit(strip_tags($produto->descricao), 160) }}">
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:image" content="{{ $produto->imagemCapa ? url('storage/' . $produto->imagemCapa->caminho) : url('storage/images/jfxtech-link-preiew-opt.jpg') }}">
 
     {{-- Twitter Card --}}
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ $produto->nome }} - JFXTECH">
-    <meta name="twitter:description" content="{{ Str::limit($produto->descricao, 160) }}">
+    <meta name="twitter:description" content="{{ $produto->descricao_curta ?? Str::limit(strip_tags($produto->descricao), 160) }}">
     <meta name="twitter:image" content="{{ $produto->imagemCapa ? url('storage/' . $produto->imagemCapa->caminho) : url('storage/images/jfxtech-link-preiew-opt.jpg') }}">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -84,6 +84,10 @@
                     </div>
                     @endif
 
+                    @if($produto->marca)
+                        <p class="text-xs font-mono text-gray-500 uppercase tracking-widest mb-2">{{ $produto->marca }}</p>
+                    @endif
+
                     <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-4">{{ $produto->nome }}</h1>
 
                     {{-- Price --}}
@@ -97,7 +101,7 @@
                         @endif
                     </div>
 
-                    <p class="text-gray-600 mb-8 leading-relaxed">{{ $produto->descricao }}</p>
+                    <p class="text-gray-600 mb-8 leading-relaxed">{{ $produto->descricao_curta ?? Str::limit(strip_tags($produto->descricao), 200) }}</p>
 
                     {{-- Stock Status --}}
                     <div class="flex items-center gap-2 mb-6 font-mono text-sm">
@@ -173,7 +177,7 @@
         <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div class="bg-white border border-[var(--color-lab-border)] p-8">
                 <h3 class="font-mono text-xs font-bold uppercase tracking-widest mb-6 text-gray-500">DESCRIÇÃO DO PRODUTO</h3>
-                <p class="text-gray-700 leading-relaxed text-lg">{{ $produto->descricao }}</p>
+                <div class="text-gray-700 leading-relaxed text-lg prose max-w-none">{!! $produto->descricao !!}</div>
             </div>
         </section>
 
@@ -186,51 +190,87 @@
                     <p class="text-gray-400 font-mono text-sm max-w-2xl mx-auto">CADA DETALHE PROJETADO PARA MÁXIMA PERFORMANCE. SEM COMPROMISSOS.</p>
                 </div>
 
+                @php
+                    $specs_raw     = $produto->specs ?? [];
+                    $specs_validas = array_filter($specs_raw, fn($v) => $v !== null && $v !== '');
+                    $chaves        = array_keys($specs_validas);
+                    $mid           = (int) ceil(count($chaves) / 2);
+                    $esquerda      = array_slice($chaves, 0, $mid);
+                    $direita       = array_slice($chaves, $mid);
+                    $labels = [
+                        'sensor'       => 'Sensor',      'dpi_maximo'   => 'DPI Máximo',
+                        'switches'     => 'Switches',    'peso'         => 'Peso',
+                        'conexao'      => 'Conexão',     'polling_rate' => 'Polling Rate',
+                        'dimensoes'    => 'Dimensões',   'cabo'         => 'Cabo',
+                        'iluminacao'   => 'Iluminação',  'garantia'     => 'Garantia',
+                    ];
+                @endphp
+
+                @if(count($specs_validas) > 0)
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-12 items-center">
-                    {{-- Left Specs --}}
+                    {{-- Esquerda --}}
+                    <div class="space-y-6">
+                        @foreach($esquerda as $chave)
+                        <div class="flex flex-col items-end text-right">
+                            <p class="text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1">
+                                {{ $labels[$chave] ?? str_replace('_', ' ', $chave) }}
+                            </p>
+                            <h3 class="font-bold text-base">{{ $specs_validas[$chave] }}</h3>
+                        </div>
+                        @endforeach
+                    </div>
+                    {{-- Centro — imagem --}}
+                    <div class="relative aspect-square flex items-center justify-center">
+                        <div class="absolute inset-0 bg-gradient-to-b from-transparent via-gray-900/50 to-transparent rounded-full blur-3xl"></div>
+                        @if($produto->primeira_imagem)
+                            <img src="{{ asset('storage/' . $produto->primeira_imagem) }}"
+                                 alt="{{ $produto->nome }}"
+                                 class="relative z-10 w-3/4 object-contain opacity-80 mix-blend-screen" loading="lazy">
+                        @endif
+                    </div>
+                    {{-- Direita --}}
+                    <div class="space-y-6">
+                        @foreach($direita as $chave)
+                        <div class="flex flex-col items-start text-left">
+                            <p class="text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1">
+                                {{ $labels[$chave] ?? str_replace('_', ' ', $chave) }}
+                            </p>
+                            <h3 class="font-bold text-base">{{ $specs_validas[$chave] }}</h3>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+                @else
+                {{-- fallback: 4 bullets genéricos originais --}}
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-12 items-center">
                     <div class="space-y-12">
                         <div class="flex flex-col items-end text-right">
-                            <div class="w-12 h-12 rounded-full border border-gray-700 flex items-center justify-center mb-4">
-                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/></svg>
-                            </div>
                             <h3 class="font-bold text-lg mb-2">QUALIDADE PREMIUM</h3>
                             <p class="text-sm text-gray-400">Materiais de primeira linha selecionados para durabilidade máxima.</p>
                         </div>
                         <div class="flex flex-col items-end text-right">
-                            <div class="w-12 h-12 rounded-full border border-gray-700 flex items-center justify-center mb-4">
-                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="22" x2="18" y1="12" y2="12"/><line x1="6" x2="2" y1="12" y2="12"/><line x1="12" x2="12" y1="6" y2="2"/><line x1="12" x2="12" y1="22" y2="18"/></svg>
-                            </div>
                             <h3 class="font-bold text-lg mb-2">PRECISÃO ABSOLUTA</h3>
                             <p class="text-sm text-gray-400">Cada componente calibrado para desempenho de alto nível.</p>
                         </div>
                     </div>
-
-                    {{-- Center Product Image --}}
                     <div class="relative aspect-square flex items-center justify-center">
                         <div class="absolute inset-0 bg-gradient-to-b from-transparent via-gray-900/50 to-transparent rounded-full blur-3xl"></div>
                         @if($produto->primeira_imagem)
                             <img src="{{ asset('storage/' . $produto->primeira_imagem) }}" alt="{{ $produto->nome }}" class="relative z-10 w-3/4 object-contain opacity-80 mix-blend-screen" loading="lazy">
                         @endif
                     </div>
-
-                    {{-- Right Specs --}}
                     <div class="space-y-12">
                         <div class="flex flex-col items-start text-left">
-                            <div class="w-12 h-12 rounded-full border border-gray-700 flex items-center justify-center mb-4">
-                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                            </div>
                             <h3 class="font-bold text-lg mb-2">ALTA PERFORMANCE</h3>
                             <p class="text-sm text-gray-400">Projetado para entregar resultados superiores em todas as condições.</p>
                         </div>
                         <div class="flex flex-col items-start text-left">
-                            <div class="w-12 h-12 rounded-full border border-gray-700 flex items-center justify-center mb-4">
-                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
-                            </div>
                             <h3 class="font-bold text-lg mb-2">GARANTIA ESTENDIDA</h3>
                             <p class="text-sm text-gray-400">5 anos de garantia completa para sua total tranquilidade.</p>
                         </div>
                     </div>
                 </div>
+                @endif
             </div>
         </section>
 

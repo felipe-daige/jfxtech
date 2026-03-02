@@ -1,0 +1,52 @@
+name: laravel
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: laravel-app
+    restart: unless-stopped
+    volumes:
+      - ./:/var/www/html
+    networks:
+      - laravel-network
+      - proxy-network
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: laravel-worker
+    restart: unless-stopped
+    command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+    volumes:
+      - ./:/var/www/html
+    networks:
+      - laravel-network
+      - proxy-network
+    depends_on:
+      - app
+
+  webserver:
+    image: nginx:alpine
+    container_name: laravel-webserver
+    restart: unless-stopped
+    volumes:
+      - ./:/var/www/html
+      - ./nginx/conf.d:/etc/nginx/conf.d
+    networks:
+      - laravel-network
+      - proxy-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.laravel.rule=Host(`jfxtech.com.br`)"
+      - "traefik.http.routers.laravel.entrypoints=websecure"
+      - "traefik.http.routers.laravel.tls.certresolver=letsencrypt"
+      - "traefik.http.services.laravel.loadbalancer.server.port=80"
+
+networks:
+  laravel-network:
+    driver: bridge
+  proxy-network:
+    external: true

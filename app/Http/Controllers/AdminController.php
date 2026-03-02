@@ -79,10 +79,12 @@ class AdminController extends Controller
             }
         }
         
-        $produtos = $query->orderBy('created_at', 'desc')->paginate(10);
+        $perPage  = min((int) $request->get('per_page', 24), 96);
+        $viewMode = in_array($request->get('view_mode'), ['cards', 'lista']) ? $request->get('view_mode') : 'cards';
+        $produtos = $query->orderBy('created_at', 'desc')->paginate($perPage);
         $categorias = Categoria::all();
-        
-        return view('admin.produtos', compact('produtos', 'categorias'));
+
+        return view('admin.produtos', compact('produtos', 'categorias', 'perPage', 'viewMode'));
     }
 
     // Pesquisar produtos via AJAX
@@ -120,16 +122,19 @@ class AdminController extends Controller
             }
         }
         
-        $produtos = $query->orderBy('created_at', 'desc')->paginate(10);
-        
-        // Retornar HTML renderizado dos produtos
-        $html = view('admin.includes.produtos-lista', compact('produtos'))->render();
-        
+        $perPage  = min((int) $request->get('per_page', 24), 96);
+        $viewMode = in_array($request->get('view_mode'), ['cards', 'lista']) ? $request->get('view_mode') : 'cards';
+        $produtos = $query->orderBy('created_at', 'desc')->paginate($perPage);
+
+        $partial = $viewMode === 'lista' ? 'admin.includes.produtos-lista-linhas' : 'admin.includes.produtos-lista';
+        $html = view($partial, compact('produtos'))->render();
+
         return response()->json([
-            'html' => $html,
-            'total' => $produtos->total(),
+            'html'         => $html,
+            'total'        => $produtos->total(),
             'current_page' => $produtos->currentPage(),
-            'last_page' => $produtos->lastPage()
+            'last_page'    => $produtos->lastPage(),
+            'view_mode'    => $viewMode,
         ]);
     }
 
@@ -381,6 +386,114 @@ class AdminController extends Controller
         $produto->delete();
         
         return redirect()->route('admin.produtos')->with('success', 'Produto excluído com sucesso!');
+    }
+
+    // Excluir imagem individual de produto
+    public function excluirImagem($id)
+    {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Não autorizado'], 401);
+        }
+
+        try {
+            $imagem = ProdutoImagem::findOrFail($id);
+            $eraCapa = $imagem->capa;
+            $produtoId = $imagem->produto_id;
+
+            Storage::disk('public')->delete($imagem->caminho);
+            $imagem->delete();
+
+            // Se era capa, promover a imagem mais antiga restante
+            if ($eraCapa) {
+                $outra = ProdutoImagem::where('produto_id', $produtoId)->oldest()->first();
+                if ($outra) {
+                    $outra->update(['capa' => true]);
+                }
+            }
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    // Download de imagem individual de produto
+    public function downloadImagem($id)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('site.login');
+        }
+
+        $imagem = ProdutoImagem::findOrFail($id);
+
+        if (!Storage::disk('public')->exists($imagem->caminho)) {
+            abort(404, 'Arquivo não encontrado');
+        }
+
+        return Storage::disk('public')->download($imagem->caminho);
+    }
+
+    // Substituir imagem individual de produto
+    public function substituirImagem(Request $request, $id)
+    {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Não autorizado'], 401);
+        }
+
+        $request->validate([
+            'imagem' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ]);
+
+        $imagem = ProdutoImagem::findOrFail($id);
+        $eraCapa = $imagem->capa;
+
+        Storage::disk('public')->delete($imagem->caminho);
+
+        $novoCaminho = $request->file('imagem')->store('produtos', 'public');
+        $imagem->update(['caminho' => $novoCaminho]);
+
+        return response()->json([
+            'success' => true,
+            'url' => asset('storage/' . $novoCaminho),
+            'capa' => $eraCapa
+        ]);
+    }
+
+    public function bulkActionProdutos(Request $request)
+    {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Não autorizado'], 401);
+        }
+
+        $action = $request->input('action'); // 'delete' | 'ativar' | 'desativar'
+        $ids    = $request->input('ids', []);
+
+        if (empty($ids) || !in_array($action, ['delete', 'ativar', 'desativar'])) {
+            return response()->json(['error' => 'Requisição inválida'], 422);
+        }
+
+        $count = count($ids);
+
+        switch ($action) {
+            case 'delete':
+                $produtos = Produto::with('imagens')->whereIn('id', $ids)->get();
+                foreach ($produtos as $produto) {
+                    foreach ($produto->imagens as $imagem) {
+                        Storage::disk('public')->delete($imagem->caminho);
+                        $imagem->delete();
+                    }
+                    $produto->delete();
+                }
+                break;
+            case 'ativar':
+                Produto::whereIn('id', $ids)->update(['ativo' => 1]);
+                break;
+            case 'desativar':
+                Produto::whereIn('id', $ids)->update(['ativo' => 0]);
+                break;
+        }
+
+        return response()->json(['success' => true, 'count' => $count]);
     }
 
     // Gerenciar pedidos

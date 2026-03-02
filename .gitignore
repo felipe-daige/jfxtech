@@ -26,3 +26,4 @@ Thumbs.db
 /.cursor
 *.rar
 CLAUDE.md
+/imports/node_modules

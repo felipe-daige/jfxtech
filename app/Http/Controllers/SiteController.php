@@ -27,6 +27,14 @@ class SiteController extends Controller
             ->limit(3)
             ->get();
 
+        if ($produtos_destaque->isEmpty()) {
+            $produtos_destaque = Produto::where('ativo', true)
+                ->with(['imagens', 'categoria'])
+                ->latest()
+                ->limit(3)
+                ->get();
+        }
+
         return view('site.index', compact('produtos_destaque'));
     }
 

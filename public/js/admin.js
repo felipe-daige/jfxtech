@@ -1,6 +1,8 @@
 // Admin JavaScript - JFXTECH
 // JavaScript consolidado para o painel administrativo
 
+let _pendingRemoverImagemId = null;
+
 $(document).ready(function() {
     // Inicializar máscara de dinheiro para produtos
     $('#preco').maskMoney({
@@ -53,7 +55,11 @@ function abrirModalProduto() {
     document.getElementById('formMethod').innerHTML = '';
     document.getElementById('produtoId').value = '';
     document.getElementById('formProduto').reset();
-    
+
+    // Limpar preview de novas imagens
+    const prevAbrir = document.getElementById('novasImagensPreview');
+    if (prevAbrir) { prevAbrir.innerHTML = ''; prevAbrir.classList.add('hidden'); }
+
     // Limpar imagens existentes
     limparImagensExistentes();
     
@@ -144,52 +150,82 @@ function editarProduto(id) {
 
 function fecharModalProduto() {
     document.getElementById('modalProduto').classList.add('hidden');
+    const prev = document.getElementById('novasImagensPreview');
+    if (prev) { prev.innerHTML = ''; prev.classList.add('hidden'); }
 }
 
 function mostrarImagensExistentes(imagens) {
-    const container = document.getElementById('imagensExistentes');
+    let container = document.getElementById('imagensExistentes');
     if (!container) {
-        // Criar container se não existir
-        const div = document.createElement('div');
-        div.id = 'imagensExistentes';
-        div.className = 'mt-4';
-        div.innerHTML = '<h4 class="text-sm font-medium text-gray-700 mb-2">Imagens Atuais:</h4>';
-        // Procurar pela div com padding que contém os campos do formulário
+        container = document.createElement('div');
+        container.id = 'imagensExistentes';
+        container.className = 'mt-5';
         const formContainer = document.getElementById('formProduto').querySelector('.p-4, .lg\\:p-6');
         if (formContainer) {
-            formContainer.appendChild(div);
+            formContainer.appendChild(container);
         } else {
-            // Fallback: adicionar ao final do formulário
-            document.getElementById('formProduto').appendChild(div);
+            document.getElementById('formProduto').appendChild(container);
         }
     }
-    
-    let html = '<h4 class="text-sm font-medium text-gray-700 mb-2">Imagens Atuais:</h4>';
+
+    let html = '<p class="font-mono text-[10px] uppercase tracking-widest text-gray-400 mb-2">Imagens Atuais</p>';
     if (imagens && imagens.length > 0) {
-        html += '<div class="grid grid-cols-2 gap-2">';
-        imagens.forEach((imagem, index) => {
-            const isCapa = imagem.capa; // Usar informação do banco de dados
+        html += '<div class="grid grid-cols-3 gap-2">';
+        imagens.forEach((imagem) => {
+            const isCapa = imagem.capa;
             html += `
-                <div class="relative">
-                    <img src="${imagem.url}" alt="Imagem do produto" class="w-full h-20 object-cover rounded-lg border ${isCapa ? 'ring-2 ring-red-500' : ''}">
-                    <div class="absolute top-1 left-1">
-                        <button type="button" onclick="definirCapa(${imagem.id})" class="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-blue-600 ${isCapa ? 'bg-green-500 hover:bg-green-600' : ''}" title="${isCapa ? 'Imagem de capa' : 'Definir como capa'}">
-                            ${isCapa ? '✓' : '★'}
+                <div id="img-container-${imagem.id}" class="border ${isCapa ? 'border-black' : 'border-gray-200'} flex flex-col">
+                    <div class="img-wrapper relative overflow-hidden">
+                        <img src="${imagem.url}" alt="Imagem do produto"
+                             class="w-full h-20 object-cover block cursor-zoom-in"
+                             onclick="verImagemExpandida('${imagem.url}')">
+                        ${isCapa ? '<span class="capa-label absolute top-0 left-0 bg-black text-white text-[8px] font-mono uppercase tracking-widest px-1.5 py-0.5 leading-none">CAPA</span>' : ''}
+                    </div>
+                    <div class="flex border-t border-gray-200 divide-x divide-gray-200">
+                        <button type="button" onclick="definirCapa(${imagem.id})"
+                                class="btn-capa flex-1 py-1.5 text-xs transition-colors ${isCapa ? 'bg-black text-white' : 'text-gray-400 hover:bg-gray-100 hover:text-black'}"
+                                data-tooltip="${isCapa ? 'Capa atual' : 'Usar como capa'}">★</button>
+                        <button type="button" onclick="downloadImagem(${imagem.id})"
+                                class="flex-1 py-1.5 text-xs text-gray-400 hover:bg-gray-100 hover:text-black transition-colors"
+                                data-tooltip="Baixar imagem">↓</button>
+                        <button type="button" onclick="substituirImagem(${imagem.id})"
+                                class="btn-substituir flex-1 py-1.5 text-xs text-gray-400 hover:bg-gray-100 hover:text-black transition-colors"
+                                data-tooltip="Alterar imagem">✎</button>
+                        <button type="button" onclick="removerImagemExistente(${imagem.id})"
+                                class="flex-1 py-1.5 text-xs text-red-400 hover:bg-red-500 hover:text-white transition-colors"
+                                data-tooltip="Excluir imagem">✕</button>
+                    </div>
+                    <div id="substituir-form-${imagem.id}" class="hidden border-t border-gray-200 p-2 bg-gray-50">
+                        <input type="file" id="substituir-file-${imagem.id}"
+                               accept="image/jpeg,image/png,image/jpg,image/gif"
+                               onchange="mostrarPreviewSubstituir(${imagem.id}, this)"
+                               class="w-full text-[10px] font-mono mb-1.5
+                                      file:mr-2 file:py-0.5 file:px-2 file:border-0
+                                      file:text-[10px] file:font-mono file:font-bold
+                                      file:uppercase file:tracking-wide
+                                      file:bg-black file:text-white file:cursor-pointer">
+                        <div class="relative hidden mt-1.5" id="preview-wrapper-${imagem.id}">
+                            <img id="preview-substituir-${imagem.id}" src=""
+                                 class="w-full h-16 object-cover border border-[var(--color-lab-border)]">
+                            <button type="button" onclick="cancelarSubstituir(${imagem.id})"
+                                    class="absolute top-0.5 right-0.5 bg-black/60 text-white text-[10px] leading-none w-4 h-4 flex items-center justify-center hover:bg-black transition-colors"
+                                    title="Cancelar seleção">&#x2715;</button>
+                        </div>
+                        <button type="button" onclick="confirmarSubstituir(${imagem.id})"
+                                class="w-full bg-black text-white text-[10px] font-mono uppercase tracking-widest py-1.5 hover:bg-gray-800 transition-colors mt-1.5">
+                            Confirmar
                         </button>
                     </div>
-                    <button type="button" onclick="removerImagemExistente(${imagem.id})" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600">
-                        ×
-                    </button>
                 </div>
             `;
         });
         html += '</div>';
         html += '<input type="hidden" id="imagemCapaId" name="imagem_capa_id" value="">';
     } else {
-        html += '<p class="text-gray-500 text-sm">Nenhuma imagem cadastrada</p>';
+        html += '<p class="text-gray-400 text-xs font-mono">Nenhuma imagem cadastrada</p>';
     }
-    
-    document.getElementById('imagensExistentes').innerHTML = html;
+
+    container.innerHTML = html;
 }
 
 function limparImagensExistentes() {
@@ -199,46 +235,129 @@ function limparImagensExistentes() {
     }
 }
 
+function verImagemExpandida(url) {
+    document.getElementById('lightboxImg').src = url;
+    document.getElementById('lightboxImagem').classList.remove('hidden');
+}
+
+function fecharLightbox() {
+    document.getElementById('lightboxImagem').classList.add('hidden');
+    document.getElementById('lightboxImg').src = '';
+}
+
 function definirCapa(imagemId) {
-    // Remover destaque de todas as imagens
-    const imagens = document.querySelectorAll('#imagensExistentes img');
-    imagens.forEach(img => {
-        img.classList.remove('ring-2', 'ring-red-500');
-    });
-    
-    // Destacar a imagem selecionada
-    const imagemSelecionada = document.querySelector(`button[onclick="definirCapa(${imagemId})"]`).closest('.relative').querySelector('img');
-    imagemSelecionada.classList.add('ring-2', 'ring-red-500');
-    
-    // Atualizar botões de capa
-    const botoesCapa = document.querySelectorAll('#imagensExistentes button[onclick^="definirCapa"]');
-    botoesCapa.forEach(botao => {
-        const isSelected = botao.getAttribute('onclick').includes(imagemId);
-        if (isSelected) {
-            botao.className = botao.className.replace('bg-blue-500 hover:bg-blue-600', 'bg-green-500 hover:bg-green-600');
-            botao.innerHTML = '✓';
-            botao.title = 'Imagem de capa';
-        } else {
-            botao.className = botao.className.replace('bg-green-500 hover:bg-green-600', 'bg-blue-500 hover:bg-blue-600');
-            botao.innerHTML = '★';
-            botao.title = 'Definir como capa';
+    // Reset todos os cards
+    document.querySelectorAll('#imagensExistentes [id^="img-container-"]').forEach(card => {
+        card.classList.remove('border-black');
+        card.classList.add('border-gray-200');
+
+        const label = card.querySelector('.capa-label');
+        if (label) label.remove();
+
+        const btn = card.querySelector('.btn-capa');
+        if (btn) {
+            btn.classList.remove('bg-black', 'text-white');
+            btn.classList.add('text-gray-400', 'hover:bg-gray-100', 'hover:text-black');
+            btn.dataset.tooltip = 'Usar como capa';
         }
     });
-    
-    // Definir a imagem de capa no campo hidden
+
+    // Marcar card selecionado
+    const selected = document.getElementById(`img-container-${imagemId}`);
+    if (selected) {
+        selected.classList.remove('border-gray-200');
+        selected.classList.add('border-black');
+
+        const imgWrapper = selected.querySelector('.img-wrapper');
+        if (imgWrapper) {
+            const label = document.createElement('span');
+            label.className = 'capa-label absolute top-0 left-0 bg-black text-white text-[8px] font-mono uppercase tracking-widest px-1.5 py-0.5 leading-none';
+            label.textContent = 'CAPA';
+            imgWrapper.appendChild(label);
+        }
+
+        const btn = selected.querySelector('.btn-capa');
+        if (btn) {
+            btn.classList.remove('text-gray-400', 'hover:bg-gray-100', 'hover:text-black');
+            btn.classList.add('bg-black', 'text-white');
+            btn.dataset.tooltip = 'Capa atual';
+        }
+    }
+
     document.getElementById('imagemCapaId').value = imagemId;
 }
 
 function removerImagemExistente(imagemId) {
-    if (confirm('Tem certeza que deseja remover esta imagem?')) {
-        // Aqui você implementaria a remoção da imagem
-        // Por enquanto, apenas remove do DOM
-        const container = document.getElementById('imagensExistentes');
-        if (container) {
-            const imgElement = container.querySelector(`button[onclick="removerImagemExistente(${imagemId})"]`).closest('.relative');
-            imgElement.remove();
+    _pendingRemoverImagemId = imagemId;
+    document.getElementById('modalConfirmacaoRemoverImagem').classList.remove('hidden');
+}
+
+function fecharModalRemoverImagem() {
+    _pendingRemoverImagemId = null;
+    document.getElementById('modalConfirmacaoRemoverImagem').classList.add('hidden');
+}
+
+function _executarRemocaoImagem(imagemId) {
+    fetch(`${window.baseUrl}/admin/produtos/imagens/${imagemId}/excluir`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json'
         }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            const el = document.getElementById(`img-container-${imagemId}`);
+            if (el) el.remove();
+        } else {
+            alert('Erro ao remover imagem.' + (data.message || data.error ? '\n' + (data.message || data.error) : ''));
+        }
+    })
+    .catch(() => alert('Erro ao remover imagem.'));
+}
+
+function downloadImagem(imagemId) {
+    window.location.href = `${window.baseUrl}/admin/produtos/imagens/${imagemId}/download`;
+}
+
+function substituirImagem(imagemId) {
+    const form = document.getElementById(`substituir-form-${imagemId}`);
+    if (form) {
+        form.classList.toggle('hidden');
     }
+}
+
+function confirmarSubstituir(imagemId) {
+    const fileInput = document.getElementById(`substituir-file-${imagemId}`);
+    if (!fileInput || !fileInput.files[0]) {
+        alert('Selecione um arquivo de imagem.');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('imagem', fileInput.files[0]);
+    formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
+
+    fetch(`${window.baseUrl}/admin/produtos/imagens/${imagemId}/substituir`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            const container = document.getElementById(`img-container-${imagemId}`);
+            if (container) {
+                const img = container.querySelector('img');
+                if (img) img.src = data.url + '?t=' + Date.now();
+            }
+            const form = document.getElementById(`substituir-form-${imagemId}`);
+            if (form) form.classList.add('hidden');
+        } else {
+            alert('Erro ao substituir imagem.');
+        }
+    })
+    .catch(() => alert('Erro ao substituir imagem.'));
 }
 
 // ===== FUNÇÕES DE PROMOÇÃO =====
@@ -460,6 +579,8 @@ function fecharModalConfirmacao() {
     document.getElementById('modalConfirmacaoExclusao').classList.add('hidden');
     document.getElementById('modalConfirmacaoDestaque').classList.add('hidden');
     document.getElementById('modalConfirmacaoStatus').classList.add('hidden');
+    const modalRemover = document.getElementById('modalConfirmacaoRemoverImagem');
+    if (modalRemover) modalRemover.classList.add('hidden');
     
     // Limpar variáveis
     produtoIdExclusao = null;
@@ -578,4 +699,117 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    const modalConfirmacaoRemoverImagem = document.getElementById('modalConfirmacaoRemoverImagem');
+    if (modalConfirmacaoRemoverImagem) {
+        modalConfirmacaoRemoverImagem.addEventListener('click', function(e) {
+            if (e.target === this) {
+                fecharModalRemoverImagem();
+            }
+        });
+    }
+
+    const btnConfirmarRemoverImagem = document.getElementById('confirmarRemoverImagem');
+    if (btnConfirmarRemoverImagem) {
+        btnConfirmarRemoverImagem.addEventListener('click', function() {
+            const imagemId = _pendingRemoverImagemId;
+            fecharModalRemoverImagem();
+            if (imagemId) _executarRemocaoImagem(imagemId);
+        });
+    }
+
+    const lightbox = document.getElementById('lightboxImagem');
+    if (lightbox) {
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !lightbox.classList.contains('hidden')) {
+                fecharLightbox();
+            }
+        });
+    }
+
+    // Preview de novas imagens
+    const inputImagens = document.getElementById('imagens');
+    const previewContainer = document.getElementById('novasImagensPreview');
+    if (inputImagens && previewContainer) {
+        inputImagens.addEventListener('change', function() {
+            previewContainer.innerHTML = '';
+            if (!this.files.length) {
+                previewContainer.classList.add('hidden');
+                return;
+            }
+            previewContainer.classList.remove('hidden');
+            Array.from(this.files).forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const card = document.createElement('div');
+                    card.className = 'relative border border-[var(--color-lab-border)] overflow-hidden';
+                    card.innerHTML = `
+                        <img src="${e.target.result}" class="w-full h-20 object-cover block">
+                        <p class="font-mono text-[9px] text-[var(--color-lab-muted)] px-1 py-0.5 truncate">${file.name}</p>
+                        <button type="button" onclick="removerNovaImagem(${index})"
+                                class="absolute top-0.5 right-0.5 bg-black/60 text-white text-[10px] leading-none w-4 h-4 flex items-center justify-center hover:bg-black transition-colors"
+                                title="Remover">&#x2715;</button>
+                    `;
+                    previewContainer.appendChild(card);
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+    }
 });
+
+function removerNovaImagem(index) {
+    const input = document.getElementById('imagens');
+    const dt = new DataTransfer();
+    Array.from(input.files).forEach((file, i) => {
+        if (i !== index) dt.items.add(file);
+    });
+    input.files = dt.files;
+    input.dispatchEvent(new Event('change'));
+}
+
+function cancelarSubstituir(imagemId) {
+    const fileInput = document.getElementById(`substituir-file-${imagemId}`);
+    if (fileInput) fileInput.value = '';
+    const wrapper = document.getElementById(`preview-wrapper-${imagemId}`);
+    if (wrapper) {
+        wrapper.classList.add('hidden');
+        const preview = wrapper.querySelector('img');
+        if (preview) preview.src = '';
+    }
+}
+
+function mostrarPreviewSubstituir(imagemId, input) {
+    const wrapper = document.getElementById(`preview-wrapper-${imagemId}`);
+    const preview = document.getElementById(`preview-substituir-${imagemId}`);
+    if (!wrapper || !preview || !input.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        preview.src = e.target.result;
+        wrapper.classList.remove('hidden');
+    };
+    reader.readAsDataURL(input.files[0]);
+}
+
+// Tooltip singleton — bypassa overflow de qualquer ancestral
+(function () {
+    var tip = document.createElement('div');
+    tip.id = 'admin-tooltip';
+    document.body.appendChild(tip);
+
+    document.addEventListener('mouseover', function (e) {
+        var el = e.target.closest('[data-tooltip]');
+        if (!el) return;
+        var r = el.getBoundingClientRect();
+        tip.textContent = el.dataset.tooltip;
+        tip.style.left = (r.left + r.width / 2) + 'px';
+        tip.style.top  = (r.top - 3) + 'px';
+        tip.style.opacity = '1';
+    });
+
+    document.addEventListener('mouseout', function (e) {
+        var el = e.target.closest('[data-tooltip]');
+        if (!el) return;
+        if (!el.contains(e.relatedTarget)) tip.style.opacity = '0';
+    });
+})();

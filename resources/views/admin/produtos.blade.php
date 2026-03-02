@@ -73,9 +73,115 @@
         </div>
     </div>
 
+    {{-- Barra de Resultados / View Toolbar --}}
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3
+                py-3 border-b border-[var(--color-lab-border)]">
+
+        {{-- Contador + Select-all --}}
+        <div class="flex items-center gap-3">
+            <label class="flex items-center gap-2 cursor-pointer group" title="Selecionar todos">
+                <input type="checkbox" id="selectAll"
+                       class="w-4 h-4 cursor-pointer accent-black flex-shrink-0">
+                <span class="font-mono text-[10px] uppercase tracking-widest
+                             text-[var(--color-lab-muted)] group-hover:text-black transition-colors
+                             select-none hidden sm:inline">Todos</span>
+            </label>
+            <div class="w-px h-3 bg-[var(--color-lab-border)]" aria-hidden="true"></div>
+            <span id="resultTotal"
+                  class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">
+                {{ $produtos->total() }} {{ $produtos->total() === 1 ? 'produto' : 'produtos' }}
+            </span>
+        </div>
+
+        {{-- Controles --}}
+        <div class="flex items-center">
+
+            {{-- Select per-page --}}
+            <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mr-2 hidden sm:inline"
+                   for="per_page">Por página</label>
+            <select id="per_page"
+                    class="h-9 px-2 border border-[var(--color-lab-border)] bg-white font-mono text-[10px] uppercase tracking-widest text-black focus:outline-none focus:ring-1 focus:ring-black">
+                @foreach([12, 24, 48, 96] as $opt)
+                    <option value="{{ $opt }}" {{ $perPage == $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                @endforeach
+            </select>
+
+            {{-- Separador vertical --}}
+            <div class="w-px h-5 bg-[var(--color-lab-border)] mx-4" aria-hidden="true"></div>
+
+            {{-- View toggle --}}
+            <div class="flex items-center border border-[var(--color-lab-border)]"
+                 role="group" aria-label="Modo de visualização">
+
+                <button type="button" data-view="cards"
+                        class="view-toggle-btn h-9 px-3 font-mono text-[10px] uppercase tracking-widest
+                               border-r border-[var(--color-lab-border)] transition-colors
+                               focus:outline-none focus:ring-1 focus:ring-black focus:ring-inset
+                               {{ $viewMode === 'cards' ? 'bg-black text-white' : 'bg-white text-[var(--color-lab-muted)] hover:text-black hover:bg-[var(--color-lab-bg)]' }}"
+                        aria-pressed="{{ $viewMode === 'cards' ? 'true' : 'false' }}"
+                        aria-label="Visualização em cards">
+                    Cards
+                </button>
+
+                <button type="button" data-view="lista"
+                        class="view-toggle-btn h-9 px-3 font-mono text-[10px] uppercase tracking-widest
+                               transition-colors
+                               focus:outline-none focus:ring-1 focus:ring-black focus:ring-inset
+                               {{ $viewMode === 'lista' ? 'bg-black text-white' : 'bg-white text-[var(--color-lab-muted)] hover:text-black hover:bg-[var(--color-lab-bg)]' }}"
+                        aria-pressed="{{ $viewMode === 'lista' ? 'true' : 'false' }}"
+                        aria-label="Visualização em lista">
+                    Lista
+                </button>
+
+            </div>
+        </div>
+    </div>
+
+    {{-- Barra de seleção (aparece quando há itens marcados) --}}
+    <div id="selectionBar" class="hidden items-center justify-between
+         py-2.5 px-3 mt-3 border border-[var(--color-lab-border)] bg-[var(--color-lab-bg)]">
+        <span id="selectionCount"
+              class="font-mono text-[10px] uppercase tracking-widest text-black">
+            0 selecionados
+        </span>
+        <div class="flex items-center gap-2">
+            <button onclick="bulkAction('ativar')"
+                    class="h-7 px-3 font-mono text-[10px] uppercase tracking-widest
+                           border border-[var(--color-lab-border)] bg-white
+                           hover:bg-black hover:text-white hover:border-black transition-colors">
+                Ativar
+            </button>
+            <button onclick="bulkAction('desativar')"
+                    class="h-7 px-3 font-mono text-[10px] uppercase tracking-widest
+                           border border-[var(--color-lab-border)] bg-white
+                           hover:bg-black hover:text-white hover:border-black transition-colors">
+                Desativar
+            </button>
+            <button onclick="bulkAction('delete')"
+                    class="h-7 px-3 font-mono text-[10px] uppercase tracking-widest
+                           border border-red-300 text-red-500 bg-white
+                           hover:bg-red-500 hover:text-white hover:border-red-500 transition-colors">
+                Excluir
+            </button>
+            <button onclick="limparSelecao()"
+                    class="h-7 px-3 font-mono text-[10px] uppercase tracking-widest
+                           text-[var(--color-lab-muted)] hover:text-black transition-colors">
+                &#x2715; Limpar
+            </button>
+        </div>
+    </div>
+
     <!-- Lista de Produtos -->
-    <div id="produtosContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
-        @include('admin.includes.produtos-lista', ['produtos' => $produtos])
+    @php
+        $containerClass = $viewMode === 'lista'
+            ? 'border-t border-[var(--color-lab-border)] bg-white'
+            : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6';
+        $partial = $viewMode === 'lista'
+            ? 'admin.includes.produtos-lista-linhas'
+            : 'admin.includes.produtos-lista';
+    @endphp
+    <div id="produtosContainer" class="{{ $containerClass }}">
+        @include($partial, ['produtos' => $produtos])
     </div>
 
     <!-- Paginacao -->
@@ -228,6 +334,7 @@
                         <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Imagens</label>
                         <input type="file" name="imagens[]" id="imagens" multiple accept="image/*" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black file:mr-4 file:py-1 file:px-3 file:border-0 file:text-xs file:font-mono file:font-bold file:uppercase file:tracking-widest file:bg-black file:text-white">
                         <p class="font-mono text-[10px] text-[var(--color-lab-muted)] mt-1">Selecione uma ou mais imagens (maximo 2MB cada)</p>
+                        <div id="novasImagensPreview" class="hidden mt-3 grid grid-cols-3 gap-2"></div>
                     </div>
 
                 </div>
@@ -243,6 +350,12 @@
             </form>
         </div>
     </div>
+</div>
+
+<!-- Lightbox de imagem -->
+<div id="lightboxImagem" class="fixed inset-0 bg-black/80 hidden z-[60] flex items-center justify-center p-4" onclick="fecharLightbox()">
+    <button onclick="fecharLightbox()" class="absolute top-4 right-4 text-white text-2xl font-mono leading-none hover:text-gray-300">✕</button>
+    <img id="lightboxImg" src="" alt="" class="max-h-[90vh] max-w-[90vw] object-contain" onclick="event.stopPropagation()">
 </div>
 
 <!-- Modal de Confirmacao de Exclusao -->
@@ -326,6 +439,33 @@
     </div>
 </div>
 
+<!-- Modal de Confirmacao de Remocao de Imagem -->
+<div id="modalConfirmacaoRemoverImagem" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-[60]">
+    <div class="flex items-center justify-center min-h-screen p-2 sm:p-4">
+        <div class="bg-white border border-[var(--color-lab-border)] w-full max-w-md" onclick="event.stopPropagation()">
+            <div class="p-6">
+                <div class="flex items-center justify-center mb-4">
+                    <div class="w-10 h-10 border border-black flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <h3 class="font-mono text-sm font-bold uppercase tracking-widest text-black mb-2">Remover Imagem</h3>
+                    <p class="font-mono text-xs text-[var(--color-lab-muted)] mb-6">Tem certeza que deseja remover esta imagem? Esta acao nao pode ser desfeita.</p>
+                    <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
+                        <button onclick="fecharModalRemoverImagem()" class="flex-1 px-5 py-2.5 text-xs font-bold tracking-widest uppercase border border-[var(--color-lab-border)] text-black hover:bg-gray-50 transition-colors">
+                            Cancelar
+                        </button>
+                        <button id="confirmarRemoverImagem" class="flex-1 bg-black text-white px-5 py-2.5 text-xs font-bold tracking-widest uppercase hover:bg-gray-800 transition-colors">
+                            Remover
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 <script>
@@ -337,8 +477,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const produtosContainer = document.getElementById('produtosContainer');
     let searchTimeout;
     let isSearching = false;
+    let currentViewMode = '{{ $viewMode }}';
 
     // Funcao para realizar a pesquisa via AJAX
+    window.realizarPesquisa = realizarPesquisa;
     function realizarPesquisa() {
         if (isSearching) return;
 
@@ -349,12 +491,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const termo = pesquisaInput.value.trim();
         const status = statusSelect.value;
         const destaque = destaqueSelect.value;
+        const perPage = document.getElementById('per_page').value;
 
         // Fazer requisicao AJAX
         const url = new URL('{{ route("admin.produtos.search") }}', window.location.origin);
         if (termo) url.searchParams.set('pesquisa', termo);
         if (status) url.searchParams.set('status', status);
         if (destaque) url.searchParams.set('destaque', destaque);
+        url.searchParams.set('per_page', perPage);
+        url.searchParams.set('view_mode', currentViewMode);
 
         fetch(url.toString(), {
             method: 'GET',
@@ -365,8 +510,23 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => response.json())
         .then(data => {
+            // Atualizar classe do container conforme view_mode
+            const isLista = data.view_mode === 'lista';
+            produtosContainer.className = isLista
+                ? 'border-t border-[var(--color-lab-border)] bg-white'
+                : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6';
+
             // Atualizar o container com os novos produtos
             produtosContainer.innerHTML = data.html;
+
+            // Limpar seleção após refresh da lista
+            if (typeof limparSelecao === 'function') limparSelecao();
+
+            // Atualizar contagem de resultados
+            const totalEl = document.getElementById('resultTotal');
+            if (totalEl) {
+                totalEl.textContent = data.total + (data.total === 1 ? ' produto' : ' produtos');
+            }
 
             // Atualizar URL sem recarregar a pagina
             const currentUrl = new URL(window.location);
@@ -385,6 +545,8 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 currentUrl.searchParams.delete('destaque');
             }
+            currentUrl.searchParams.set('per_page', perPage);
+            currentUrl.searchParams.set('view_mode', currentViewMode);
             window.history.pushState({}, '', currentUrl);
         })
         .catch(error => {
@@ -400,19 +562,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Event listener para o campo de pesquisa
     pesquisaInput.addEventListener('input', function() {
-        // Limpar timeout anterior
         clearTimeout(searchTimeout);
-
-        // Mostrar indicador de carregamento
         loadingIndicator.classList.remove('hidden');
-
-        // Definir novo timeout para evitar muitas requisicoes
         searchTimeout = setTimeout(function() {
             realizarPesquisa();
         }, 300);
     });
 
-    // Event listeners para os filtros
+    // Event listeners para os filtros de status e destaque
     statusSelect.addEventListener('change', function() {
         clearTimeout(searchTimeout);
         loadingIndicator.classList.remove('hidden');
@@ -427,6 +584,30 @@ document.addEventListener('DOMContentLoaded', function() {
         searchTimeout = setTimeout(function() {
             realizarPesquisa();
         }, 300);
+    });
+
+    // Per-page select
+    document.getElementById('per_page').addEventListener('change', function() {
+        clearTimeout(searchTimeout);
+        realizarPesquisa();
+    });
+
+    // Event listeners para os botoes de view toggle
+    document.querySelectorAll('.view-toggle-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            currentViewMode = this.dataset.view;
+
+            // Atualiza visual dos botoes
+            document.querySelectorAll('.view-toggle-btn').forEach(b => {
+                const isActive = b.dataset.view === currentViewMode;
+                b.classList.toggle('bg-black', isActive);
+                b.classList.toggle('text-white', isActive);
+                b.classList.toggle('bg-white', !isActive);
+                b.classList.toggle('text-[var(--color-lab-muted)]', !isActive);
+            });
+
+            realizarPesquisa();
+        });
     });
 
     // Event listener para Enter (pesquisa imediata)
@@ -449,4 +630,92 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+</script>
+
+<script>
+// === SISTEMA DE SELEÇÃO EM MASSA ===
+let selectedIds = new Set();
+
+// Event delegation no container (sobrevive ao AJAX innerHTML replace)
+document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('produtosContainer').addEventListener('change', function (e) {
+        if (!e.target.classList.contains('produto-checkbox')) return;
+        const id = e.target.dataset.id;
+        if (e.target.checked) selectedIds.add(id);
+        else selectedIds.delete(id);
+        atualizarEstadoSelecao();
+    });
+
+    document.getElementById('selectAll').addEventListener('change', function () {
+        const checkboxes = document.querySelectorAll('.produto-checkbox');
+        checkboxes.forEach(cb => {
+            cb.checked = this.checked;
+            if (this.checked) selectedIds.add(cb.dataset.id);
+            else selectedIds.delete(cb.dataset.id);
+        });
+        atualizarEstadoSelecao();
+    });
+});
+
+function atualizarEstadoSelecao() {
+    const count = selectedIds.size;
+    const total = document.querySelectorAll('.produto-checkbox').length;
+
+    document.getElementById('selectionCount').textContent =
+        count + (count === 1 ? ' selecionado' : ' selecionados');
+
+    const bar = document.getElementById('selectionBar');
+    if (count > 0) {
+        bar.classList.remove('hidden');
+        bar.classList.add('flex');
+    } else {
+        bar.classList.add('hidden');
+        bar.classList.remove('flex');
+    }
+
+    const sa = document.getElementById('selectAll');
+    sa.indeterminate = count > 0 && count < total;
+    sa.checked = count === total && total > 0;
+}
+
+function limparSelecao() {
+    selectedIds.clear();
+    document.querySelectorAll('.produto-checkbox').forEach(cb => cb.checked = false);
+    const sa = document.getElementById('selectAll');
+    sa.checked = false;
+    sa.indeterminate = false;
+    atualizarEstadoSelecao();
+}
+
+async function bulkAction(action) {
+    if (selectedIds.size === 0) return;
+
+    if (action === 'delete') {
+        const n = selectedIds.size;
+        if (!confirm('Excluir ' + n + ' produto' + (n > 1 ? 's' : '') + ' permanentemente? Esta ação não pode ser desfeita.')) return;
+    }
+
+    const ids = Array.from(selectedIds);
+    try {
+        const res = await fetch('{{ route("admin.produtos.bulk") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ action, ids })
+        });
+        const data = await res.json();
+        if (data.success) {
+            limparSelecao();
+            if (typeof window.realizarPesquisa === 'function') window.realizarPesquisa();
+        } else {
+            alert(data.error || 'Erro ao executar a ação.');
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Erro de comunicação com o servidor.');
+    }
+}
 </script>
