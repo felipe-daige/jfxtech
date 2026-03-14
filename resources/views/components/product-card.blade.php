@@ -2,12 +2,40 @@
 {{-- Usage: @include('components.product-card', ['produto' => $produto]) --}}
 
 <div class="product-card group relative bg-white border border-[var(--color-lab-border)] overflow-hidden flex flex-col h-full">
-    {{-- Category Tag --}}
-    @if($produto->categoria)
-        <div class="absolute top-4 left-4 z-10 bg-black text-white text-[9px] font-mono px-2 py-1 uppercase tracking-widest">
-            {{ $produto->categoria->nome }}
-        </div>
-    @endif
+    {{-- Product Tags --}}
+    <div class="absolute top-4 left-4 z-10 flex flex-col gap-1 items-start">
+        {{-- Exemplos de tags baseadas em atributos do produto. Adapte as condições de acordo com seu banco de dados --}}
+        
+        {{-- Tag Esgotado (Baseado em estoque zerado) --}}
+        @if(isset($produto->estoque) && $produto->estoque <= 0)
+            <div class="bg-black text-white text-[9px] font-mono px-2 py-1 uppercase tracking-widest">
+                Esgotado
+            </div>
+        @endif
+
+        {{-- Tag Últimas Unidades (Baseado em estoque baixo) --}}
+        @if(isset($produto->estoque) && $produto->estoque > 0 && $produto->estoque <= 5)
+            <div class="bg-black text-white text-[9px] font-mono px-2 py-1 uppercase tracking-widest">
+                Últimas Unid.
+            </div>
+        @endif
+
+        {{-- Tag Novo / Lançamento (Ex: cadastrado há menos de 30 dias) --}}
+        @if(isset($produto->created_at) && $produto->created_at->diffInDays(now()) <= 30)
+            <div class="bg-black text-white text-[9px] font-mono px-2 py-1 uppercase tracking-widest">
+                Novo
+            </div>
+        @endif
+
+        {{-- Dynamic Tags from the JSON column --}}
+        @if(isset($produto->tags) && is_array($produto->tags))
+            @foreach($produto->tags as $tag)
+                <div class="bg-black text-white text-[9px] font-mono px-2 py-1 uppercase tracking-widest">
+                    {{ $tag }}
+                </div>
+            @endforeach
+        @endif
+    </div>
 
     {{-- Discount Badge --}}
     @if($produto->em_promocao && $produto->desconto_percentual > 0)
@@ -61,11 +89,7 @@
             </span>
         @endif
 
-        @if($produto->descricao_curta ?? $produto->descricao)
-            <p class="text-xs text-gray-500 mb-4 line-clamp-2 font-mono">
-                {{ $produto->descricao_curta ?? Str::limit(strip_tags($produto->descricao), 120) }}
-            </p>
-        @endif
+
 
         {{-- Price & Action --}}
         <div class="flex items-center justify-between pt-4 border-t border-[var(--color-lab-border)] mt-auto">

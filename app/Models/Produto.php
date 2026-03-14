@@ -25,7 +25,8 @@ class Produto extends Model
         'destaque',
         'estoque',
         'categoria_id',
-        'ativo'
+        'ativo',
+        'tags'
     ];
 
     protected $casts = [
@@ -36,6 +37,7 @@ class Produto extends Model
         'destaque' => 'boolean',
         'estoque' => 'integer',
         'ativo' => 'boolean',
+        'tags' => 'array',
         'specs' => 'array',
     ];
 
@@ -92,7 +94,7 @@ class Produto extends Model
      */
     public function imagens(): HasMany
     {
-        return $this->hasMany(ProdutoImagem::class);
+        return $this->hasMany(ProdutoImagem::class)->orderBy('ordem')->orderBy('id');
     }
 
     /**

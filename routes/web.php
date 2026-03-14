@@ -59,9 +59,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/produtos', [AdminController::class, 'produtos'])->name('produtos');
     Route::get('/produtos/search', [AdminController::class, 'pesquisarProdutos'])->name('produtos.search');
     Route::post('/produtos/bulk', [AdminController::class, 'bulkActionProdutos'])->name('produtos.bulk');
+    Route::post('/produtos/exportar', [AdminController::class, 'exportarProdutos'])->name('produtos.exportar');
     Route::post('/produtos/imagens/{id}/excluir', [AdminController::class, 'excluirImagem'])->name('produtos.imagens.excluir');
     Route::get('/produtos/imagens/{id}/download', [AdminController::class, 'downloadImagem'])->name('produtos.imagens.download');
     Route::post('/produtos/imagens/{id}/substituir', [AdminController::class, 'substituirImagem'])->name('produtos.imagens.substituir');
+    Route::post('/produtos/{id}/imagens/reordenar', [AdminController::class, 'reordenarImagens'])->name('produtos.imagens.reordenar');
     Route::get('/produtos/{id}', [AdminController::class, 'buscarProduto'])->name('produtos.buscar');
     Route::post('/produtos', [AdminController::class, 'criarProduto'])->name('produtos.criar');
     Route::post('/produtos/{id}/editar', [AdminController::class, 'editarProduto'])->name('produtos.editar');

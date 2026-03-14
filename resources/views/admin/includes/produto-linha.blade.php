@@ -4,8 +4,11 @@
     {{-- Checkbox de seleção --}}
     <input type="checkbox"
            class="produto-checkbox w-4 h-4 cursor-pointer accent-black flex-shrink-0"
+           name="produtos_selecionados[]"
+           id="produto_select_{{ $produto->id }}"
            data-id="{{ $produto->id }}"
-           onclick="event.stopPropagation()">
+           onclick="event.stopPropagation()"
+           aria-label="Selecionar produto {{ $produto->nome }}">
 
     {{-- Thumbnail 40×40 --}}
     @if($produto->imagens->count() > 0)

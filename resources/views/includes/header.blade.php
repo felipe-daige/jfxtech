@@ -19,9 +19,36 @@
             </a>
 
             {{-- Desktop Nav --}}
-            <nav class="hidden md:flex space-x-8">
+            <nav class="hidden md:flex space-x-8 items-center h-full">
                 <a href="{{ route('site.index') }}" class="text-sm font-medium transition-colors {{ request()->routeIs('site.index') ? 'text-black' : 'text-gray-500 hover:text-black' }}">INÍCIO</a>
-                <a href="{{ route('site.produtos') }}" class="text-sm font-medium transition-colors {{ request()->routeIs('site.produtos') ? 'text-black' : 'text-gray-500 hover:text-black' }}">PRODUTOS</a>
+                
+                {{-- Dropdown Produtos --}}
+                <div class="relative group h-full flex items-center">
+                    <a href="{{ route('site.produtos') }}" class="text-sm font-medium transition-colors flex items-center gap-1 {{ request()->routeIs('site.produtos') ? 'text-black' : 'text-gray-500 hover:text-black' }}">
+                        PRODUTOS
+                        <svg class="w-3 h-3 transition-transform group-hover:rotate-180" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    </a>
+                    
+                    {{-- Wrapper de Categorias (Megamenu / Dropdown) --}}
+                    <div class="absolute left-0 top-full w-56 bg-white border border-[var(--color-lab-border)] shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 transform origin-top-left -translate-y-2 group-hover:translate-y-0">
+                        <div class="p-2">
+                            <a href="{{ route('site.produtos') }}" class="block px-4 py-2 text-xs font-bold font-mono tracking-widest uppercase text-black hover:bg-gray-50 transition-colors border-b border-[var(--color-lab-border)] mb-2">
+                                TODOS OS PRODUTOS
+                            </a>
+                            <div class="space-y-1">
+                                @php
+                                    $headerCategorias = \App\Models\Categoria::orderBy('nome')->get();
+                                @endphp
+                                @foreach($headerCategorias as $categoria)
+                                    <a href="{{ route('site.produtos', ['categorias[]' => $categoria->id]) }}" class="block px-4 py-2 text-xs font-mono tracking-wider uppercase text-gray-500 hover:text-black hover:bg-gray-50 transition-colors rounded-sm">
+                                        {{ $categoria->nome }}
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <a href="{{ route('site.contato') }}" class="text-sm font-medium transition-colors {{ request()->routeIs('site.contato') ? 'text-black' : 'text-gray-500 hover:text-black' }}">CONTATO</a>
                 @auth
                     <a href="{{ route('site.pedidos.index') }}" class="text-sm font-medium transition-colors {{ request()->routeIs('site.pedidos.index') ? 'text-black' : 'text-gray-500 hover:text-black' }}">PEDIDOS</a>
@@ -133,9 +160,22 @@
             <a href="{{ route('site.index') }}" class="block px-4 py-3 text-sm font-medium tracking-wider uppercase transition-colors {{ request()->routeIs('site.index') ? 'text-black bg-gray-50' : 'text-gray-500 hover:text-black hover:bg-gray-50' }}">
                 Início
             </a>
-            <a href="{{ route('site.produtos') }}" class="block px-4 py-3 text-sm font-medium tracking-wider uppercase transition-colors {{ request()->routeIs('site.produtos') ? 'text-black bg-gray-50' : 'text-gray-500 hover:text-black hover:bg-gray-50' }}">
-                Produtos
-            </a>
+            <div class="border-y border-[var(--color-lab-border)] my-2 py-2">
+                <a href="{{ route('site.produtos') }}" class="flex justify-between items-center px-4 py-2 text-sm font-medium tracking-wider uppercase transition-colors {{ request()->routeIs('site.produtos') ? 'text-black' : 'text-gray-500 hover:text-black' }}">
+                    <span>Produtos</span>
+                    <span class="text-[10px] font-mono tracking-widest bg-black text-white px-2 py-1 uppercase">Ver Todos</span>
+                </a>
+                <div class="px-4 mt-2 space-y-1 border-l-2 border-[var(--color-lab-border)] ml-4">
+                    @php
+                        $mobileCategorias = \App\Models\Categoria::orderBy('nome')->get();
+                    @endphp
+                    @foreach($mobileCategorias as $categoria)
+                        <a href="{{ route('site.produtos', ['categorias[]' => $categoria->id]) }}" class="block py-2 text-xs font-mono tracking-wider uppercase text-gray-500 hover:text-black transition-colors">
+                            {{ $categoria->nome }}
+                        </a>
+                    @endforeach
+                </div>
+            </div>
             <a href="{{ route('site.contato') }}" class="block px-4 py-3 text-sm font-medium tracking-wider uppercase transition-colors {{ request()->routeIs('site.contato') ? 'text-black bg-gray-50' : 'text-gray-500 hover:text-black hover:bg-gray-50' }}">
                 Contato
             </a>

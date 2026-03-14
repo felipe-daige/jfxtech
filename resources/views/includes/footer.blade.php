@@ -40,7 +40,7 @@
             <h4 class="font-mono text-xs font-bold uppercase tracking-widest mb-4">Newsletter</h4>
             <p class="text-sm text-gray-500 mb-3">Receba novidades e ofertas exclusivas.</p>
             <div class="flex">
-                <input type="email" placeholder="DIGITE SEU E-MAIL" class="bg-gray-50 border border-[var(--color-lab-border)] px-3 py-2 text-sm w-full focus:outline-none focus:border-black font-mono text-xs tracking-wider">
+                <input type="email" name="newsletter_email" id="newsletter_email" placeholder="DIGITE SEU E-MAIL" class="bg-gray-50 border border-[var(--color-lab-border)] px-3 py-2 text-sm w-full focus:outline-none focus:border-black font-mono text-xs tracking-wider">
                 <button class="bg-black text-white px-4 py-2 text-sm font-bold hover:bg-gray-800 transition-colors flex-shrink-0">
                     &rarr;
                 </button>

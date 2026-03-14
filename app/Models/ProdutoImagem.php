@@ -12,7 +12,8 @@ class ProdutoImagem extends Model
     protected $fillable = [
         'produto_id',
         'caminho',
-        'capa'
+        'capa',
+        'ordem',
     ];
 
     /**

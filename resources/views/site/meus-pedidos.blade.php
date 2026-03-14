@@ -58,7 +58,7 @@
                                     <span class="font-mono text-[10px] uppercase tracking-widest text-gray-500">Filtrar por:</span>
                                 </div>
 
-                                <select class="border border-[var(--color-lab-border)] px-4 py-3 text-sm font-mono focus:outline-none focus:border-black transition-colors">
+                                <select id="filtro_status" name="filtro_status" class="border border-[var(--color-lab-border)] px-4 py-3 text-sm font-mono focus:outline-none focus:border-black transition-colors" aria-label="Filtrar por status">
                                     <option value="">Todos os pedidos</option>
                                     <option value="pendente">Pendente</option>
                                     <option value="processando">Processando</option>

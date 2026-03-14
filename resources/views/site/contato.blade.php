@@ -54,6 +54,8 @@
                                         <label class="font-mono text-[10px] uppercase tracking-widest text-gray-500 block mb-2">Nome Completo *</label>
                                         <input
                                             type="text"
+                                            id="nome"
+                                            name="nome"
                                             required
                                             class="w-full border border-[var(--color-lab-border)] px-4 py-3 text-sm font-mono focus:outline-none focus:border-black transition-colors"
                                             placeholder="Seu nome"
@@ -63,6 +65,8 @@
                                         <label class="font-mono text-[10px] uppercase tracking-widest text-gray-500 block mb-2">E-mail *</label>
                                         <input
                                             type="email"
+                                            id="email"
+                                            name="email"
                                             required
                                             class="w-full border border-[var(--color-lab-border)] px-4 py-3 text-sm font-mono focus:outline-none focus:border-black transition-colors"
                                             placeholder="seu@email.com"
@@ -75,6 +79,8 @@
                                         <label class="font-mono text-[10px] uppercase tracking-widest text-gray-500 block mb-2">Telefone *</label>
                                         <input
                                             type="tel"
+                                            id="telefone"
+                                            name="telefone"
                                             required
                                             class="w-full border border-[var(--color-lab-border)] px-4 py-3 text-sm font-mono focus:outline-none focus:border-black transition-colors"
                                             placeholder="(11) 98765-4321"
@@ -83,6 +89,8 @@
                                     <div>
                                         <label class="font-mono text-[10px] uppercase tracking-widest text-gray-500 block mb-2">Assunto *</label>
                                         <select
+                                            id="assunto"
+                                            name="assunto"
                                             required
                                             class="w-full border border-[var(--color-lab-border)] px-4 py-3 text-sm font-mono focus:outline-none focus:border-black transition-colors"
                                         >
@@ -99,6 +107,8 @@
                                 <div>
                                     <label class="font-mono text-[10px] uppercase tracking-widest text-gray-500 block mb-2">Mensagem *</label>
                                     <textarea
+                                        id="mensagem"
+                                        name="mensagem"
                                         required
                                         rows="6"
                                         class="w-full border border-[var(--color-lab-border)] px-4 py-3 text-sm font-mono focus:outline-none focus:border-black transition-colors resize-none"

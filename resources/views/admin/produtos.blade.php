@@ -39,7 +39,7 @@
                     </div>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-2 sm:items-end">
-                    @if(request('pesquisa') || request('status') || request('destaque'))
+                    @if(request('pesquisa') || request('status') || request('destaque') || request('categoria_id'))
                         <a href="{{ route('admin.produtos') }}" class="bg-white border border-[var(--color-lab-border)] text-black px-5 py-2.5 text-xs font-bold tracking-widest uppercase hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                             <span>Limpar Filtros</span>
@@ -49,7 +49,7 @@
             </div>
 
             <!-- Filtros -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <!-- Filtro de Status -->
                 <div>
                     <label for="status" class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Status</label>
@@ -57,6 +57,17 @@
                         <option value="">Todos os status</option>
                         <option value="ativo" {{ request('status') === 'ativo' ? 'selected' : '' }}>Apenas Ativos</option>
                         <option value="inativo" {{ request('status') === 'inativo' ? 'selected' : '' }}>Apenas Inativos</option>
+                    </select>
+                </div>
+
+                <!-- Filtro de Categoria -->
+                <div>
+                    <label for="categoria_id" class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Categoria</label>
+                    <select name="categoria_id" id="categoria_id_filtro" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black bg-white">
+                        <option value="">Todas as categorias</option>
+                        @foreach($categorias as $categoria)
+                            <option value="{{ $categoria->id }}" {{ request('categoria_id') == $categoria->id ? 'selected' : '' }}>{{ $categoria->nome }}</option>
+                        @endforeach
                     </select>
                 </div>
 
@@ -138,13 +149,30 @@
     </div>
 
     {{-- Barra de seleção (aparece quando há itens marcados) --}}
-    <div id="selectionBar" class="hidden items-center justify-between
+    <div id="selectionBar" class="hidden flex-col sm:flex-row items-center sm:justify-between gap-3
          py-2.5 px-3 mt-3 border border-[var(--color-lab-border)] bg-[var(--color-lab-bg)]">
         <span id="selectionCount"
-              class="font-mono text-[10px] uppercase tracking-widest text-black">
+              class="font-mono text-[10px] uppercase tracking-widest text-black whitespace-nowrap">
             0 selecionados
         </span>
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2 justify-center sm:justify-end">
+            {{-- Tags Actions --}}
+            <div class="flex items-center gap-1 border-r border-[var(--color-lab-border)] pr-2 mr-1">
+                <div class="relative group">
+                    <button type="button" class="h-7 px-3 font-mono text-[10px] uppercase tracking-widest border border-[var(--color-lab-border)] bg-gray-100 text-black hover:bg-gray-200 transition-colors flex items-center gap-1">
+                        + Tags
+                        <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    </button>
+                    <div class="absolute bottom-full left-0 mb-1 w-48 bg-white border border-[var(--color-lab-border)] shadow-lg hidden group-hover:block z-50">
+                        <button onclick="bulkAction('set_exclusivo')" class="block w-full text-left px-4 py-2 font-mono text-[10px] uppercase tracking-widest text-black hover:bg-gray-50 border-b border-[var(--color-lab-border)]">+ Exclusivo</button>
+                        <button onclick="bulkAction('remove_exclusivo')" class="block w-full text-left px-4 py-2 font-mono text-[10px] uppercase tracking-widest text-red-600 hover:bg-gray-50 border-b border-[var(--color-lab-border)]">- Exclusivo</button>
+                        <button onclick="bulkAction('set_em_breve')" class="block w-full text-left px-4 py-2 font-mono text-[10px] uppercase tracking-widest text-black hover:bg-gray-50 border-b border-[var(--color-lab-border)]">+ Em Breve</button>
+                        <button onclick="bulkAction('remove_em_breve')" class="block w-full text-left px-4 py-2 font-mono text-[10px] uppercase tracking-widest text-red-600 hover:bg-gray-50 border-b border-[var(--color-lab-border)]">- Em Breve</button>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Status Actions --}}
             <button onclick="bulkAction('ativar')"
                     class="h-7 px-3 font-mono text-[10px] uppercase tracking-widest
                            border border-[var(--color-lab-border)] bg-white
@@ -157,11 +185,19 @@
                            hover:bg-black hover:text-white hover:border-black transition-colors">
                 Desativar
             </button>
+            
+            {{-- Delete & Clean --}}
             <button onclick="bulkAction('delete')"
                     class="h-7 px-3 font-mono text-[10px] uppercase tracking-widest
                            border border-red-300 text-red-500 bg-white
-                           hover:bg-red-500 hover:text-white hover:border-red-500 transition-colors">
+                           hover:bg-red-500 hover:text-white hover:border-red-500 transition-colors ml-1">
                 Excluir
+            </button>
+            <button onclick="exportarSelecionados()"
+                    class="h-7 px-3 font-mono text-[10px] uppercase tracking-widest
+                           border border-gray-400 text-gray-700 bg-white
+                           hover:bg-gray-800 hover:text-white hover:border-gray-800 transition-colors ml-1">
+                &#x2193; Exportar XLSX
             </button>
             <button onclick="limparSelecao()"
                     class="h-7 px-3 font-mono text-[10px] uppercase tracking-widest
@@ -192,6 +228,12 @@
             Mostrando {{ $produtos->firstItem() ?? 0 }} a {{ $produtos->lastItem() ?? 0 }} de {{ $produtos->total() }} produtos
             @if(request('pesquisa'))
                 para "{{ request('pesquisa') }}"
+            @endif
+            @if(request('categoria_id'))
+                @php $categoriaSelecionada = $categorias->firstWhere('id', request('categoria_id')); @endphp
+                @if($categoriaSelecionada)
+                    na categoria "{{ $categoriaSelecionada->nome }}"
+                @endif
             @endif
         </div>
 
@@ -252,7 +294,7 @@
                 <div id="formMethod" style="display: none;"></div>
                 <input type="hidden" id="produtoId" name="produto_id" value="">
 
-                <div class="p-6 space-y-5">
+                <div id="formFields" class="p-6 space-y-5">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <div>
                             <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Nome do Produto</label>
@@ -320,14 +362,37 @@
                         </div>
                     </div>
 
-                    <!-- Secao de Destaque -->
+                    <!-- Secao de Destaque e Tags -->
                     <div>
-                        <div class="flex items-center mb-2">
+                        <div class="flex items-center mb-4">
                             <input type="hidden" name="destaque" value="0">
                             <input type="checkbox" name="destaque" id="destaque" value="1" class="h-4 w-4 border-[var(--color-lab-border)] text-black focus:ring-black">
                             <label for="destaque" class="ml-2 font-mono text-xs text-black">Produto em destaque (maximo 3)</label>
                         </div>
-                        <p class="font-mono text-[10px] text-[var(--color-lab-muted)] mb-4">Produtos em destaque aparecem na pagina inicial do site.</p>
+                        
+                        <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Tags do Produto (Máx. 2)</label>
+                        <div class="space-y-2 mt-2" id="tagsSelectionGroup">
+                            <div class="flex items-center">
+                                <input type="checkbox" name="tags[]" id="tag_exclusivo" value="Exclusivo" class="tag-checkbox h-4 w-4 border-[var(--color-lab-border)] text-black focus:ring-black">
+                                <label for="tag_exclusivo" class="ml-2 font-mono text-xs text-black">Exclusivo</label>
+                            </div>
+                            
+                            <div class="flex items-center">
+                                <input type="checkbox" name="tags[]" id="tag_em_breve" value="Em Breve" class="tag-checkbox h-4 w-4 border-[var(--color-lab-border)] text-black focus:ring-black">
+                                <label for="tag_em_breve" class="ml-2 font-mono text-xs text-black">Em Breve</label>
+                            </div>
+
+                            <div class="flex items-center">
+                                <input type="checkbox" name="tags[]" id="tag_lancamento" value="Lançamento" class="tag-checkbox h-4 w-4 border-[var(--color-lab-border)] text-black focus:ring-black">
+                                <label for="tag_lancamento" class="ml-2 font-mono text-xs text-black">Lançamento</label>
+                            </div>
+                            
+                            <div class="flex items-center">
+                                <input type="checkbox" name="tags[]" id="tag_oferta" value="Oferta Especial" class="tag-checkbox h-4 w-4 border-[var(--color-lab-border)] text-black focus:ring-black">
+                                <label for="tag_oferta" class="ml-2 font-mono text-xs text-black">Oferta Especial</label>
+                            </div>
+                        </div>
+                        <p id="tags_warning" class="hidden mt-1 font-mono text-[10px] text-red-500">Você só pode selecionar até 2 tags.</p>
                     </div>
 
                     <div>
@@ -472,6 +537,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const pesquisaInput = document.getElementById('pesquisa');
     const statusSelect = document.getElementById('status');
+    const categoriaSelect = document.getElementById('categoria_id_filtro');
     const destaqueSelect = document.getElementById('destaque');
     const loadingIndicator = document.getElementById('loadingIndicator');
     const produtosContainer = document.getElementById('produtosContainer');
@@ -490,6 +556,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Coletar todos os filtros
         const termo = pesquisaInput.value.trim();
         const status = statusSelect.value;
+        const categoriaId = categoriaSelect.value;
         const destaque = destaqueSelect.value;
         const perPage = document.getElementById('per_page').value;
 
@@ -497,6 +564,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const url = new URL('{{ route("admin.produtos.search") }}', window.location.origin);
         if (termo) url.searchParams.set('pesquisa', termo);
         if (status) url.searchParams.set('status', status);
+        if (categoriaId) url.searchParams.set('categoria_id', categoriaId);
         if (destaque) url.searchParams.set('destaque', destaque);
         url.searchParams.set('per_page', perPage);
         url.searchParams.set('view_mode', currentViewMode);
@@ -540,6 +608,11 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 currentUrl.searchParams.delete('status');
             }
+            if (categoriaId) {
+                currentUrl.searchParams.set('categoria_id', categoriaId);
+            } else {
+                currentUrl.searchParams.delete('categoria_id');
+            }
             if (destaque) {
                 currentUrl.searchParams.set('destaque', destaque);
             } else {
@@ -571,6 +644,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Event listeners para os filtros de status e destaque
     statusSelect.addEventListener('change', function() {
+        clearTimeout(searchTimeout);
+        loadingIndicator.classList.remove('hidden');
+        searchTimeout = setTimeout(function() {
+            realizarPesquisa();
+        }, 300);
+    });
+
+    categoriaSelect.addEventListener('change', function() {
         clearTimeout(searchTimeout);
         loadingIndicator.classList.remove('hidden');
         searchTimeout = setTimeout(function() {
@@ -624,6 +705,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.key === 'Escape') {
             this.value = '';
             statusSelect.value = '';
+            categoriaSelect.value = '';
             destaqueSelect.value = '';
             clearTimeout(searchTimeout);
             realizarPesquisa();
@@ -717,5 +799,32 @@ async function bulkAction(action) {
         console.error(err);
         alert('Erro de comunicação com o servidor.');
     }
+}
+
+function exportarSelecionados() {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{{ route("admin.produtos.exportar") }}';
+
+    const csrf = document.createElement('input');
+    csrf.type = 'hidden';
+    csrf.name = '_token';
+    csrf.value = document.querySelector('meta[name="csrf-token"]').content;
+    form.appendChild(csrf);
+
+    ids.forEach(id => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'ids[]';
+        input.value = id;
+        form.appendChild(input);
+    });
+
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
 }
 </script>

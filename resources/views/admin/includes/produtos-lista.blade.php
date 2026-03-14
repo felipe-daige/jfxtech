@@ -6,8 +6,11 @@
                 {{-- Checkbox de seleção --}}
                 <input type="checkbox"
                        class="produto-checkbox w-4 h-4 cursor-pointer accent-black flex-shrink-0"
+                       name="produtos_selecionados[]"
+                       id="produto_select_{{ $produto->id }}"
                        data-id="{{ $produto->id }}"
-                       onclick="event.stopPropagation()">
+                       onclick="event.stopPropagation()"
+                       aria-label="Selecionar produto {{ $produto->nome }}">
                 @if($produto->imagens->count() > 0)
                     <img src="{{ asset('storage/' . $produto->imagens->first()->caminho) }}" alt="{{ $produto->nome }}" class="w-10 h-10 object-cover flex-shrink-0 border border-[var(--color-lab-border)]">
                 @else

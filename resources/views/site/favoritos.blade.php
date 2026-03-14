@@ -58,7 +58,7 @@
                                     <span class="font-mono text-[10px] uppercase tracking-widest text-gray-500">Filtrar por:</span>
                                 </div>
 
-                                <select class="border border-[var(--color-lab-border)] px-4 py-3 text-sm font-mono focus:outline-none focus:border-black transition-colors">
+                                <select id="filtro_categoria" name="filtro_categoria" class="border border-[var(--color-lab-border)] px-4 py-3 text-sm font-mono focus:outline-none focus:border-black transition-colors" aria-label="Filtrar por categoria">
                                     <option value="">Todas as categorias</option>
                                     <option value="acessorios">Acessorios</option>
                                     <option value="equipamentos">Equipamentos</option>

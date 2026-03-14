@@ -1,1139 +1,575 @@
 [
   {
-    "nome": "Finalmouse ULX Frostlord Small",
-    "slug": "finalmouse-ulx-frostlord-small",
-    "descricao_curta": "Com o Finalmouse AI (custom PixArt) e apenas 21g, o Finalmouse ULX Frostlord Small entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Finalmouse ULX Frostlord Small</strong> é a resposta da <strong>Finalmouse</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>Finalmouse AI (custom PixArt)</strong>, com resolução máxima de <strong>32000 DPI</strong> e taxa de polling de <strong>8000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>21g</strong> na balança, o Finalmouse ULX Frostlord Small permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Finalmouse opera com filosofia de edições limitadas e obsessão por leveza extrema. Cada geração ULX redefine o que é possível em peso sem sacrificar estrutura ou sensor. Conseguir um é quase tão difícil quanto usá-lo ao máximo do seu potencial.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Finalmouse ULX Frostlord Small</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Finalmouse",
-    "specs": {
-      "sensor": "Finalmouse AI (custom PixArt)",
-      "dpi_maximo": "32000 DPI",
-      "switches": "Ópticos Finalmouse",
-      "peso": "21g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "8000 Hz",
-      "dimensoes": "114 x 56 x 36mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "1 ano"
-    },
-    "imagens": [],
+    "nome": "Pulsar Superglide V3 XL Sgpxl",
+    "marca": "Pulsar",
+    "descricao": "Pulsar Superglide V3 XL Sgpxl",
+    "descricao_curta": "Pulsar Superglide V3 XL Sgpxl",
+    "categoria": "Mousepads",
+    "preco": 0.0,
+    "estoque": 10,
+    "specs": {},
     "ativo": true,
-    "source": "knowledge"
+    "imagens": []
   },
   {
-    "nome": "Finalmouse ULX Frostlord Medium",
-    "slug": "finalmouse-ulx-frostlord-medium",
-    "descricao_curta": "Com o Finalmouse AI (custom PixArt) e apenas 25g, o Finalmouse ULX Frostlord Medium entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Finalmouse ULX Frostlord Medium</strong> é a resposta da <strong>Finalmouse</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>Finalmouse AI (custom PixArt)</strong>, com resolução máxima de <strong>32000 DPI</strong> e taxa de polling de <strong>8000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>25g</strong> na balança, o Finalmouse ULX Frostlord Medium permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Finalmouse opera com filosofia de edições limitadas e obsessão por leveza extrema. Cada geração ULX redefine o que é possível em peso sem sacrificar estrutura ou sensor. Conseguir um é quase tão difícil quanto usá-lo ao máximo do seu potencial.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Finalmouse ULX Frostlord Medium</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Finalmouse",
-    "specs": {
-      "sensor": "Finalmouse AI (custom PixArt)",
-      "dpi_maximo": "32000 DPI",
-      "switches": "Ópticos Finalmouse",
-      "peso": "25g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "8000 Hz",
-      "dimensoes": "122 x 61 x 38mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "1 ano"
-    },
-    "imagens": [],
+    "nome": "Pulsar X3 Crazylight PX3RCL101 Dongle 8K Inalambrico",
+    "marca": "Pulsar",
+    "descricao": "Pulsar X3 Crazylight PX3RCL101 Dongle 8K Inalambrico",
+    "descricao_curta": "Pulsar X3 Crazylight PX3RCL101 Dongle 8K Inalambrico",
+    "categoria": "Mouses",
+    "preco": 0.0,
+    "estoque": 10,
+    "specs": {},
     "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Finalmouse ULX Frostlord Large",
-    "slug": "finalmouse-ulx-frostlord-large",
-    "descricao_curta": "Com o Finalmouse AI (custom PixArt) e apenas 28g, o Finalmouse ULX Frostlord Large entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Finalmouse ULX Frostlord Large</strong> é a resposta da <strong>Finalmouse</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>Finalmouse AI (custom PixArt)</strong>, com resolução máxima de <strong>32000 DPI</strong> e taxa de polling de <strong>8000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>28g</strong> na balança, o Finalmouse ULX Frostlord Large permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Finalmouse opera com filosofia de edições limitadas e obsessão por leveza extrema. Cada geração ULX redefine o que é possível em peso sem sacrificar estrutura ou sensor. Conseguir um é quase tão difícil quanto usá-lo ao máximo do seu potencial.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Finalmouse ULX Frostlord Large</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Finalmouse",
-    "specs": {
-      "sensor": "Finalmouse AI (custom PixArt)",
-      "dpi_maximo": "32000 DPI",
-      "switches": "Ópticos Finalmouse",
-      "peso": "28g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "8000 Hz",
-      "dimensoes": "130 x 66 x 40mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "1 ano"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Deathadder v4 PRO",
-    "slug": "deathadder-v4-pro",
-    "descricao_curta": "Com o Razer Focus Pro 2.0 e apenas 88g, o Deathadder v4 PRO entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Deathadder v4 PRO</strong> é a resposta da <strong>Razer</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>Razer Focus Pro 2.0</strong>, com resolução máxima de <strong>30000 DPI</strong> e taxa de polling de <strong>4000 Hz (com HyperPolling dongle)</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>88g</strong> na balança, o Deathadder v4 PRO permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Razer construiu décadas de credibilidade nos palcos de esports, e o Deathadder v4 PRO sintetiza esse legado. Compatível com o ecossistema Razer Synapse e com o dongle HyperPolling para taxa de polling elevada, é o periférico de quem leva ranqueado a sério.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Deathadder v4 PRO</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Razer",
-    "specs": {
-      "sensor": "Razer Focus Pro 2.0",
-      "dpi_maximo": "30000 DPI",
-      "switches": "Razer Gen-3 Ópticos",
-      "peso": "88g",
-      "conexao": "Sem fio 2.4GHz + Bluetooth 5.1",
-      "polling_rate": "4000 Hz (com HyperPolling dongle)",
-      "dimensoes": "128.4 x 73.4 x 43.2mm",
-      "cabo": null,
-      "iluminacao": "Razer Chroma RGB",
-      "garantia": "2 anos"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Viper V3 PRO",
-    "slug": "viper-v3-pro",
-    "descricao_curta": "Com o Razer Focus Pro 2.0 e apenas 82g, o Viper V3 PRO entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Viper V3 PRO</strong> é a resposta da <strong>Razer</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>Razer Focus Pro 2.0</strong>, com resolução máxima de <strong>30000 DPI</strong> e taxa de polling de <strong>8000 Hz (com HyperPolling dongle)</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>82g</strong> na balança, o Viper V3 PRO permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Razer construiu décadas de credibilidade nos palcos de esports, e o Viper V3 PRO sintetiza esse legado. Compatível com o ecossistema Razer Synapse e com o dongle HyperPolling para taxa de polling elevada, é o periférico de quem leva ranqueado a sério.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Viper V3 PRO</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Razer",
-    "specs": {
-      "sensor": "Razer Focus Pro 2.0",
-      "dpi_maximo": "30000 DPI",
-      "switches": "Razer Gen-3 Ópticos",
-      "peso": "82g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "8000 Hz (com HyperPolling dongle)",
-      "dimensoes": "126.8 x 66.2 x 37.8mm",
-      "cabo": null,
-      "iluminacao": "Razer Chroma RGB",
-      "garantia": "2 anos"
-    },
     "imagens": [
       {
-        "url": "https://assets2.razerzone.com/images/pnx.assets/24970f67be4ba9644e28720377d91cfb/razer-viper-v3-pro-1200x630.webp",
-        "capa": true,
-        "alt": "Viper V3 PRO - mouse gamer"
+        "url": "https://cdn.store-assets.com/s/824673/i/95463483.jpeg",
+        "capa": true
+      },
+      {
+        "url": "https://maxesport.gg/medias/2025/10/Pulsar-X3-LHD-Noir-1.webp",
+        "capa": false
+      },
+      {
+        "url": "https://ggjpn.com/wp-content/uploads/pulsar-x3-crazylight.jpg",
+        "capa": false
+      },
+      {
+        "url": "https://cdn.shopify.com/s/files/1/0255/9832/8929/files/X3_Crazylight_Galleryimage_003.webp?v=1764445142",
+        "capa": false
+      },
+      {
+        "url": "https://us.maxgaming.com/bilder/artiklar/zoom/36784_5.jpg?m=1760545505",
+        "capa": false
       }
-    ],
-    "ativo": true,
-    "source": "scraped"
+    ]
   },
   {
-    "nome": "Finalmouse ULX Sakura Small",
-    "slug": "finalmouse-ulx-sakura-small",
-    "descricao_curta": "Com o Finalmouse AI (custom PixArt) e apenas 21g, o Finalmouse ULX Sakura Small entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Finalmouse ULX Sakura Small</strong> é a resposta da <strong>Finalmouse</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>Finalmouse AI (custom PixArt)</strong>, com resolução máxima de <strong>32000 DPI</strong> e taxa de polling de <strong>8000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>21g</strong> na balança, o Finalmouse ULX Sakura Small permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Finalmouse opera com filosofia de edições limitadas e obsessão por leveza extrema. Cada geração ULX redefine o que é possível em peso sem sacrificar estrutura ou sensor. Conseguir um é quase tão difícil quanto usá-lo ao máximo do seu potencial.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Finalmouse ULX Sakura Small</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Finalmouse",
-    "specs": {
-      "sensor": "Finalmouse AI (custom PixArt)",
-      "dpi_maximo": "32000 DPI",
-      "switches": "Ópticos Finalmouse",
-      "peso": "21g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "8000 Hz",
-      "dimensoes": "114 x 56 x 36mm",
-      "cabo": null,
-      "iluminacao": "LED Sakura (branco/rosa)",
-      "garantia": "1 ano"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Finalmouse ULX Sakura Large",
-    "slug": "finalmouse-ulx-sakura-large",
-    "descricao_curta": "Com o Finalmouse AI (custom PixArt) e apenas 28g, o Finalmouse ULX Sakura Large entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Finalmouse ULX Sakura Large</strong> é a resposta da <strong>Finalmouse</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>Finalmouse AI (custom PixArt)</strong>, com resolução máxima de <strong>32000 DPI</strong> e taxa de polling de <strong>8000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>28g</strong> na balança, o Finalmouse ULX Sakura Large permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Finalmouse opera com filosofia de edições limitadas e obsessão por leveza extrema. Cada geração ULX redefine o que é possível em peso sem sacrificar estrutura ou sensor. Conseguir um é quase tão difícil quanto usá-lo ao máximo do seu potencial.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Finalmouse ULX Sakura Large</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Finalmouse",
-    "specs": {
-      "sensor": "Finalmouse AI (custom PixArt)",
-      "dpi_maximo": "32000 DPI",
-      "switches": "Ópticos Finalmouse",
-      "peso": "28g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "8000 Hz",
-      "dimensoes": "130 x 66 x 40mm",
-      "cabo": null,
-      "iluminacao": "LED Sakura (branco/rosa)",
-      "garantia": "1 ano"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Finalmouse ULX Prophecy Small",
-    "slug": "finalmouse-ulx-prophecy-small",
-    "descricao_curta": "Com o Finalmouse AI (custom PixArt) e apenas 21g, o Finalmouse ULX Prophecy Small entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Finalmouse ULX Prophecy Small</strong> é a resposta da <strong>Finalmouse</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>Finalmouse AI (custom PixArt)</strong>, com resolução máxima de <strong>32000 DPI</strong> e taxa de polling de <strong>8000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>21g</strong> na balança, o Finalmouse ULX Prophecy Small permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Finalmouse opera com filosofia de edições limitadas e obsessão por leveza extrema. Cada geração ULX redefine o que é possível em peso sem sacrificar estrutura ou sensor. Conseguir um é quase tão difícil quanto usá-lo ao máximo do seu potencial.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Finalmouse ULX Prophecy Small</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Finalmouse",
-    "specs": {
-      "sensor": "Finalmouse AI (custom PixArt)",
-      "dpi_maximo": "32000 DPI",
-      "switches": "Ópticos Finalmouse",
-      "peso": "21g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "8000 Hz",
-      "dimensoes": "114 x 56 x 36mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "1 ano"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Finalmouse ULX Prophecy Medium",
-    "slug": "finalmouse-ulx-prophecy-medium",
-    "descricao_curta": "Com o Finalmouse AI (custom PixArt) e apenas 25g, o Finalmouse ULX Prophecy Medium entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Finalmouse ULX Prophecy Medium</strong> é a resposta da <strong>Finalmouse</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>Finalmouse AI (custom PixArt)</strong>, com resolução máxima de <strong>32000 DPI</strong> e taxa de polling de <strong>8000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>25g</strong> na balança, o Finalmouse ULX Prophecy Medium permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Finalmouse opera com filosofia de edições limitadas e obsessão por leveza extrema. Cada geração ULX redefine o que é possível em peso sem sacrificar estrutura ou sensor. Conseguir um é quase tão difícil quanto usá-lo ao máximo do seu potencial.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Finalmouse ULX Prophecy Medium</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Finalmouse",
-    "specs": {
-      "sensor": "Finalmouse AI (custom PixArt)",
-      "dpi_maximo": "32000 DPI",
-      "switches": "Ópticos Finalmouse",
-      "peso": "25g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "8000 Hz",
-      "dimensoes": "122 x 61 x 38mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "1 ano"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "ATK A9 Ultimate",
-    "slug": "atk-a9-ultimate",
-    "descricao_curta": "Com o PixArt PAW3950 e apenas 38g, o ATK A9 Ultimate entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>ATK A9 Ultimate</strong> é a resposta da <strong>ATK</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>PixArt PAW3950</strong>, com resolução máxima de <strong>42000 DPI</strong> e taxa de polling de <strong>8000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>38g</strong> na balança, o ATK A9 Ultimate permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A ATK entende o que os competidores precisam: consistência, durabilidade e performance que não oscila entre a primeira e a milésima hora de uso. Cada componente do ATK A9 Ultimate foi escolhido para sobreviver às exigências dos jogadores mais exigentes.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>ATK A9 Ultimate</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "ATK",
-    "specs": {
-      "sensor": "PixArt PAW3950",
-      "dpi_maximo": "42000 DPI",
-      "switches": "Kailh GM 8.0",
-      "peso": "38g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "8000 Hz",
-      "dimensoes": "120 x 63 x 36mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "1 ano"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "ATK Duckbill",
-    "slug": "atk-duckbill",
-    "descricao_curta": "Com o PixArt PAW3395 e apenas 42g, o ATK Duckbill entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>ATK Duckbill</strong> é a resposta da <strong>ATK</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>PixArt PAW3395</strong>, com resolução máxima de <strong>26000 DPI</strong> e taxa de polling de <strong>4000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>42g</strong> na balança, o ATK Duckbill permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A ATK entende o que os competidores precisam: consistência, durabilidade e performance que não oscila entre a primeira e a milésima hora de uso. Cada componente do ATK Duckbill foi escolhido para sobreviver às exigências dos jogadores mais exigentes.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>ATK Duckbill</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "ATK",
-    "specs": {
-      "sensor": "PixArt PAW3395",
-      "dpi_maximo": "26000 DPI",
-      "switches": "Ópticos Huano",
-      "peso": "42g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "4000 Hz",
-      "dimensoes": "118 x 56 x 32mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "1 ano"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "ATK F1 V2 Ultimate",
-    "slug": "atk-f1-v2-ultimate",
-    "descricao_curta": "Com o PixArt PAW3950 e apenas 41g, o ATK F1 V2 Ultimate entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>ATK F1 V2 Ultimate</strong> é a resposta da <strong>ATK</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>PixArt PAW3950</strong>, com resolução máxima de <strong>42000 DPI</strong> e taxa de polling de <strong>8000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>41g</strong> na balança, o ATK F1 V2 Ultimate permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A ATK entende o que os competidores precisam: consistência, durabilidade e performance que não oscila entre a primeira e a milésima hora de uso. Cada componente do ATK F1 V2 Ultimate foi escolhido para sobreviver às exigências dos jogadores mais exigentes.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>ATK F1 V2 Ultimate</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "ATK",
-    "specs": {
-      "sensor": "PixArt PAW3950",
-      "dpi_maximo": "42000 DPI",
-      "switches": "Kailh GM 8.0",
-      "peso": "41g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "8000 Hz",
-      "dimensoes": "126 x 66 x 40mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "1 ano"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "ATK F1 V2 Extreme",
-    "slug": "atk-f1-v2-extreme",
-    "descricao_curta": "Com o PixArt PAW3395 e apenas 41g, o ATK F1 V2 Extreme entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>ATK F1 V2 Extreme</strong> é a resposta da <strong>ATK</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>PixArt PAW3395</strong>, com resolução máxima de <strong>26000 DPI</strong> e taxa de polling de <strong>4000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>41g</strong> na balança, o ATK F1 V2 Extreme permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A ATK entende o que os competidores precisam: consistência, durabilidade e performance que não oscila entre a primeira e a milésima hora de uso. Cada componente do ATK F1 V2 Extreme foi escolhido para sobreviver às exigências dos jogadores mais exigentes.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>ATK F1 V2 Extreme</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "ATK",
-    "specs": {
-      "sensor": "PixArt PAW3395",
-      "dpi_maximo": "26000 DPI",
-      "switches": "Kailh GM 8.0",
-      "peso": "41g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "4000 Hz",
-      "dimensoes": "126 x 66 x 40mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "1 ano"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "ATK X1 V2 Ultimate",
-    "slug": "atk-x1-v2-ultimate",
-    "descricao_curta": "Com o PixArt PAW3950 e apenas 44g, o ATK X1 V2 Ultimate entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>ATK X1 V2 Ultimate</strong> é a resposta da <strong>ATK</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>PixArt PAW3950</strong>, com resolução máxima de <strong>42000 DPI</strong> e taxa de polling de <strong>8000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>44g</strong> na balança, o ATK X1 V2 Ultimate permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A ATK entende o que os competidores precisam: consistência, durabilidade e performance que não oscila entre a primeira e a milésima hora de uso. Cada componente do ATK X1 V2 Ultimate foi escolhido para sobreviver às exigências dos jogadores mais exigentes.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>ATK X1 V2 Ultimate</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "ATK",
-    "specs": {
-      "sensor": "PixArt PAW3950",
-      "dpi_maximo": "42000 DPI",
-      "switches": "Kailh GM 8.0",
-      "peso": "44g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "8000 Hz",
-      "dimensoes": "128 x 68 x 42mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "1 ano"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "ATK X1 V2 Extreme",
-    "slug": "atk-x1-v2-extreme",
-    "descricao_curta": "Com o PixArt PAW3395 e apenas 44g, o ATK X1 V2 Extreme entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>ATK X1 V2 Extreme</strong> é a resposta da <strong>ATK</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>PixArt PAW3395</strong>, com resolução máxima de <strong>26000 DPI</strong> e taxa de polling de <strong>4000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>44g</strong> na balança, o ATK X1 V2 Extreme permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A ATK entende o que os competidores precisam: consistência, durabilidade e performance que não oscila entre a primeira e a milésima hora de uso. Cada componente do ATK X1 V2 Extreme foi escolhido para sobreviver às exigências dos jogadores mais exigentes.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>ATK X1 V2 Extreme</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "ATK",
-    "specs": {
-      "sensor": "PixArt PAW3395",
-      "dpi_maximo": "26000 DPI",
-      "switches": "Kailh GM 8.0",
-      "peso": "44g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "4000 Hz",
-      "dimensoes": "128 x 68 x 42mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "1 ano"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Zowie EC1-DW Glossy Edition",
-    "slug": "zowie-ec1-dw-glossy-edition",
-    "descricao_curta": "Com o Zowie Pixart 3395 e apenas 77g, o Zowie EC1-DW Glossy Edition entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Zowie EC1-DW Glossy Edition</strong> é a resposta da <strong>Zowie</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>Zowie Pixart 3395</strong>, com resolução máxima de <strong>3200 DPI (com perfis fixos)</strong> e taxa de polling de <strong>1000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>77g</strong> na balança, o Zowie EC1-DW Glossy Edition permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Zowie (BenQ) é o nome que domina palcos de CS2 há anos. O filosofia plug-and-play — sem software, sem perfis na nuvem, apenas o mouse e você — é adotada pelos melhores times do mundo exatamente porque remove variáveis e coloca o controle de volta nas mãos do jogador.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Zowie EC1-DW Glossy Edition</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Zowie",
-    "specs": {
-      "sensor": "Zowie Pixart 3395",
-      "dpi_maximo": "3200 DPI (com perfis fixos)",
-      "switches": "Omron (Huano high-endurance)",
-      "peso": "77g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "1000 Hz",
-      "dimensoes": "132 x 71.4 x 44mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "2 anos"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Zowie EC2-DW Glossy Edition",
-    "slug": "zowie-ec2-dw-glossy-edition",
-    "descricao_curta": "Com o Zowie Pixart 3395 e apenas 73g, o Zowie EC2-DW Glossy Edition entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Zowie EC2-DW Glossy Edition</strong> é a resposta da <strong>Zowie</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>Zowie Pixart 3395</strong>, com resolução máxima de <strong>3200 DPI (com perfis fixos)</strong> e taxa de polling de <strong>1000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>73g</strong> na balança, o Zowie EC2-DW Glossy Edition permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Zowie (BenQ) é o nome que domina palcos de CS2 há anos. O filosofia plug-and-play — sem software, sem perfis na nuvem, apenas o mouse e você — é adotada pelos melhores times do mundo exatamente porque remove variáveis e coloca o controle de volta nas mãos do jogador.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Zowie EC2-DW Glossy Edition</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Zowie",
-    "specs": {
-      "sensor": "Zowie Pixart 3395",
-      "dpi_maximo": "3200 DPI (com perfis fixos)",
-      "switches": "Omron (Huano high-endurance)",
-      "peso": "73g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "1000 Hz",
-      "dimensoes": "126 x 67.4 x 42.5mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "2 anos"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Zowie EC3-DW Glossy Edition",
-    "slug": "zowie-ec3-dw-glossy-edition",
-    "descricao_curta": "Com o Zowie Pixart 3395 e apenas 67g, o Zowie EC3-DW Glossy Edition entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Zowie EC3-DW Glossy Edition</strong> é a resposta da <strong>Zowie</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>Zowie Pixart 3395</strong>, com resolução máxima de <strong>3200 DPI (com perfis fixos)</strong> e taxa de polling de <strong>1000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>67g</strong> na balança, o Zowie EC3-DW Glossy Edition permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Zowie (BenQ) é o nome que domina palcos de CS2 há anos. O filosofia plug-and-play — sem software, sem perfis na nuvem, apenas o mouse e você — é adotada pelos melhores times do mundo exatamente porque remove variáveis e coloca o controle de volta nas mãos do jogador.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Zowie EC3-DW Glossy Edition</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Zowie",
-    "specs": {
-      "sensor": "Zowie Pixart 3395",
-      "dpi_maximo": "3200 DPI (com perfis fixos)",
-      "switches": "Omron (Huano high-endurance)",
-      "peso": "67g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "1000 Hz",
-      "dimensoes": "118 x 62 x 39mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "2 anos"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Zowie FK2-DW Glossy Edition",
-    "slug": "zowie-fk2-dw-glossy-edition",
-    "descricao_curta": "Com o Zowie Pixart 3395 e apenas 68g, o Zowie FK2-DW Glossy Edition entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Zowie FK2-DW Glossy Edition</strong> é a resposta da <strong>Zowie</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>Zowie Pixart 3395</strong>, com resolução máxima de <strong>3200 DPI (com perfis fixos)</strong> e taxa de polling de <strong>1000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>68g</strong> na balança, o Zowie FK2-DW Glossy Edition permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Zowie (BenQ) é o nome que domina palcos de CS2 há anos. O filosofia plug-and-play — sem software, sem perfis na nuvem, apenas o mouse e você — é adotada pelos melhores times do mundo exatamente porque remove variáveis e coloca o controle de volta nas mãos do jogador.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Zowie FK2-DW Glossy Edition</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Zowie",
-    "specs": {
-      "sensor": "Zowie Pixart 3395",
-      "dpi_maximo": "3200 DPI (com perfis fixos)",
-      "switches": "Omron (Huano high-endurance)",
-      "peso": "68g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "1000 Hz",
-      "dimensoes": "119 x 61.5 x 38mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "2 anos"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Zowie EC1-DW",
-    "slug": "zowie-ec1-dw",
-    "descricao_curta": "Com o Zowie Pixart 3395 e apenas 77g, o Zowie EC1-DW entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Zowie EC1-DW</strong> é a resposta da <strong>Zowie</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>Zowie Pixart 3395</strong>, com resolução máxima de <strong>3200 DPI (com perfis fixos)</strong> e taxa de polling de <strong>1000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>77g</strong> na balança, o Zowie EC1-DW permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Zowie (BenQ) é o nome que domina palcos de CS2 há anos. O filosofia plug-and-play — sem software, sem perfis na nuvem, apenas o mouse e você — é adotada pelos melhores times do mundo exatamente porque remove variáveis e coloca o controle de volta nas mãos do jogador.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Zowie EC1-DW</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Zowie",
-    "specs": {
-      "sensor": "Zowie Pixart 3395",
-      "dpi_maximo": "3200 DPI (com perfis fixos)",
-      "switches": "Omron (Huano high-endurance)",
-      "peso": "77g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "1000 Hz",
-      "dimensoes": "132 x 71.4 x 44mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "2 anos"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Zowie EC2-DW",
-    "slug": "zowie-ec2-dw",
-    "descricao_curta": "Com o Zowie Pixart 3395 e apenas 73g, o Zowie EC2-DW entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Zowie EC2-DW</strong> é a resposta da <strong>Zowie</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>Zowie Pixart 3395</strong>, com resolução máxima de <strong>3200 DPI (com perfis fixos)</strong> e taxa de polling de <strong>1000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>73g</strong> na balança, o Zowie EC2-DW permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Zowie (BenQ) é o nome que domina palcos de CS2 há anos. O filosofia plug-and-play — sem software, sem perfis na nuvem, apenas o mouse e você — é adotada pelos melhores times do mundo exatamente porque remove variáveis e coloca o controle de volta nas mãos do jogador.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Zowie EC2-DW</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Zowie",
-    "specs": {
-      "sensor": "Zowie Pixart 3395",
-      "dpi_maximo": "3200 DPI (com perfis fixos)",
-      "switches": "Omron (Huano high-endurance)",
-      "peso": "73g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "1000 Hz",
-      "dimensoes": "126 x 67.4 x 42.5mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "2 anos"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Zowie EC3-DW",
-    "slug": "zowie-ec3-dw",
-    "descricao_curta": "Com o Zowie Pixart 3395 e apenas 67g, o Zowie EC3-DW entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Zowie EC3-DW</strong> é a resposta da <strong>Zowie</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>Zowie Pixart 3395</strong>, com resolução máxima de <strong>3200 DPI (com perfis fixos)</strong> e taxa de polling de <strong>1000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>67g</strong> na balança, o Zowie EC3-DW permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Zowie (BenQ) é o nome que domina palcos de CS2 há anos. O filosofia plug-and-play — sem software, sem perfis na nuvem, apenas o mouse e você — é adotada pelos melhores times do mundo exatamente porque remove variáveis e coloca o controle de volta nas mãos do jogador.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Zowie EC3-DW</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Zowie",
-    "specs": {
-      "sensor": "Zowie Pixart 3395",
-      "dpi_maximo": "3200 DPI (com perfis fixos)",
-      "switches": "Omron (Huano high-endurance)",
-      "peso": "67g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "1000 Hz",
-      "dimensoes": "118 x 62 x 39mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "2 anos"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Zowie FK2-DW",
-    "slug": "zowie-fk2-dw",
-    "descricao_curta": "Com o Zowie Pixart 3395 e apenas 68g, o Zowie FK2-DW entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Zowie FK2-DW</strong> é a resposta da <strong>Zowie</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>Zowie Pixart 3395</strong>, com resolução máxima de <strong>3200 DPI (com perfis fixos)</strong> e taxa de polling de <strong>1000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>68g</strong> na balança, o Zowie FK2-DW permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Zowie (BenQ) é o nome que domina palcos de CS2 há anos. O filosofia plug-and-play — sem software, sem perfis na nuvem, apenas o mouse e você — é adotada pelos melhores times do mundo exatamente porque remove variáveis e coloca o controle de volta nas mãos do jogador.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Zowie FK2-DW</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Zowie",
-    "specs": {
-      "sensor": "Zowie Pixart 3395",
-      "dpi_maximo": "3200 DPI (com perfis fixos)",
-      "switches": "Omron (Huano high-endurance)",
-      "peso": "68g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "1000 Hz",
-      "dimensoes": "119 x 61.5 x 38mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "2 anos"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Arye RCC-1",
-    "slug": "arye-rcc-1",
-    "descricao_curta": "Com o PixArt PAW3395 e apenas 47g, o Arye RCC-1 entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Arye RCC-1</strong> é a resposta da <strong>Arye</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>PixArt PAW3395</strong>, com resolução máxima de <strong>26000 DPI</strong> e taxa de polling de <strong>4000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>47g</strong> na balança, o Arye RCC-1 permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Arye entende o que os competidores precisam: consistência, durabilidade e performance que não oscila entre a primeira e a milésima hora de uso. Cada componente do Arye RCC-1 foi escolhido para sobreviver às exigências dos jogadores mais exigentes.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Arye RCC-1</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Arye",
-    "specs": {
-      "sensor": "PixArt PAW3395",
-      "dpi_maximo": "26000 DPI",
-      "switches": "Ópticos Huano",
-      "peso": "47g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "4000 Hz",
-      "dimensoes": "122 x 64 x 38mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "1 ano"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Arbiter Akitsu v2",
-    "slug": "arbiter-akitsu-v2",
-    "descricao_curta": "Com o PixArt PAW3395 e apenas 52g, o Arbiter Akitsu v2 entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Arbiter Akitsu v2</strong> é a resposta da <strong>Arbiter</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>PixArt PAW3395</strong>, com resolução máxima de <strong>26000 DPI</strong> e taxa de polling de <strong>4000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>52g</strong> na balança, o Arbiter Akitsu v2 permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Arbiter entende o que os competidores precisam: consistência, durabilidade e performance que não oscila entre a primeira e a milésima hora de uso. Cada componente do Arbiter Akitsu v2 foi escolhido para sobreviver às exigências dos jogadores mais exigentes.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Arbiter Akitsu v2</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Arbiter",
-    "specs": {
-      "sensor": "PixArt PAW3395",
-      "dpi_maximo": "26000 DPI",
-      "switches": "Kailh GM 8.0",
-      "peso": "52g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "4000 Hz",
-      "dimensoes": "125 x 67 x 41mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "1 ano"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Arbiter Akitsu Medium",
-    "slug": "arbiter-akitsu-medium",
-    "descricao_curta": "Com o PixArt PAW3395 e apenas 49g, o Arbiter Akitsu Medium entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Arbiter Akitsu Medium</strong> é a resposta da <strong>Arbiter</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>PixArt PAW3395</strong>, com resolução máxima de <strong>26000 DPI</strong> e taxa de polling de <strong>4000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>49g</strong> na balança, o Arbiter Akitsu Medium permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Arbiter entende o que os competidores precisam: consistência, durabilidade e performance que não oscila entre a primeira e a milésima hora de uso. Cada componente do Arbiter Akitsu Medium foi escolhido para sobreviver às exigências dos jogadores mais exigentes.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Arbiter Akitsu Medium</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Arbiter",
-    "specs": {
-      "sensor": "PixArt PAW3395",
-      "dpi_maximo": "26000 DPI",
-      "switches": "Kailh GM 8.0",
-      "peso": "49g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "4000 Hz",
-      "dimensoes": "120 x 63 x 39mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "1 ano"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Cobra PRO",
-    "slug": "cobra-pro",
-    "descricao_curta": "Com o PixArt PAW3395 e apenas 77g, o Cobra PRO entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Cobra PRO</strong> é a resposta da <strong>Cobra</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>PixArt PAW3395</strong>, com resolução máxima de <strong>26000 DPI</strong> e taxa de polling de <strong>4000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>77g</strong> na balança, o Cobra PRO permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Cobra entende o que os competidores precisam: consistência, durabilidade e performance que não oscila entre a primeira e a milésima hora de uso. Cada componente do Cobra PRO foi escolhido para sobreviver às exigências dos jogadores mais exigentes.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Cobra PRO</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Cobra",
-    "specs": {
-      "sensor": "PixArt PAW3395",
-      "dpi_maximo": "26000 DPI",
-      "switches": "Ópticos Ópticos (Cobra Gen-2)",
-      "peso": "77g",
-      "conexao": "Sem fio 2.4GHz + Bluetooth 5.1",
-      "polling_rate": "4000 Hz",
-      "dimensoes": "126.5 x 67.3 x 43mm",
-      "cabo": null,
-      "iluminacao": "RGB 8 zonas",
-      "garantia": "2 anos"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Corsair Sabre v2 PRO",
-    "slug": "corsair-sabre-v2-pro",
-    "descricao_curta": "Com o Corsair Marksman (PixArt PAW3392) e apenas 74g, o Corsair Sabre v2 PRO entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Corsair Sabre v2 PRO</strong> é a resposta da <strong>Corsair</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>Corsair Marksman (PixArt PAW3392)</strong>, com resolução máxima de <strong>26000 DPI</strong> e taxa de polling de <strong>8000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>74g</strong> na balança, o Corsair Sabre v2 PRO permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Corsair entende o que os competidores precisam: consistência, durabilidade e performance que não oscila entre a primeira e a milésima hora de uso. Cada componente do Corsair Sabre v2 PRO foi escolhido para sobreviver às exigências dos jogadores mais exigentes.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Corsair Sabre v2 PRO</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Corsair",
-    "specs": {
-      "sensor": "Corsair Marksman (PixArt PAW3392)",
-      "dpi_maximo": "26000 DPI",
-      "switches": "Corsair Quickstrike (zero-gap ópticos)",
-      "peso": "74g",
-      "conexao": "Com fio USB-A",
-      "polling_rate": "8000 Hz",
-      "dimensoes": "126.6 x 75.8 x 43.1mm",
-      "cabo": "Cabo trançado 1.8m",
-      "iluminacao": "Corsair iCUE RGB",
-      "garantia": "2 anos"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Orbital Works Pathfinder",
-    "slug": "orbital-works-pathfinder",
-    "descricao_curta": "Com o PixArt PAW3395 e apenas 55g, o Orbital Works Pathfinder entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Orbital Works Pathfinder</strong> é a resposta da <strong>Orbital Works</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>PixArt PAW3395</strong>, com resolução máxima de <strong>26000 DPI</strong> e taxa de polling de <strong>4000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>55g</strong> na balança, o Orbital Works Pathfinder permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Orbital Works entende o que os competidores precisam: consistência, durabilidade e performance que não oscila entre a primeira e a milésima hora de uso. Cada componente do Orbital Works Pathfinder foi escolhido para sobreviver às exigências dos jogadores mais exigentes.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Orbital Works Pathfinder</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Orbital Works",
-    "specs": {
-      "sensor": "PixArt PAW3395",
-      "dpi_maximo": "26000 DPI",
-      "switches": "Kailh GM 8.0",
-      "peso": "55g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "4000 Hz",
-      "dimensoes": "122 x 65 x 40mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "1 ano"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Pulsar X2 CrazyLight 8K Bruce Lee",
-    "slug": "pulsar-x2-crazylight-8k-bruce-lee",
-    "descricao_curta": "Com o PixArt PAW3395 e apenas 49g, o Pulsar X2 CrazyLight 8K Bruce Lee entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Pulsar X2 CrazyLight 8K Bruce Lee</strong> é a resposta da <strong>Pulsar</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>PixArt PAW3395</strong>, com resolução máxima de <strong>26000 DPI</strong> e taxa de polling de <strong>8000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>49g</strong> na balança, o Pulsar X2 CrazyLight 8K Bruce Lee permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>Esta edição carrega o DNA de <strong>Bruce Lee — edição especial em homenagem ao mestre das artes marciais</strong> — uma escolha que valida a filosofia de design: leveza extrema e precisão máxima como vantagem competitiva real, não marketing vazio.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Pulsar X2 CrazyLight 8K Bruce Lee</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
+    "nome": "Pulsar Zywoo Mini Dongle 8K Inalambrico",
     "marca": "Pulsar",
-    "specs": {
-      "sensor": "PixArt PAW3395",
-      "dpi_maximo": "26000 DPI",
-      "switches": "Kailh GM 8.0",
-      "peso": "49g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "8000 Hz",
-      "dimensoes": "122.4 x 66.6 x 38.6mm",
-      "cabo": null,
-      "iluminacao": "LED logo Bruce Lee edition",
-      "garantia": "1 ano"
-    },
-    "imagens": [],
+    "descricao": "Pulsar Zywoo Mini Dongle 8K Inalambrico",
+    "descricao_curta": "Pulsar Zywoo Mini Dongle 8K Inalambrico",
+    "categoria": "Mouses",
+    "preco": 0.0,
+    "estoque": 10,
+    "specs": {},
     "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Pulsar X2 CrazyLight 8K",
-    "slug": "pulsar-x2-crazylight-8k",
-    "descricao_curta": "Com o PixArt PAW3395 e apenas 49g, o Pulsar X2 CrazyLight 8K entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Pulsar X2 CrazyLight 8K</strong> é a resposta da <strong>Pulsar</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>PixArt PAW3395</strong>, com resolução máxima de <strong>26000 DPI</strong> e taxa de polling de <strong>8000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>49g</strong> na balança, o Pulsar X2 CrazyLight 8K permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Pulsar Gaming Gears construiu reputação sólida entregando mouses ultraleves com componentes premium a preços agressivos. A linha CrazyLight e os modelos assinados por atletas profissionais mostram que leveza e confiabilidade não são mutuamente excludentes.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Pulsar X2 CrazyLight 8K</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Pulsar",
-    "specs": {
-      "sensor": "PixArt PAW3395",
-      "dpi_maximo": "26000 DPI",
-      "switches": "Kailh GM 8.0",
-      "peso": "49g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "8000 Hz",
-      "dimensoes": "122.4 x 66.6 x 38.6mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "1 ano"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Pulsar X2 CrazyLight 8K Ltd Edition",
-    "slug": "pulsar-x2-crazylight-8k-ltd-edition",
-    "descricao_curta": "Com o PixArt PAW3395 e apenas 49g, o Pulsar X2 CrazyLight 8K Ltd Edition entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Pulsar X2 CrazyLight 8K Ltd Edition</strong> é a resposta da <strong>Pulsar</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>PixArt PAW3395</strong>, com resolução máxima de <strong>26000 DPI</strong> e taxa de polling de <strong>8000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>49g</strong> na balança, o Pulsar X2 CrazyLight 8K Ltd Edition permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Pulsar Gaming Gears construiu reputação sólida entregando mouses ultraleves com componentes premium a preços agressivos. A linha CrazyLight e os modelos assinados por atletas profissionais mostram que leveza e confiabilidade não são mutuamente excludentes.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Pulsar X2 CrazyLight 8K Ltd Edition</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Pulsar",
-    "specs": {
-      "sensor": "PixArt PAW3395",
-      "dpi_maximo": "26000 DPI",
-      "switches": "Kailh GM 8.0",
-      "peso": "49g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "8000 Hz",
-      "dimensoes": "122.4 x 66.6 x 38.6mm",
-      "cabo": null,
-      "iluminacao": "LED edição limitada",
-      "garantia": "1 ano"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Pulsar X2 CrazyLight Medium 8K",
-    "slug": "pulsar-x2-crazylight-medium-8k",
-    "descricao_curta": "Com o PixArt PAW3395 e apenas 46g, o Pulsar X2 CrazyLight Medium 8K entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Pulsar X2 CrazyLight Medium 8K</strong> é a resposta da <strong>Pulsar</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>PixArt PAW3395</strong>, com resolução máxima de <strong>26000 DPI</strong> e taxa de polling de <strong>8000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>46g</strong> na balança, o Pulsar X2 CrazyLight Medium 8K permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Pulsar Gaming Gears construiu reputação sólida entregando mouses ultraleves com componentes premium a preços agressivos. A linha CrazyLight e os modelos assinados por atletas profissionais mostram que leveza e confiabilidade não são mutuamente excludentes.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Pulsar X2 CrazyLight Medium 8K</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Pulsar",
-    "specs": {
-      "sensor": "PixArt PAW3395",
-      "dpi_maximo": "26000 DPI",
-      "switches": "Kailh GM 8.0",
-      "peso": "46g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "8000 Hz",
-      "dimensoes": "117.4 x 62.2 x 36.2mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "1 ano"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Pulsar X3 CrazyLight",
-    "slug": "pulsar-x3-crazylight",
-    "descricao_curta": "Com o PixArt PAW3950 e apenas 52g, o Pulsar X3 CrazyLight entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Pulsar X3 CrazyLight</strong> é a resposta da <strong>Pulsar</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>PixArt PAW3950</strong>, com resolução máxima de <strong>42000 DPI</strong> e taxa de polling de <strong>8000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>52g</strong> na balança, o Pulsar X3 CrazyLight permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Pulsar Gaming Gears construiu reputação sólida entregando mouses ultraleves com componentes premium a preços agressivos. A linha CrazyLight e os modelos assinados por atletas profissionais mostram que leveza e confiabilidade não são mutuamente excludentes.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Pulsar X3 CrazyLight</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Pulsar",
-    "specs": {
-      "sensor": "PixArt PAW3950",
-      "dpi_maximo": "42000 DPI",
-      "switches": "Kailh GM 8.0",
-      "peso": "52g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "8000 Hz",
-      "dimensoes": "125.1 x 67.3 x 40.1mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "1 ano"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Pulsar X3 CrazyLight LHD",
-    "slug": "pulsar-x3-crazylight-lhd",
-    "descricao_curta": "Com o PixArt PAW3950 e apenas 52g, o Pulsar X3 CrazyLight LHD entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Pulsar X3 CrazyLight LHD</strong> é a resposta da <strong>Pulsar</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>PixArt PAW3950</strong>, com resolução máxima de <strong>42000 DPI</strong> e taxa de polling de <strong>8000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>52g</strong> na balança, o Pulsar X3 CrazyLight LHD permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Pulsar Gaming Gears construiu reputação sólida entregando mouses ultraleves com componentes premium a preços agressivos. A linha CrazyLight e os modelos assinados por atletas profissionais mostram que leveza e confiabilidade não são mutuamente excludentes.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Pulsar X3 CrazyLight LHD</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Pulsar",
-    "specs": {
-      "sensor": "PixArt PAW3950",
-      "dpi_maximo": "42000 DPI",
-      "switches": "Kailh GM 8.0",
-      "peso": "52g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "8000 Hz",
-      "dimensoes": "125.1 x 67.3 x 40.1mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "1 ano"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Pulsar Xlite CrazyLight",
-    "slug": "pulsar-xlite-crazylight",
-    "descricao_curta": "Com o PixArt PAW3395 e apenas 53g, o Pulsar Xlite CrazyLight entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Pulsar Xlite CrazyLight</strong> é a resposta da <strong>Pulsar</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>PixArt PAW3395</strong>, com resolução máxima de <strong>26000 DPI</strong> e taxa de polling de <strong>8000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>53g</strong> na balança, o Pulsar Xlite CrazyLight permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Pulsar Gaming Gears construiu reputação sólida entregando mouses ultraleves com componentes premium a preços agressivos. A linha CrazyLight e os modelos assinados por atletas profissionais mostram que leveza e confiabilidade não são mutuamente excludentes.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Pulsar Xlite CrazyLight</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Pulsar",
-    "specs": {
-      "sensor": "PixArt PAW3395",
-      "dpi_maximo": "26000 DPI",
-      "switches": "Kailh GM 8.0",
-      "peso": "53g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "8000 Hz",
-      "dimensoes": "120.4 x 64.1 x 38.6mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "1 ano"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Pulsar [LAB] X2F",
-    "slug": "pulsar-lab-x2f",
-    "descricao_curta": "Com o PixArt PAW3950 e apenas 44g, o Pulsar [LAB] X2F entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Pulsar [LAB] X2F</strong> é a resposta da <strong>Pulsar</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>PixArt PAW3950</strong>, com resolução máxima de <strong>42000 DPI</strong> e taxa de polling de <strong>8000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>44g</strong> na balança, o Pulsar [LAB] X2F permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Pulsar Gaming Gears construiu reputação sólida entregando mouses ultraleves com componentes premium a preços agressivos. A linha CrazyLight e os modelos assinados por atletas profissionais mostram que leveza e confiabilidade não são mutuamente excludentes.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Pulsar [LAB] X2F</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Pulsar",
-    "specs": {
-      "sensor": "PixArt PAW3950",
-      "dpi_maximo": "42000 DPI",
-      "switches": "Kailh GM 8.0 ópticos",
-      "peso": "44g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "8000 Hz",
-      "dimensoes": "122 x 66 x 38mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "1 ano"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Pulsar JV-X",
-    "slug": "pulsar-jv-x",
-    "descricao_curta": "Com o PixArt PAW3395 e apenas 48g, o Pulsar JV-X entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Pulsar JV-X</strong> é a resposta da <strong>Pulsar</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>PixArt PAW3395</strong>, com resolução máxima de <strong>26000 DPI</strong> e taxa de polling de <strong>8000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>48g</strong> na balança, o Pulsar JV-X permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Pulsar Gaming Gears construiu reputação sólida entregando mouses ultraleves com componentes premium a preços agressivos. A linha CrazyLight e os modelos assinados por atletas profissionais mostram que leveza e confiabilidade não são mutuamente excludentes.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Pulsar JV-X</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Pulsar",
-    "specs": {
-      "sensor": "PixArt PAW3395",
-      "dpi_maximo": "26000 DPI",
-      "switches": "Kailh GM 8.0",
-      "peso": "48g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "8000 Hz",
-      "dimensoes": "121 x 64 x 37mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "1 ano"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Pulsar ZywOo Small",
-    "slug": "pulsar-zywoo-small",
-    "descricao_curta": "Com o PixArt PAW3395 e apenas 46g, o Pulsar ZywOo Small entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Pulsar ZywOo Small</strong> é a resposta da <strong>Pulsar</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>PixArt PAW3395</strong>, com resolução máxima de <strong>26000 DPI</strong> e taxa de polling de <strong>8000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>46g</strong> na balança, o Pulsar ZywOo Small permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>Esta edição carrega o DNA de <strong>ZywOo (Mathieu Herbaut), lendário AWPer profissional da Team Vitality</strong> — uma escolha que valida a filosofia de design: leveza extrema e precisão máxima como vantagem competitiva real, não marketing vazio.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Pulsar ZywOo Small</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Pulsar",
-    "specs": {
-      "sensor": "PixArt PAW3395",
-      "dpi_maximo": "26000 DPI",
-      "switches": "Kailh GM 8.0",
-      "peso": "46g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "8000 Hz",
-      "dimensoes": "116 x 61 x 36mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "1 ano"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Pulsar TenZ",
-    "slug": "pulsar-tenz",
-    "descricao_curta": "Com o PixArt PAW3395 e apenas 47g, o Pulsar TenZ entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Pulsar TenZ</strong> é a resposta da <strong>Pulsar</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>PixArt PAW3395</strong>, com resolução máxima de <strong>26000 DPI</strong> e taxa de polling de <strong>8000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>47g</strong> na balança, o Pulsar TenZ permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>Esta edição carrega o DNA de <strong>TenZ (Tyson Ngo), ícone do cenário competitivo de Valorant</strong> — uma escolha que valida a filosofia de design: leveza extrema e precisão máxima como vantagem competitiva real, não marketing vazio.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Pulsar TenZ</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Pulsar",
-    "specs": {
-      "sensor": "PixArt PAW3395",
-      "dpi_maximo": "26000 DPI",
-      "switches": "Kailh GM 8.0",
-      "peso": "47g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "8000 Hz",
-      "dimensoes": "122 x 66 x 38mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "1 ano"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Endgame Gear XM2w 4K v2",
-    "slug": "endgame-gear-xm2w-4k-v2",
-    "descricao_curta": "Com o PixArt PAW3395 e apenas 63g, o Endgame Gear XM2w 4K v2 entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Endgame Gear XM2w 4K v2</strong> é a resposta da <strong>Endgame Gear</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>PixArt PAW3395</strong>, com resolução máxima de <strong>26000 DPI</strong> e taxa de polling de <strong>4000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>63g</strong> na balança, o Endgame Gear XM2w 4K v2 permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Endgame Gear entende o que os competidores precisam: consistência, durabilidade e performance que não oscila entre a primeira e a milésima hora de uso. Cada componente do Endgame Gear XM2w 4K v2 foi escolhido para sobreviver às exigências dos jogadores mais exigentes.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Endgame Gear XM2w 4K v2</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Endgame Gear",
-    "specs": {
-      "sensor": "PixArt PAW3395",
-      "dpi_maximo": "26000 DPI",
-      "switches": "Kailh GM 8.0",
-      "peso": "63g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "4000 Hz",
-      "dimensoes": "120.6 x 66 x 38.6mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "2 anos"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Teevolution Terra PRO 8K",
-    "slug": "teevolution-terra-pro-8k",
-    "descricao_curta": "Com o PixArt PAW3950 e apenas 45g, o Teevolution Terra PRO 8K entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Teevolution Terra PRO 8K</strong> é a resposta da <strong>Teevolution</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>PixArt PAW3950</strong>, com resolução máxima de <strong>42000 DPI</strong> e taxa de polling de <strong>8000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>45g</strong> na balança, o Teevolution Terra PRO 8K permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Teevolution entende o que os competidores precisam: consistência, durabilidade e performance que não oscila entre a primeira e a milésima hora de uso. Cada componente do Teevolution Terra PRO 8K foi escolhido para sobreviver às exigências dos jogadores mais exigentes.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Teevolution Terra PRO 8K</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Teevolution",
-    "specs": {
-      "sensor": "PixArt PAW3950",
-      "dpi_maximo": "42000 DPI",
-      "switches": "Kailh GM 8.0",
-      "peso": "45g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "8000 Hz",
-      "dimensoes": "121 x 64 x 38mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "1 ano"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Glorious Model D 2 PRO 4K/8K",
-    "slug": "glorious-model-d-2-pro-4k-8k",
-    "descricao_curta": "Com o PixArt PAW3950 e apenas 55g, o Glorious Model D 2 PRO 4K/8K entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Glorious Model D 2 PRO 4K/8K</strong> é a resposta da <strong>Glorious</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>PixArt PAW3950</strong>, com resolução máxima de <strong>26000 DPI</strong> e taxa de polling de <strong>8000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>55g</strong> na balança, o Glorious Model D 2 PRO 4K/8K permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Glorious entende o que os competidores precisam: consistência, durabilidade e performance que não oscila entre a primeira e a milésima hora de uso. Cada componente do Glorious Model D 2 PRO 4K/8K foi escolhido para sobreviver às exigências dos jogadores mais exigentes.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Glorious Model D 2 PRO 4K/8K</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Glorious",
-    "specs": {
-      "sensor": "PixArt PAW3950",
-      "dpi_maximo": "26000 DPI",
-      "switches": "Glorious Ignition ópticos",
-      "peso": "55g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "8000 Hz",
-      "dimensoes": "130 x 66 x 42mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "2 anos"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Glorious Model O 2 PRO 4K/8K",
-    "slug": "glorious-model-o-2-pro-4k-8k",
-    "descricao_curta": "Com o PixArt PAW3950 e apenas 62g, o Glorious Model O 2 PRO 4K/8K entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Glorious Model O 2 PRO 4K/8K</strong> é a resposta da <strong>Glorious</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>PixArt PAW3950</strong>, com resolução máxima de <strong>26000 DPI</strong> e taxa de polling de <strong>8000 Hz</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>62g</strong> na balança, o Glorious Model O 2 PRO 4K/8K permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Glorious entende o que os competidores precisam: consistência, durabilidade e performance que não oscila entre a primeira e a milésima hora de uso. Cada componente do Glorious Model O 2 PRO 4K/8K foi escolhido para sobreviver às exigências dos jogadores mais exigentes.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Glorious Model O 2 PRO 4K/8K</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Glorious",
-    "specs": {
-      "sensor": "PixArt PAW3950",
-      "dpi_maximo": "26000 DPI",
-      "switches": "Glorious Ignition ópticos",
-      "peso": "62g",
-      "conexao": "Sem fio 2.4GHz",
-      "polling_rate": "8000 Hz",
-      "dimensoes": "128 x 67 x 40mm",
-      "cabo": null,
-      "iluminacao": "Sem iluminação",
-      "garantia": "2 anos"
-    },
-    "imagens": [],
-    "ativo": true,
-    "source": "knowledge"
-  },
-  {
-    "nome": "Deathadder v3 Pro",
-    "slug": "deathadder-v3-pro",
-    "descricao_curta": "Com o Razer Focus Pro 30K e apenas 64g, o Deathadder v3 Pro entrega precisão absoluta onde cada grama e cada contagem de DPI importam.",
-    "descricao": "<p>O <strong>Deathadder v3 Pro</strong> é a resposta da <strong>Razer</strong> para os jogadores que exigem hardware à altura de sua ambição. Projetado com foco absoluto em performance competitiva, ele representa o estado da arte em periféricos gamer — sem concessões, sem excessos, sem desculpas.</p>\n<p>O sensor <strong>Razer Focus Pro 30K</strong>, com resolução máxima de <strong>30000 DPI</strong> e taxa de polling de <strong>4000 Hz (com HyperPolling dongle)</strong>, garante que cada milímetro de movimento seja capturado com fidelidade cirúrgica. Sem aceleração, sem suavização artificial — rastreamento bruto e honesto que responde ao seu input, não ao que o algoritmo acha que você quis fazer.</p>\n<p>Com <strong>64g</strong> na balança, o Deathadder v3 Pro permite movimentos rápidos e fluidos sem o braço pagar o preço de uma maratona de sessões longas. Design otimizado para performance que se adapta ao grip claw, fingertip ou palm — qualquer estilo de jogo encontra aqui o seu limite real.</p>\n<p>A Razer construiu décadas de credibilidade nos palcos de esports, e o Deathadder v3 Pro sintetiza esse legado. Compatível com o ecossistema Razer Synapse e com o dongle HyperPolling para taxa de polling elevada, é o periférico de quem leva ranqueado a sério.</p>\n<p>Eleve seu nível. A <strong>JFX Tech</strong> traz o <strong>Deathadder v3 Pro</strong> diretamente para você — com garantia, suporte em português e entrega para todo o Brasil. Porque hardware de nível mundial não deveria ter barreiras.</p>",
-    "preco": 0,
-    "estoque": 0,
-    "categoria": "Mouse",
-    "marca": "Razer",
-    "specs": {
-      "sensor": "Razer Focus Pro 30K",
-      "dpi_maximo": "30000 DPI",
-      "switches": "Razer Gen-3 Ópticos",
-      "peso": "64g",
-      "conexao": "Sem fio 2.4GHz + Bluetooth 5.1",
-      "polling_rate": "4000 Hz (com HyperPolling dongle)",
-      "dimensoes": "128.4 x 73.4 x 43.7mm",
-      "cabo": null,
-      "iluminacao": "Razer Chroma RGB",
-      "garantia": "2 anos"
-    },
     "imagens": [
       {
-        "url": "//assets2.razerzone.com/images/pnx.assets/a0427959a82f1f5d1c27c2463008e5a8/razer-deathadder-v3-og.jpg",
-        "capa": true,
-        "alt": "Deathadder v3 Pro - mouse gamer"
+        "url": "https://m.media-amazon.com/images/I/41Be-QOsbeL._AC_SY300_SX300_QL70_ML2_.jpg",
+        "capa": true
+      },
+      {
+        "url": "https://www.azothgaming.nl/wp-content/uploads/2025/08/pulsar-zywoo-the-chosen-8k-hz-xs-1-sensor-zwarte-draadloze-size-1-mini-gaming-muis-pzwx11-2.jpg",
+        "capa": false
+      },
+      {
+        "url": "https://www.azothgaming.nl/wp-content/uploads/2025/08/pulsar-zywoo-the-chosen-8k-hz-xs-1-sensor-zwarte-draadloze-size-1-mini-gaming-muis-pzwx11-1.jpg",
+        "capa": false
+      },
+      {
+        "url": "https://maxesport.gg/medias/2025/06/Pulsar-zywoo-Mini-noir-3-640x640.webp",
+        "capa": false
+      },
+      {
+        "url": "https://maxesport.gg/medias/2025/06/Pulsar-zywoo-Mini-noir-5-640x640.webp",
+        "capa": false
       }
-    ],
+    ]
+  },
+  {
+    "nome": "WLMouse Huan 2026 Limited Edition 8K Inalambrico Negro",
+    "marca": "WLMouse",
+    "descricao": "WLMouse Huan 2026 Limited Edition 8K Inalambrico Negro",
+    "descricao_curta": "WLMouse Huan 2026 Limited Edition 8K Inalambrico Negro",
+    "categoria": "Mouses",
+    "preco": 0.0,
+    "estoque": 10,
+    "specs": {},
     "ativo": true,
-    "source": "scraped"
+    "imagens": [
+      {
+        "url": "https://www.wlmouse.com/cdn/shop/files/d989fb3d858de6f43d8f71c126e55425.png?v=1764566484&width=1000",
+        "capa": true
+      },
+      {
+        "url": "https://ctrlshiftstore.com/cdn/shop/files/white.jpg?v=1765522511&width=1920",
+        "capa": false
+      },
+      {
+        "url": "https://us.maxgaming.com/bilder/artiklar/zoom/37736_1.jpg?m=1765788521",
+        "capa": false
+      },
+      {
+        "url": "https://ir.ozone.ru/s3/multimedia-1-j/w1200/8438879323.jpg",
+        "capa": false
+      },
+      {
+        "url": "https://ggjpn.com/wp-content/uploads/wlmouse-huan-thumb.jpg",
+        "capa": false
+      }
+    ]
+  },
+  {
+    "nome": "WLMouse Beast X Mini Pro Magnesium Dongle 8K Inalambrico",
+    "marca": "WLMouse",
+    "descricao": "WLMouse Beast X Mini Pro Magnesium Dongle 8K Inalambrico",
+    "descricao_curta": "WLMouse Beast X Mini Pro Magnesium Dongle 8K Inalambrico",
+    "categoria": "Mouses",
+    "preco": 0.0,
+    "estoque": 10,
+    "specs": {},
+    "ativo": true,
+    "imagens": [
+      {
+        "url": "https://cdn.mwave.com.au/images/400/wlmouse_beast_x_mini_pro_8k_magnesium_solid_sides_optical_gaming_mouse_black_ac87055_41943.jpg",
+        "capa": true
+      },
+      {
+        "url": "https://cdn.mwave.com.au/images/400/wlmouse_beast_x_mini_pro_8k_magnesium_solid_sides_optical_gaming_mouse_silver_ac87054_13326.jpg",
+        "capa": false
+      },
+      {
+        "url": "https://images.tokopedia.net/img/cache/700/o3syd0/1997/1/1/c761020cbceb4dfc965a32a1614a9a7b~.jpeg?ect=4g",
+        "capa": false
+      },
+      {
+        "url": "https://www.phongcachxanh.vn/cdn/shop/files/wlmouse-beast-x-mini-pro-chu-t-khong-day-magnesium-34g-8khz-1157596739.jpg?v=1745306014&width=1200",
+        "capa": false
+      },
+      {
+        "url": "https://maxesport.gg/medias/2025/02/WLMouse-Beast-X-Pro-8K-Noir-1.webp",
+        "capa": false
+      }
+    ]
+  },
+  {
+    "nome": "Pulsar X2 Crazylight Medium Bruce Lee 85TH Edition PX2CL204 Dongle 8K Inalambrico White",
+    "marca": "Pulsar",
+    "descricao": "Pulsar X2 Crazylight Medium Bruce Lee 85TH Edition PX2CL204 Dongle 8K Inalambrico White",
+    "descricao_curta": "Pulsar X2 Crazylight Medium Bruce Lee 85TH Edition PX2CL204 Dongle 8K Inalambrico White",
+    "categoria": "Mouses",
+    "preco": 0.0,
+    "estoque": 10,
+    "specs": {},
+    "ativo": true,
+    "imagens": []
+  },
+  {
+    "nome": "Lamzu Paro Aurora Inalambrico Dongle 8K 30000 DPI",
+    "marca": "Lamzu",
+    "descricao": "Lamzu Paro Aurora Inalambrico Dongle 8K 30000 DPI",
+    "descricao_curta": "Lamzu Paro Aurora Inalambrico Dongle 8K 30000 DPI",
+    "categoria": "Mouses",
+    "preco": 0.0,
+    "estoque": 10,
+    "specs": {},
+    "ativo": true,
+    "imagens": []
+  },
+  {
+    "nome": "Logitech Pro X Superlight 2 Dex Inalambrico",
+    "marca": "Logitech",
+    "descricao": "Logitech Pro X Superlight 2 Dex Inalambrico",
+    "descricao_curta": "Logitech Pro X Superlight 2 Dex Inalambrico",
+    "categoria": "Mouses",
+    "preco": 0.0,
+    "estoque": 10,
+    "specs": {},
+    "ativo": true,
+    "imagens": [
+      {
+        "url": "https://images-na.ssl-images-amazon.com/images/I/61r-cOXR-eL.jpg",
+        "capa": true
+      },
+      {
+        "url": "https://resource.logitechg.com/w_692,c_lpad,ar_4:3,q_auto,f_auto,dpr_1.0/d_transparent.gif/content/dam/gaming/en/products/pro-x-superlight-2-dex/gallery/pro-x-superlight-2-dex-black-gallery-4.png?v=1",
+        "capa": false
+      },
+      {
+        "url": "https://resource.logitechg.com/w_692,c_lpad,ar_4:3,q_auto,f_auto,dpr_1.0/d_transparent.gif/content/dam/gaming/en/products/pro-x-superlight-2-dex/gallery/pro-x-superlight-2-dex-black-gallery-6.png?v=1",
+        "capa": false
+      },
+      {
+        "url": "https://resource.logitechg.com/d_transparent.gif/content/dam/gaming/en/products/pro-x-superlight-2-dex/gallery/pro-x-superlight-2-dex-black-gallery-1.png",
+        "capa": false
+      },
+      {
+        "url": "https://m.media-amazon.com/images/I/51VRu0zm1IL._AC_.jpg",
+        "capa": false
+      }
+    ]
+  },
+  {
+    "nome": "Pulsar X2 Crazylight Mini Boardzy Edition PX2CL115 Dongle 8K Inalambrico Black White",
+    "marca": "Pulsar",
+    "descricao": "Pulsar X2 Crazylight Mini Boardzy Edition PX2CL115 Dongle 8K Inalambrico Black White",
+    "descricao_curta": "Pulsar X2 Crazylight Mini Boardzy Edition PX2CL115 Dongle 8K Inalambrico Black White",
+    "categoria": "Mouses",
+    "preco": 0.0,
+    "estoque": 10,
+    "specs": {},
+    "ativo": true,
+    "imagens": [
+      {
+        "url": "https://next-media.elkjop.com/image/dv_web_D18000137233873/1035349/pulsar-x2-crazylight-mini-tradlos-mus-boardzy-limited-edition.jpg?w=1200&q=75",
+        "capa": true
+      },
+      {
+        "url": "https://www.pulsar.gg/cdn/shop/products/X2miniBoardzyEditiongamingmouse_002-215393_1024x.png?v=1703203351",
+        "capa": false
+      },
+      {
+        "url": "https://www.proshop.de/Images/1600x1200/3414475_719734faac72.png",
+        "capa": false
+      },
+      {
+        "url": "https://i.ebayimg.com/images/g/ZkcAAeSwZyppRFeJ/s-l960.jpg",
+        "capa": false
+      },
+      {
+        "url": "https://ausmodshop.com/cdn/shop/files/Boardz_X2CL_Bottom.png?v=1755007380&width=1002",
+        "capa": false
+      }
+    ]
+  },
+  {
+    "nome": "Pulsar X2 Crazylight Mini Gaming T1 Edition Dongle 8K Inalambrico",
+    "marca": "Pulsar",
+    "descricao": "Pulsar X2 Crazylight Mini Gaming T1 Edition Dongle 8K Inalambrico",
+    "descricao_curta": "Pulsar X2 Crazylight Mini Gaming T1 Edition Dongle 8K Inalambrico",
+    "categoria": "Mouses",
+    "preco": 0.0,
+    "estoque": 10,
+    "specs": {},
+    "ativo": true,
+    "imagens": []
+  },
+  {
+    "nome": "BenQ Zowie FK2 DW 4K Inalambrico Negro",
+    "marca": "BenQ",
+    "descricao": "BenQ Zowie FK2 DW 4K Inalambrico Negro",
+    "descricao_curta": "BenQ Zowie FK2 DW 4K Inalambrico Negro",
+    "categoria": "Mouses",
+    "preco": 0.0,
+    "estoque": 10,
+    "specs": {},
+    "ativo": true,
+    "imagens": []
+  },
+  {
+    "nome": "Pulsar X2A Es 4K Wireless Medium",
+    "marca": "Pulsar",
+    "descricao": "Pulsar X2A Es 4K Wireless Medium",
+    "descricao_curta": "Pulsar X2A Es 4K Wireless Medium",
+    "categoria": "Mouses",
+    "preco": 0.0,
+    "estoque": 10,
+    "specs": {},
+    "ativo": true,
+    "imagens": [
+      {
+        "url": "https://m.media-amazon.com/images/I/61mNXsmOFJL.jpg",
+        "capa": true
+      },
+      {
+        "url": "https://cdn.store-assets.com/s/824673/i/90292067.jpeg",
+        "capa": false
+      },
+      {
+        "url": "https://jp.pulsar.gg/cdn/shop/files/X2A-es_White_Galleryimage_001_G.jpg?v=1712894072",
+        "capa": false
+      },
+      {
+        "url": "https://mechanicalkeyboards.com/cdn/shop/files/19806-WQBRE-Pulsar-X2A-eS-Black-Wireless-4K-8K.jpg?v=1734386852&width=2048",
+        "capa": false
+      },
+      {
+        "url": "https://www.inpad.com.tw/data/goods/gallery/202406/1717668538301400511.jpg",
+        "capa": false
+      }
+    ]
+  },
+  {
+    "nome": "WLMouse YING75 75 RGB 8K USB C Switch Nightfall Magnetic Blanco Ingles",
+    "marca": "WLMouse",
+    "descricao": "WLMouse YING75 75 RGB 8K USB C Switch Nightfall Magnetic Blanco Ingles",
+    "descricao_curta": "WLMouse YING75 75 RGB 8K USB C Switch Nightfall Magnetic Blanco Ingles",
+    "categoria": "Mouses",
+    "preco": 0.0,
+    "estoque": 10,
+    "specs": {},
+    "ativo": true,
+    "imagens": [
+      {
+        "url": "https://ir.ozone.ru/s3/multimedia-1-r/c1000/7613683335.jpg",
+        "capa": true
+      },
+      {
+        "url": "https://www.clife.ru/upload/iblock/ced/d7jsmxzrq0k5xiluwca1pr8x132g9qpj/wlmouse_ying_75_w_7.png",
+        "capa": false
+      },
+      {
+        "url": "https://www.clife.ru/upload/iblock/eb9/4803158dcq5a58ec728wig8ms3pk8uie/wlmouse_ying_75_w_2.png",
+        "capa": false
+      },
+      {
+        "url": "https://www.clife.ru/upload/iblock/249/0glbem2nf6jtow0i33wbb1hnoiptxpi1/wlmouse_ying_75_w_3.png",
+        "capa": false
+      },
+      {
+        "url": "https://www.clife.ru/upload/iblock/2b7/ac6j4dzi21z0yxg0p6g275qa0o60btm6/wlmouse_ying_75_w_6.png",
+        "capa": false
+      }
+    ]
+  },
+  {
+    "nome": "SteelSeries RGB Apex Pro TKL Gen 3 White Ingles",
+    "marca": "SteelSeries",
+    "descricao": "SteelSeries RGB Apex Pro TKL Gen 3 White Ingles",
+    "descricao_curta": "SteelSeries RGB Apex Pro TKL Gen 3 White Ingles",
+    "categoria": "Teclados",
+    "preco": 0.0,
+    "estoque": 10,
+    "specs": {},
+    "ativo": true,
+    "imagens": []
+  },
+  {
+    "nome": "SteelSeries 60 RGB Apex Pro Mini Gen 3 Black Ingles",
+    "marca": "SteelSeries",
+    "descricao": "SteelSeries 60 RGB Apex Pro Mini Gen 3 Black Ingles",
+    "descricao_curta": "SteelSeries 60 RGB Apex Pro Mini Gen 3 Black Ingles",
+    "categoria": "Teclados",
+    "preco": 0.0,
+    "estoque": 10,
+    "specs": {},
+    "ativo": true,
+    "imagens": []
+  },
+  {
+    "nome": "Pulsar Pcmk 3 HE 60 Bruce Lee 85TH RGB 8K USB C Switch Magnetic White",
+    "marca": "Pulsar",
+    "descricao": "Pulsar Pcmk 3 HE 60 Bruce Lee 85TH RGB 8K USB C Switch Magnetic White",
+    "descricao_curta": "Pulsar Pcmk 3 HE 60 Bruce Lee 85TH RGB 8K USB C Switch Magnetic White",
+    "categoria": "Teclados",
+    "preco": 0.0,
+    "estoque": 10,
+    "specs": {},
+    "ativo": true,
+    "imagens": [
+      {
+        "url": "https://ggjpn.com/wp-content/uploads/pulsar-pcmk3-thumb.jpg",
+        "capa": true
+      },
+      {
+        "url": "https://us.maxgaming.com/bilder/artiklar/zoom/35241_5.jpg?m=1754332757",
+        "capa": false
+      },
+      {
+        "url": "https://cdn.shopify.com/s/files/1/0455/0914/8840/files/PCMK3HE-CrazyLight-Bruce-Lee-Edition-Gaming-Keyboard_003.jpg?v=1763091516",
+        "capa": false
+      },
+      {
+        "url": "https://eu.pulsar.gg/cdn/shop/files/PCMK3HE60_Galleryimage_001_ANSI.jpg?v=1749774081",
+        "capa": false
+      },
+      {
+        "url": "https://jp.pulsar.gg/cdn/shop/files/20260114_PCMK_3_HE_TKL_galleryimage3_jis_white.jpg?v=1768559885",
+        "capa": false
+      }
+    ]
+  },
+  {
+    "nome": "Attack Shark X68 HE 60 RGB 8K USB C Switch Magnetic Ingles",
+    "marca": "Attack Shark",
+    "descricao": "Attack Shark X68 HE 60 RGB 8K USB C Switch Magnetic Ingles",
+    "descricao_curta": "Attack Shark X68 HE 60 RGB 8K USB C Switch Magnetic Ingles",
+    "categoria": "Teclados",
+    "preco": 0.0,
+    "estoque": 10,
+    "specs": {},
+    "ativo": true,
+    "imagens": [
+      {
+        "url": "https://attackshark.com/cdn/shop/files/574d96187eee297feeb4b9d834d33ef4_534f8264-36bc-479e-b302-e0ad05f635e2.png?v=1737520562&width=1200",
+        "capa": true
+      },
+      {
+        "url": "https://m.media-amazon.com/images/I/61ahJ+aDw6L._AC_SL1500_.jpg",
+        "capa": false
+      },
+      {
+        "url": "https://attackshark.com/cdn/shop/files/05_6ac26b32-0392-4c96-9e43-248f731c848f.jpg?v=1737520562&width=1400",
+        "capa": false
+      },
+      {
+        "url": "https://m.media-amazon.com/images/S/aplus-media-library-service-media/657befad-5b65-4408-b906-dfd5978f6b3f.__CR0,0,1464,600_PT0_SX1464_V1___.jpg",
+        "capa": false
+      },
+      {
+        "url": "https://img.ltwebstatic.com/images3_spmp/2025/02/11/87/17392671241a577d348c368c19ebdc803c0ce28688_thumbnail_900x.jpg",
+        "capa": false
+      }
+    ]
+  },
+  {
+    "nome": "Pulsar Pcmk 3 HE 60 RGB Hall Effect Magnetic Sw Ing White",
+    "marca": "Pulsar",
+    "descricao": "Pulsar Pcmk 3 HE 60 RGB Hall Effect Magnetic Sw Ing White",
+    "descricao_curta": "Pulsar Pcmk 3 HE 60 RGB Hall Effect Magnetic Sw Ing White",
+    "categoria": "Teclados",
+    "preco": 0.0,
+    "estoque": 10,
+    "specs": {},
+    "ativo": true,
+    "imagens": [
+      {
+        "url": "https://jp.pulsar.gg/cdn/shop/files/pcmk3he60-jis_white_front_jis.png?v=1750143381&width=1024",
+        "capa": true
+      },
+      {
+        "url": "https://m.media-amazon.com/images/S/aplus-media-library-service-media/6aa539fc-b4da-4039-b616-1a28394394c6.__CR0,0,1464,600_PT0_SX1464_V1___.jpg",
+        "capa": false
+      },
+      {
+        "url": "https://jp.pulsar.gg/cdn/shop/files/PCMK3HE60_Galleryimage_002_ANSI.jpg?v=1749734866",
+        "capa": false
+      },
+      {
+        "url": "https://jp.pulsar.gg/cdn/shop/files/GAMING_MOUSE_MENU.png?v=13271658387245181889",
+        "capa": false
+      },
+      {
+        "url": "https://www.laptop.com.tr/wp-content/uploads/2025/06/pulsar-pcmk-3-he-60-ansi-beyaz-tkl-gateron-x-pulsar-manyetik-switch-hall-effect-rgb-hotswap-mekanik-gaming-klavye-pcmk3he601w-2.jpg",
+        "capa": false
+      }
+    ]
+  },
+  {
+    "nome": "SteelSeries Arctis Nova Elite 61661 Inalambrico Black",
+    "marca": "SteelSeries",
+    "descricao": "SteelSeries Arctis Nova Elite 61661 Inalambrico Black",
+    "descricao_curta": "SteelSeries Arctis Nova Elite 61661 Inalambrico Black",
+    "categoria": "Fones de Ouvido",
+    "preco": 0.0,
+    "estoque": 10,
+    "specs": {},
+    "ativo": true,
+    "imagens": []
+  },
+  {
+    "nome": "SteelSeries Artics Nova Pro Inalambrico Negro",
+    "marca": "SteelSeries",
+    "descricao": "SteelSeries Artics Nova Pro Inalambrico Negro",
+    "descricao_curta": "SteelSeries Artics Nova Pro Inalambrico Negro",
+    "categoria": "Fones de Ouvido",
+    "preco": 0.0,
+    "estoque": 10,
+    "specs": {},
+    "ativo": true,
+    "imagens": []
+  },
+  {
+    "nome": "Logitech G Pro X 7 1 Dolby Inalambrico Negro",
+    "marca": "Logitech",
+    "descricao": "Logitech G Pro X 7 1 Dolby Inalambrico Negro",
+    "descricao_curta": "Logitech G Pro X 7 1 Dolby Inalambrico Negro",
+    "categoria": "Fones de Ouvido",
+    "preco": 0.0,
+    "estoque": 10,
+    "specs": {},
+    "ativo": true,
+    "imagens": [
+      {
+        "url": "https://m.media-amazon.com/images/I/61jSp74rrSL._AC_.jpg",
+        "capa": true
+      },
+      {
+        "url": "https://resource.logitechg.com/d_transparent.gif/content/dam/gaming/en/products/pro-2-lightspeed/gallery/pro2-lightspeed-black-new-gallery1.png",
+        "capa": false
+      },
+      {
+        "url": "https://robots.net/wp-content/uploads/2023/08/10-best-wireless-logitech-g-pro-mouse-for-2023-1693383814.jpg",
+        "capa": false
+      },
+      {
+        "url": "https://www.gamereactor.se/media/76/logitechgpro_4027693b.jpg",
+        "capa": false
+      },
+      {
+        "url": "https://m.media-amazon.com/images/I/71A3paWDIXL.jpg",
+        "capa": false
+      }
+    ]
+  },
+  {
+    "nome": "SteelSeries 61759 Arctis Nova 7X Inalambrico White",
+    "marca": "SteelSeries",
+    "descricao": "SteelSeries 61759 Arctis Nova 7X Inalambrico White",
+    "descricao_curta": "SteelSeries 61759 Arctis Nova 7X Inalambrico White",
+    "categoria": "Fones de Ouvido",
+    "preco": 0.0,
+    "estoque": 10,
+    "specs": {},
+    "ativo": true,
+    "imagens": [
+      {
+        "url": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/9be80711-0321-4dd7-93ca-384d88685e91.jpg",
+        "capa": true
+      },
+      {
+        "url": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/cc4989b0-967c-447c-b957-3000f2a8a90f.jpg;maxHeight=1920;maxWidth=900?format=webp",
+        "capa": false
+      },
+      {
+        "url": "https://images.ctfassets.net/hmm5mo4qf4mf/68xN79Y3u4vYSQ9DsF9dTH/36f543215a631737baf1d424982264c0/arctis_nova_7x_white_pdp_img_buy_01.png__1920x1080_crop-fit_optimize_subsampling-2-204.png?fm=webp&q=90&fit=scale&w=1920",
+        "capa": false
+      },
+      {
+        "url": "https://images.ctfassets.net/hmm5mo4qf4mf/3mLhe0PMQMgNs8R1cJK3bg/9863dab3215b563ef3aa785de5a4546c/arctis_nova_7x_white_pdp_img_buy_03.png__1920x1080_crop-fit_optimize_subsampling-2-206.png?fm=webp&q=90&fit=scale&w=1920",
+        "capa": false
+      },
+      {
+        "url": "https://media.steelseriescdn.com/thumbs/filer_public/85/d5/85d55644-fc6b-4855-b636-f38acaee0f8d/arctis_nova_7x_wl_white_pdp_img_buy_1.png__1920x1080_crop-fit_optimize_subsampling-2.png",
+        "capa": false
+      }
+    ]
+  },
+  {
+    "nome": "Moondrop Variations 1DD2BA2EST Preto",
+    "marca": "Moondrop",
+    "descricao": "Moondrop Variations 1DD2BA2EST Preto",
+    "descricao_curta": "Moondrop Variations 1DD2BA2EST Preto",
+    "categoria": "Fones de Ouvido",
+    "preco": 0.0,
+    "estoque": 10,
+    "specs": {},
+    "ativo": true,
+    "imagens": []
+  },
+  {
+    "nome": "Sennheiser Momentum 4 Wireless Blue Denim",
+    "marca": "Sennheiser",
+    "descricao": "Sennheiser Momentum 4 Wireless Blue Denim",
+    "descricao_curta": "Sennheiser Momentum 4 Wireless Blue Denim",
+    "categoria": "Fones de Ouvido",
+    "preco": 0.0,
+    "estoque": 10,
+    "specs": {},
+    "ativo": true,
+    "imagens": []
+  },
+  {
+    "nome": "Razer Blackshark V3 Pro Counter Strike 2 Edition sem Fio Dragon Lore",
+    "marca": "Razer",
+    "descricao": "Razer Blackshark V3 Pro Counter Strike 2 Edition sem Fio Dragon Lore",
+    "descricao_curta": "Razer Blackshark V3 Pro Counter Strike 2 Edition sem Fio Dragon Lore",
+    "categoria": "Fones de Ouvido",
+    "preco": 0.0,
+    "estoque": 10,
+    "specs": {},
+    "ativo": true,
+    "imagens": []
   }
 ]

@@ -10,6 +10,8 @@ use App\Models\ItemPedido;
 use App\Models\ProdutoImagem;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ProdutosExport;
 
 class AdminController extends Controller
 {
@@ -79,6 +81,11 @@ class AdminController extends Controller
             }
         }
         
+        // Aplicar filtro de categoria
+        if ($request->filled('categoria_id')) {
+            $query->where('categoria_id', $request->categoria_id);
+        }
+        
         $perPage  = min((int) $request->get('per_page', 24), 96);
         $viewMode = in_array($request->get('view_mode'), ['cards', 'lista']) ? $request->get('view_mode') : 'cards';
         $produtos = $query->orderBy('created_at', 'desc')->paginate($perPage);
@@ -122,6 +129,11 @@ class AdminController extends Controller
             }
         }
         
+        // Aplicar filtro de categoria
+        if ($request->filled('categoria_id')) {
+            $query->where('categoria_id', $request->categoria_id);
+        }
+        
         $perPage  = min((int) $request->get('per_page', 24), 96);
         $viewMode = in_array($request->get('view_mode'), ['cards', 'lista']) ? $request->get('view_mode') : 'cards';
         $produtos = $query->orderBy('created_at', 'desc')->paginate($perPage);
@@ -154,10 +166,11 @@ class AdminController extends Controller
             'desconto_percentual' => $produto->desconto_percentual,
             'em_promocao' => $produto->em_promocao,
             'destaque' => $produto->destaque,
+            'tags' => $produto->tags ?? [],
             'estoque' => $produto->estoque,
             'categoria_id' => $produto->categoria_id,
             'ativo' => $produto->ativo,
-            'imagens' => $produto->imagens->map(function($imagem) {
+            'imagens' => $produto->imagens()->orderBy('ordem')->orderBy('id')->get()->map(function($imagem) {
                 return [
                     'id' => $imagem->id,
                     'caminho' => $imagem->caminho,
@@ -181,6 +194,8 @@ class AdminController extends Controller
             'em_promocao' => 'nullable|boolean',
             'desconto_percentual' => 'nullable|numeric|min:0|max:100',
             'destaque' => 'nullable|boolean',
+            'tags' => 'nullable|array|max:2',
+            'tags.*' => 'string|max:50',
             'imagens.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
@@ -223,6 +238,7 @@ class AdminController extends Controller
             'desconto_percentual' => $descontoPercentual,
             'em_promocao' => $emPromocao,
             'destaque' => $destaque,
+            'tags' => $request->input('tags', []),
             'estoque' => $request->estoque,
             'categoria_id' => $request->categoria_id,
             'ativo' => true // Produtos são ativos por padrão
@@ -260,6 +276,8 @@ class AdminController extends Controller
             'em_promocao' => 'nullable|boolean',
             'desconto_percentual' => 'nullable|numeric|min:0|max:100',
             'destaque' => 'nullable|boolean',
+            'tags' => 'nullable|array|max:2',
+            'tags.*' => 'string|max:50',
             'imagens.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
             'imagem_capa_id' => 'nullable|exists:produto_imagens,id'
         ]);
@@ -303,17 +321,20 @@ class AdminController extends Controller
             'desconto_percentual' => $descontoPercentual,
             'em_promocao' => $emPromocao,
             'destaque' => $destaque,
+            'tags' => $request->input('tags', []),
             'estoque' => $request->estoque,
             'categoria_id' => $request->categoria_id
         ]);
 
         // Upload de novas imagens
         if ($request->hasFile('imagens')) {
-            foreach ($request->file('imagens') as $imagem) {
+            $maxOrdem = $produto->imagens()->max('ordem') ?? 0;
+            foreach ($request->file('imagens') as $index => $imagem) {
                 $caminho = $imagem->store('produtos', 'public');
                 ProdutoImagem::create([
                     'produto_id' => $produto->id,
-                    'caminho' => $caminho
+                    'caminho' => $caminho,
+                    'ordem' => $maxOrdem + $index + 1,
                 ]);
             }
         }
@@ -459,16 +480,37 @@ class AdminController extends Controller
         ]);
     }
 
+    public function reordenarImagens(Request $request, $produtoId)
+    {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Não autorizado'], 401);
+        }
+
+        $request->validate([
+            'ordem'           => 'required|array',
+            'ordem.*.id'      => 'required|integer|exists:produto_imagens,id',
+            'ordem.*.posicao' => 'required|integer|min:0',
+        ]);
+
+        foreach ($request->ordem as $item) {
+            ProdutoImagem::where('id', $item['id'])
+                ->where('produto_id', $produtoId)
+                ->update(['ordem' => $item['posicao']]);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
     public function bulkActionProdutos(Request $request)
     {
         if (!Auth::check()) {
             return response()->json(['error' => 'Não autorizado'], 401);
         }
 
-        $action = $request->input('action'); // 'delete' | 'ativar' | 'desativar'
+        $action = $request->input('action'); // 'delete' | 'ativar' | 'desativar' | 'set_exclusivo' | 'remove_exclusivo' | 'set_em_breve' | 'remove_em_breve'
         $ids    = $request->input('ids', []);
 
-        if (empty($ids) || !in_array($action, ['delete', 'ativar', 'desativar'])) {
+        if (empty($ids) || !in_array($action, ['delete', 'ativar', 'desativar', 'set_exclusivo', 'remove_exclusivo', 'set_em_breve', 'remove_em_breve'])) {
             return response()->json(['error' => 'Requisição inválida'], 422);
         }
 
@@ -490,6 +532,49 @@ class AdminController extends Controller
                 break;
             case 'desativar':
                 Produto::whereIn('id', $ids)->update(['ativo' => 0]);
+                break;
+            case 'set_exclusivo':
+                $produtos = Produto::whereIn('id', $ids)->get();
+                foreach ($produtos as $produto) {
+                    $tags = $produto->tags ?? [];
+                    if (!in_array('Exclusivo', $tags)) {
+                        $tags[] = 'Exclusivo';
+                        // Limitar a apenas 2 tags (preservando a mais recente)
+                        if (count($tags) > 2) $tags = array_slice($tags, -2);
+                        $produto->update(['tags' => $tags]);
+                    }
+                }
+                break;
+            case 'remove_exclusivo':
+                $produtos = Produto::whereIn('id', $ids)->get();
+                foreach ($produtos as $produto) {
+                    $tags = $produto->tags ?? [];
+                    if (($key = array_search('Exclusivo', $tags)) !== false) {
+                        unset($tags[$key]);
+                        $produto->update(['tags' => array_values($tags)]);
+                    }
+                }
+                break;
+            case 'set_em_breve':
+                $produtos = Produto::whereIn('id', $ids)->get();
+                foreach ($produtos as $produto) {
+                    $tags = $produto->tags ?? [];
+                    if (!in_array('Em Breve', $tags)) {
+                        $tags[] = 'Em Breve';
+                        if (count($tags) > 2) $tags = array_slice($tags, -2);
+                        $produto->update(['tags' => $tags]);
+                    }
+                }
+                break;
+            case 'remove_em_breve':
+                $produtos = Produto::whereIn('id', $ids)->get();
+                foreach ($produtos as $produto) {
+                    $tags = $produto->tags ?? [];
+                    if (($key = array_search('Em Breve', $tags)) !== false) {
+                        unset($tags[$key]);
+                        $produto->update(['tags' => array_values($tags)]);
+                    }
+                }
                 break;
         }
 
@@ -597,7 +682,15 @@ class AdminController extends Controller
         }
         
         $categoria->delete();
-        
+
         return redirect()->route('admin.categorias')->with('success', 'Categoria excluída com sucesso!');
+    }
+
+    public function exportarProdutos(Request $request)
+    {
+        if (!Auth::check()) abort(403);
+
+        $ids = $request->input('ids', []);
+        return Excel::download(new ProdutosExport($ids), 'produtos-jfx-' . now()->format('Y-m-d') . '.xlsx');
     }
 }
