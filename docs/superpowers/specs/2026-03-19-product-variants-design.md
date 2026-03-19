@@ -26,6 +26,8 @@ produto_id          FK → produtos (cascade delete)
 nome                string          ex: "Cor", "Tamanho"
 ordem               integer         ordenação na UI
 timestamps
+
+UNIQUE(produto_id, nome)            — sem grupos duplicados por produto
 ```
 
 ### Nova tabela: `produto_opcao_valores`
@@ -43,8 +45,8 @@ timestamps
 ```
 id                  bigint PK
 produto_id          FK → produtos (cascade delete)
-valores             JSON            array de produto_opcao_valor_id que formam a combinação
-preco               decimal(10,2) nullable   null = herda preco do produto pai
+valores             JSON            array de produto_opcao_valor_id (sempre ordenado)
+preco               decimal(10,2) nullable   null = herda preco_com_desconto do produto pai
 estoque             integer nullable         null = usa estoque compartilhado do produto pai
 ativo               boolean default true
 timestamps
@@ -80,9 +82,9 @@ opcoes_snapshot         JSON nullable   ex: {"Cor": "Preto", "Tamanho": "M"}
 - `belongsTo Produto`
 - fillable: `produto_id`, `valores`, `preco`, `estoque`, `ativo`
 - casts: `valores` → array, `preco` → decimal:2, `ativo` → boolean
-- accessor `label` → resolve os IDs em valores legíveis (ex: "Preto / M")
-- accessor `preco_efetivo` → retorna `preco` próprio ou `produto->preco` se null
-- accessor `estoque_efetivo` → retorna `estoque` próprio ou `produto->estoque` se `estoque_compartilhado = true`
+- accessor `label` → resolve os IDs em valores legíveis (ex: "Preto / M"); **nunca faz queries** — depende de `valores` como relation carregada via eager loading ou de mapa passado pelo chamador
+- accessor `preco_efetivo` → retorna `$this->preco` próprio **ou `round($this->produto->preco_com_desconto, 2)`** se null (herdando o preço com desconto do produto, arredondado para 2 casas para consistência com o cast decimal:2 da variante)
+- accessor `estoque_efetivo` → retorna `$this->estoque` próprio ou `$this->produto->estoque` se `estoque_compartilhado = true`. Se `estoque_compartilhado = false` e `$this->estoque = null`, retorna `0` (sem estoque — admin deve configurar explicitamente)
 
 ### Alterações em models existentes
 
@@ -98,11 +100,13 @@ opcoes_snapshot         JSON nullable   ex: {"Cor": "Preto", "Tamanho": "M"}
 - fillable: adicionar `produto_variante_id`, `opcoes_snapshot`
 - casts: `opcoes_snapshot` → array
 
-## Admin
+## Admin — UI
 
-### UI — Aba "Variantes" no modal de produto
+### Tabs no modal de produto
 
-A tela de edição de produto ganha uma terceira aba "Variantes" (ao lado das abas de dados e imagens já existentes).
+O modal de produto atual é um formulário linear sem sistema de tabs. A aba "Variantes" implica **criar um sistema de tabs no modal** (`admin.js` + HTML do modal) — isso é trabalho novo, não adição a estrutura existente.
+
+A tela de edição de produto ganha uma terceira aba "Variantes".
 
 **Fluxo de uso:**
 1. Admin cria um grupo (ex: "Cor") e adiciona valores ("Preto", "Branco")
@@ -114,27 +118,53 @@ A tela de edição de produto ganha uma terceira aba "Variantes" (ao lado das ab
 **Comportamento da geração:**
 - Variantes já existentes são preservadas (preço/estoque não sobrescritos)
 - Novas combinações são criadas com `preco = null` e `estoque = null`
+- IDs dos valores são sempre **ordenados** antes de comparar/inserir para evitar duplicatas por ordem diferente
 - Combinações removidas (quando valores são deletados) ficam inativas
 
-### Novos endpoints no `AdminController`
+## Admin — Endpoints
 
 ```
-GET  /admin/produtos/{id}/variantes          → retorna grupos, valores e variantes
+GET  /admin/produtos/{id}/opcoes             → retorna grupos, valores e variantes
 POST /admin/produtos/{id}/opcao-grupos       → cria/atualiza grupos e valores (batch)
-POST /admin/produtos/{id}/variantes/gerar    → gera combinações via produto cartesiano
-PUT  /admin/produtos/{id}/variantes          → salva preços/estoques/ativo em batch
+POST /admin/produtos/{id}/variantes/gerar    → gera combinações via produto cartesiano (idempotente)
+PUT  /admin/produtos/{id}/variantes          → salva preços/estoques/ativo em batch (DB::transaction)
 ```
+
+**Registro de rotas:** estas rotas devem ser registradas em `web.php` **imediatamente antes da linha** `Route::get('/admin/produtos/{id}', ...)`. O URI `opcoes` (não `variantes`) é usado no GET para evitar ambiguidade com o path `/variantes/gerar`.
 
 Todos os endpoints retornam JSON e requerem `Auth::check()`.
+
+**`GET opcoes`:** carrega `opcaoGrupos.valores` e `variantes` com eager loading. O campo `label` de cada variante é resolvido no servidor a partir do mapa de valores já carregado — sem N+1.
+
+**`POST opcao-grupos` — validação:**
+- `grupos` array required
+- cada grupo: `nome` string required max:50; unique por produto
+- cada valor dentro do grupo: `valor` string required max:100, `ordem` integer optional
+
+**`PUT variantes` — payload e validação:**
+```json
+{
+  "estoque_compartilhado": true,
+  "variantes": [
+    { "id": 1, "preco": 149.90, "estoque": null, "ativo": true },
+    { "id": 2, "preco": null,   "estoque": 5,    "ativo": false }
+  ]
+}
+```
+- Campos de cada variante são todos opcionais (partial update)
+- `preco` nullable numeric min:0; `estoque` nullable integer min:0; `ativo` boolean
+- Toda a operação em `DB::transaction()`
 
 ## Frontend — Página do Produto
 
 ### Blade (`produto-detalhes.blade.php`)
 
-Inserir bloco de seleção de variantes entre a descrição curta e o controle de quantidade, condicionado a `$produto->tem_variantes`:
+Condição de exibição: `$produto->tem_variantes && $produto->variantesAtivas->count() > 0` (não exibir se grupos existem mas nenhuma variante ativa foi gerada).
+
+Inserir bloco de seleção entre a descrição curta e o controle de quantidade:
 
 ```blade
-@if($produto->tem_variantes)
+@if($produto->tem_variantes && $produto->variantesAtivas->count() > 0)
   @foreach($produto->opcaoGrupos as $grupo)
     <div class="mb-4">
       <span class="text-xs font-mono font-bold uppercase tracking-widest">{{ $grupo->nome }}</span>
@@ -152,30 +182,59 @@ Inserir bloco de seleção de variantes entre a descrição curta e o controle d
 @endif
 ```
 
-Variantes são passadas como JSON inline para o JS via `data-variantes` no botão de adicionar ao carrinho.
+Variantes ativas passadas como JSON inline via `data-variantes` no botão de adicionar ao carrinho (inclui `id`, `valores` array de valor_ids, `preco_efetivo`, `estoque_efetivo`).
 
 ### JS (`produto-detalhes.js`)
 
 - Rastreia seleção atual por grupo: `{ grupoId: valorId, ... }`
 - Ao completar seleção de todos os grupos:
-  - Encontra a variante correspondente no JSON inline
-  - Atualiza preço exibido
-  - Atualiza estoque exibido
+  - Encontra a variante correspondente no JSON inline (comparando arrays ordenados de valor_ids)
+  - Atualiza preço exibido com `variante.preco_efetivo`
+  - Atualiza estoque exibido com `variante.estoque_efetivo`
   - Preenche `data-variante-id` no botão de adicionar ao carrinho
-  - Habilita o botão
+  - Habilita o botão (se variante ativa e em estoque)
 - Enquanto seleção incompleta: botão desabilitado com texto "SELECIONE AS OPÇÕES"
 - Botão de variante selecionada recebe classe `border-black bg-black text-white`
 
-## Carrinho
+## Carrinho — `CarrinhoController`
 
-**`CarrinhoController`** — método de adicionar ao carrinho:
-- Aceita `produto_variante_id` opcional no request
-- Se fornecido, valida que a variante pertence ao produto e está ativa
-- Usa `estoque_efetivo` da variante para checar disponibilidade
-- Grava `produto_variante_id` e `opcoes_snapshot` no `ItemPedido`
+### Chave composta obrigatória
 
-**Exibição no carrinho** (`cart.js` / view do carrinho):
-- Exibe o `opcoes_snapshot` abaixo do nome do produto (ex: "Cor: Preto · Tamanho: M")
+**Dois itens com o mesmo `produto_id` mas `produto_variante_id` diferentes são sempre linhas distintas em `itens_pedido` — nunca devem ser mesclados.** Os métodos `adicionar()`, `remover()`, `atualizar_quantidade()` e `verificar_produto()` devem usar `(produto_id, produto_variante_id)` como chave composta em todas as queries WHERE. `produto_variante_id = null` é um valor de chave válido (produtos sem variante).
+
+### Validação de `produto_variante_id` em `adicionar()`
+
+Quando `produto_variante_id` é fornecido no request:
+1. Validar `produto_variante_id` como `nullable|exists:produto_variantes,id`
+2. Validar que `produto_variante_id` pertence ao `produto_id` enviado (cross-FK check: `produto_variantes.produto_id = request.produto_id`) — impede que um cliente aplique o preço de uma variante de outro produto
+3. Validar que a variante está ativa (`ativo = true`)
+
+### Preço gravado no item
+
+`itens_pedido.preco` = `$variante->preco_efetivo` quando variante presente; `$produto->preco` quando sem variante.
+
+**Caminho de item existente (`$itemExistente` encontrado em `adicionar()`):** o `preco` não é atualizado — mantém o valor registrado no momento da adição original. Apenas a `quantidade` é incrementada. Isso preserva o preço contratado quando o produto muda de preço após a adição.
+
+### Validação de estoque
+
+- `adicionar()`: usa `$variante->estoque_efetivo` quando variante presente; `$produto->estoque` quando sem variante
+- `atualizar_quantidade()`: idem — carrega a variante a partir do `ItemPedido` existente e usa `$variante->estoque_efetivo`
+
+### `opcoes_snapshot`
+
+Montado pelo servidor em `adicionar()`. Carrega `$variante->with('valores.grupo')` e monta `{grupo->nome: valor->valor}`. Nunca aceita snapshot do frontend.
+
+### Endpoint `itens()`
+
+Eager-load `produtoVariante` nos itens do carrinho. Incluir `produto_variante_id` e `opcoes_snapshot` no JSON retornado para que `cart.js` exiba as opções abaixo do nome do produto.
+
+### Endpoint `verificar_produto()`
+
+Quando `produto_variante_id` é fornecido, a resposta deve incluir:
+```json
+{ "no_carrinho": true, "quantidade": 2, "produto_variante_id": 5 }
+```
+Se o produto existe no carrinho mas com variante diferente (ou sem variante), `no_carrinho = false`.
 
 ## O que não muda
 
@@ -184,9 +243,14 @@ Variantes são passadas como JSON inline para o JS via `data-variantes` no botã
 - Estrutura geral do carrinho (continua baseado em `Pedido` com `status='carrinho'`)
 - Produtos sem variantes funcionam exatamente como hoje
 
+## Interação com promoções
+
+Variantes com `preco` próprio não herdam `em_promocao`/`desconto_percentual` do produto pai — seu preço já é o preço final configurado pelo admin. O accessor `preco_efetivo` retorna o valor direto sem aplicar desconto adicional. Variantes com `preco = null` herdam `$produto->preco_com_desconto` (que já pode refletir desconto de promoção).
+
 ## Casos de borda
 
 - **Produto sem variantes:** fluxo atual inalterado, `produto_variante_id` fica null no `ItemPedido`
 - **Variante desativada:** não aparece como selecionável na página do produto
 - **Variante deletada após compra:** `set null on delete` em `produto_variante_id`; `opcoes_snapshot` preserva o histórico legível
 - **Estoque esgotado em variante individual:** botão desabilitado ao selecionar essa combinação
+- **Grupos sem valores/variantes geradas:** bloco de seleção não exibido ao cliente (`variantesAtivas->count() = 0`)
