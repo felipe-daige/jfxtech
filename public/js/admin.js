@@ -943,6 +943,26 @@ function mostrarPreviewSubstituir(imagemId, input) {
     });
 })();
 
+// ===== ADMIN NOTIFICATION HELPER =====
+
+function adminNotify(msg) {
+    if (typeof window.showNotification === 'function') {
+        window.showNotification(msg, 'success');
+    } else {
+        // Simple inline notification
+        var bar = document.getElementById('admin-notify-bar');
+        if (!bar) {
+            bar = document.createElement('div');
+            bar.id = 'admin-notify-bar';
+            bar.style.cssText = 'position:fixed;top:1rem;right:1rem;z-index:9999;background:#000;color:#fff;padding:0.75rem 1.25rem;font-family:monospace;font-size:0.75rem;letter-spacing:0.05em;';
+            document.body.appendChild(bar);
+        }
+        bar.textContent = msg;
+        bar.style.display = 'block';
+        setTimeout(function() { bar.style.display = 'none'; }, 3000);
+    }
+}
+
 // ===== HELPER FUNCTIONS =====
 
 function getCsrfToken() {
@@ -989,10 +1009,15 @@ function initProdutoModalTabs() {
 // ===== VARIANT MANAGEMENT FUNCTIONS =====
 
 function loadVariantes(produtoId) {
-    if (!produtoId) return;
+    if (!produtoId) {
+        var loading = document.getElementById('variantes-loading');
+        if (loading) loading.textContent = 'Salve o produto primeiro para gerenciar variantes.';
+        return;
+    }
+    var requestId = produtoId; // capture at call time
     var loading = document.getElementById('variantes-loading');
     var content = document.getElementById('variantes-content');
-    if (loading) loading.classList.remove('hidden');
+    if (loading) { loading.classList.remove('hidden'); loading.textContent = 'CARREGANDO...'; }
     if (content) content.classList.add('hidden');
 
     fetch('/admin/produtos/' + produtoId + '/opcoes', {
@@ -1000,12 +1025,22 @@ function loadVariantes(produtoId) {
     })
     .then(function(r) { return r.json(); })
     .then(function(data) {
+        // Discard if a different product was opened while this fetch was in flight
+        if (window.currentProdutoId !== requestId) return;
         renderGrupos(data.grupos || []);
         renderVariantesTabela(data.variantes || []);
         var cb = document.getElementById('estoque-compartilhado');
         if (cb) cb.checked = data.estoque_compartilhado;
         if (loading) loading.classList.add('hidden');
         if (content) content.classList.remove('hidden');
+    })
+    .catch(function(err) {
+        if (window.currentProdutoId !== requestId) return;
+        console.error('Erro ao carregar variantes:', err);
+        var loading = document.getElementById('variantes-loading');
+        if (loading) {
+            loading.textContent = 'Erro ao carregar variantes. Tente novamente.';
+        }
     });
 }
 
@@ -1020,7 +1055,7 @@ function renderGrupos(grupos) {
 
 function buildGrupoHTML(grupo, idx) {
     var valoresHTML = (grupo.valores || []).map(function(v) {
-        return '<span class="inline-flex items-center gap-1 bg-gray-100 px-2 py-1 text-xs font-mono">' +
+        return '<span class="inline-flex items-center gap-1 bg-gray-100 px-2 py-1 text-xs font-mono" data-valor="' + escapeHtml(v.valor) + '">' +
                escapeHtml(v.valor) +
                '<button type="button" class="remove-valor-btn text-gray-400 hover:text-black" data-valor-id="' + v.id + '">×</button>' +
                '</span>';
@@ -1086,7 +1121,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!valor) return;
             var valoresContainer = grupoItem.querySelector('.valores-container');
             valoresContainer.insertAdjacentHTML('beforeend',
-                '<span class="inline-flex items-center gap-1 bg-gray-100 px-2 py-1 text-xs font-mono">' +
+                '<span class="inline-flex items-center gap-1 bg-gray-100 px-2 py-1 text-xs font-mono" data-valor="' + escapeHtml(valor) + '">' +
                 escapeHtml(valor) +
                 '<button type="button" class="remove-valor-btn text-gray-400 hover:text-black" data-valor-id="">×</button>' +
                 '</span>');
@@ -1119,17 +1154,28 @@ function salvarGruposEGerar(produtoId) {
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
         body: JSON.stringify({ grupos: grupos })
     })
-    .then(function(r) { return r.json(); })
+    .then(function(r) {
+        if (!r.ok) throw new Error('Erro ao salvar grupos: ' + r.status);
+        return r.json();
+    })
     .then(function(data) {
-        if (!data.success) { alert('Erro ao salvar grupos.'); return; }
+        if (!data.success) throw new Error('Erro ao salvar grupos.');
         return fetch('/admin/produtos/' + produtoId + '/variantes/gerar', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
         });
     })
-    .then(function(r) { return r ? r.json() : null; })
+    .then(function(r) {
+        if (!r) return;
+        if (!r.ok) throw new Error('Erro ao gerar variantes: ' + r.status);
+        return r.json();
+    })
     .then(function(data) {
         if (data) loadVariantes(produtoId);
+    })
+    .catch(function(err) {
+        console.error(err);
+        alert('Erro: ' + err.message);
     });
 }
 
@@ -1140,7 +1186,7 @@ function collectGruposFromUI() {
         if (!nome) return;
         var valores = [];
         item.querySelectorAll('.valores-container span').forEach(function(span, vIdx) {
-            var texto = span.childNodes[0].textContent.trim();
+            var texto = span.getAttribute('data-valor');
             if (texto) valores.push({ valor: texto, ordem: vIdx });
         });
         grupos.push({ nome: nome, ordem: idx, valores: valores });
@@ -1170,8 +1216,19 @@ function salvarVariantes(produtoId) {
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken(), 'Accept': 'application/json' },
         body: JSON.stringify({ estoque_compartilhado: estoqueCompartilhado, variantes: variantes })
     })
-    .then(function(r) { return r.json(); })
+    .then(function(r) {
+        if (!r.ok) throw new Error('Erro ao salvar variantes: ' + r.status);
+        return r.json();
+    })
     .then(function(data) {
-        if (data.success && window.showNotification) window.showNotification('Variantes salvas!', 'success');
+        if (data.success) {
+            adminNotify('Variantes salvas com sucesso!');
+        } else {
+            alert('Erro ao salvar variantes.');
+        }
+    })
+    .catch(function(err) {
+        console.error(err);
+        alert('Erro ao salvar variantes: ' + err.message);
     });
 }
