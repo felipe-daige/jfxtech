@@ -35,7 +35,14 @@ class SiteController extends Controller
                 ->get();
         }
 
-        return view('site.index', compact('produtos_destaque'));
+        $categorias_preview = Categoria::where('ativo', true)
+            ->withCount(['produtos as produtos_count' => fn($q) => $q->where('ativo', true)])
+            ->with(['produtos' => fn($q) => $q->where('ativo', true)->with('imagens')->limit(4)])
+            ->get()
+            ->filter(fn($c) => $c->produtos_count > 0)
+            ->values();
+
+        return view('site.index', compact('produtos_destaque', 'categorias_preview'));
     }
 
     /**
@@ -114,7 +121,7 @@ class SiteController extends Controller
     {
         $produto = Produto::where('slug', $slug)
             ->where('ativo', true)
-            ->with(['imagens', 'categoria'])
+            ->with(['imagens', 'categoria', 'imagemCapa', 'opcaoGrupos.valores', 'variantesAtivas'])
             ->firstOrFail();
 
         // Buscar produtos relacionados (mesma categoria, excluindo o atual)

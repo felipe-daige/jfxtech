@@ -103,6 +103,38 @@
 
                     <p class="text-gray-600 mb-8 leading-relaxed">{{ $produto->descricao_curta ?? Str::limit(strip_tags($produto->descricao), 200) }}</p>
 
+                    {{-- Variant Selector --}}
+                    @if($produto->tem_variantes && $produto->variantesAtivas->count() > 0)
+                    <div class="mb-8" id="variante-selector">
+                        @foreach($produto->opcaoGrupos as $grupo)
+                        <div class="mb-4">
+                            <span class="text-xs font-mono font-bold uppercase tracking-widest text-gray-500">{{ $grupo->nome }}</span>
+                            <div class="flex flex-wrap gap-2 mt-2">
+                                @foreach($grupo->valores as $valor)
+                                <button type="button"
+                                        class="opcao-btn border border-[var(--color-lab-border)] px-4 py-2 text-sm font-mono hover:border-black transition-colors"
+                                        data-grupo="{{ $grupo->id }}"
+                                        data-valor="{{ $valor->id }}">
+                                    {{ $valor->valor }}
+                                </button>
+                                @endforeach
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+
+                    {{-- Pass variant data as JSON for JS --}}
+                    <script id="variantes-data" type="application/json">
+                    @json($produto->variantesAtivas->map(fn($v) => [
+                        'id'             => $v->id,
+                        'valores'        => $v->valores,
+                        'preco_efetivo'  => $v->preco_efetivo,
+                        'estoque_efetivo'=> $v->estoque_efetivo,
+                        'ativo'          => $v->ativo,
+                    ]))
+                    </script>
+                    @endif
+
                     {{-- Stock Status --}}
                     <div class="flex items-center gap-2 mb-6 font-mono text-sm">
                         @if($produto->em_estoque)
@@ -126,8 +158,8 @@
                             <p class="font-bold text-sm">5 ANOS</p>
                         </div>
                         <div class="border border-[var(--color-lab-border)] bg-white p-4">
-                            <p class="text-[10px] font-mono text-gray-500 mb-1">ORIGINAL</p>
-                            <p class="font-bold text-sm">100% AUTÊNTICO</p>
+                            <p class="text-[10px] font-mono text-gray-500 mb-1">ATENDIMENTO</p>
+                            <p class="font-bold text-sm">VIA WHATSAPP · 7 DIAS</p>
                         </div>
                         <div class="border border-[var(--color-lab-border)] bg-white p-4">
                             <p class="text-[10px] font-mono text-gray-500 mb-1">DEVOLUÇÃO</p>
@@ -157,10 +189,12 @@
                             </button>
                         @else
                             <button type="button"
-                                    class="add-to-cart-btn flex-1 bg-black text-white py-4 px-8 font-bold tracking-widest hover:bg-gray-800 transition-colors uppercase text-sm {{ !$produto->em_estoque ? 'opacity-50 cursor-not-allowed' : '' }}"
+                                    class="add-to-cart-btn flex-1 bg-black text-white py-4 px-8 font-bold tracking-widest hover:bg-gray-800 transition-colors uppercase text-sm
+                                        {{ !$produto->em_estoque || ($produto->tem_variantes && $produto->variantesAtivas->count() > 0) ? 'opacity-50 cursor-not-allowed' : '' }}"
                                     data-produto-id="{{ $produto->id }}"
-                                    {{ !$produto->em_estoque ? 'disabled' : '' }}>
-                                ADICIONAR AO CARRINHO
+                                    data-variante-id=""
+                                    {{ !$produto->em_estoque || ($produto->tem_variantes && $produto->variantesAtivas->count() > 0) ? 'disabled' : '' }}>
+                                {{ ($produto->tem_variantes && $produto->variantesAtivas->count() > 0) ? 'SELECIONE AS OPÇÕES' : 'ADICIONAR AO CARRINHO' }}
                             </button>
                         @endif
                         <button id="toggle-favorite"
