@@ -764,8 +764,37 @@ class AdminController extends Controller
         }
 
         \DB::transaction(function () use ($request, $produto) {
-            // Delete groups not in this request (by name)
+            // Collect IDs of all current values (before deletion)
+            $currentValorIds = $produto->opcaoGrupos()
+                ->with('valores')
+                ->get()
+                ->flatMap(fn($g) => $g->valores->pluck('id'))
+                ->all();
+
+            // Collect IDs that will survive (values whose groups/names are in the request)
             $nomesNovos = collect($request->grupos)->pluck('nome')->all();
+            $valoresNoRequest = collect($request->grupos)->flatMap(fn($g) => collect($g['valores'] ?? [])->pluck('valor'))->all();
+
+            // Get IDs of values being kept (groups in request + values in those groups)
+            $idsAManter = $produto->opcaoGrupos()
+                ->with('valores')
+                ->whereIn('nome', $nomesNovos)
+                ->get()
+                ->flatMap(fn($g) => $g->valores->whereIn('valor', $valoresNoRequest)->pluck('id'))
+                ->all();
+
+            // Deactivate variants that contain any valor ID being removed
+            $idsRemovidos = array_diff($currentValorIds, $idsAManter);
+            if (!empty($idsRemovidos)) {
+                foreach ($produto->variantes()->get() as $variante) {
+                    $variantValorIds = $variante->valores ?? [];
+                    if (!empty(array_intersect($variantValorIds, $idsRemovidos))) {
+                        $variante->update(['ativo' => false]);
+                    }
+                }
+            }
+
+            // Delete groups not in this request (by name)
             $produto->opcaoGrupos()->whereNotIn('nome', $nomesNovos)->delete();
 
             foreach ($request->grupos as $idx => $grupoData) {

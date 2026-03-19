@@ -85,6 +85,20 @@ class ProdutoVarianteTest extends TestCase
         $this->assertDatabaseHas('produto_variantes', ['preco' => 199.00]);
     }
 
+    public function test_post_opcao_grupos_rejects_duplicate_group_name_in_payload(): void
+    {
+        $produto = Produto::factory()->create();
+
+        $response = $this->actingAsAdmin()->postJson("/admin/produtos/{$produto->id}/opcao-grupos", [
+            'grupos' => [
+                ['nome' => 'Cor', 'ordem' => 0, 'valores' => [['valor' => 'Preto', 'ordem' => 0]]],
+                ['nome' => 'Cor', 'ordem' => 1, 'valores' => [['valor' => 'Azul', 'ordem' => 0]]],
+            ],
+        ]);
+
+        $response->assertStatus(422);
+    }
+
     public function test_put_variantes_updates_price_and_stock(): void
     {
         $produto = Produto::factory()->create();
