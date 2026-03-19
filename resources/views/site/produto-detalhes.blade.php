@@ -140,7 +140,7 @@
                         @if($produto->em_estoque)
                             <div class="w-2 h-2 bg-green-500 rounded-full"></div>
                             <span class="text-green-700">EM ESTOQUE</span>
-                            <span class="text-gray-400">({{ $produto->estoque }} un.)</span>
+                            <span id="stock-units" class="text-gray-400">({{ $produto->estoque }} un.)</span>
                         @else
                             <div class="w-2 h-2 bg-red-500 rounded-full"></div>
                             <span class="text-red-600">ESGOTADO</span>

@@ -148,7 +148,6 @@ document.addEventListener('DOMContentLoaded', function() {
         var variantes = JSON.parse(variantesDataEl.textContent);
         var selecao = {}; // { grupoId: valorId }
         var opcaoBtns = document.querySelectorAll('.opcao-btn');
-        var addToCartBtn = document.querySelector('.add-to-cart-btn');
         var gruposIds = [];
 
         opcaoBtns.forEach(function(btn) {
@@ -185,10 +184,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 // Find matching variant (sorted comparison)
-                var selectedIds = gruposIds.map(function(g) { return selecao[g]; }).sort(function(a, b) { return a - b; });
+                var selectedIds = gruposIds.map(function(g) { return parseInt(selecao[g]); }).sort(function(a, b) { return a - b; });
                 var varianteEncontrada = null;
                 for (var i = 0; i < variantes.length; i++) {
-                    var vIds = variantes[i].valores.slice().sort(function(a, b) { return a - b; });
+                    var vIds = variantes[i].valores.map(function(id) { return parseInt(id); }).slice().sort(function(a, b) { return a - b; });
                     if (JSON.stringify(vIds) === JSON.stringify(selectedIds)) {
                         varianteEncontrada = variantes[i];
                         break;
@@ -201,6 +200,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         addToCartBtn.classList.add('opacity-50', 'cursor-not-allowed');
                         addToCartBtn.textContent = 'INDISPONÍVEL';
                     }
+                    if (quantityInput) quantityInput.setAttribute('max', 0);
                     return;
                 }
 
@@ -213,8 +213,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Update stock display
                 var stockEl = document.querySelector('.text-green-700, .text-red-600');
                 if (stockEl && varianteEncontrada.estoque_efetivo > 0) {
-                    var unitsEl = document.querySelector('.text-gray-400');
-                    if (unitsEl && unitsEl.textContent.includes('un.')) {
+                    var unitsEl = document.getElementById('stock-units');
+                    if (unitsEl) {
                         unitsEl.textContent = '(' + varianteEncontrada.estoque_efetivo + ' un.)';
                     }
                 }

@@ -121,7 +121,7 @@ class SiteController extends Controller
     {
         $produto = Produto::where('slug', $slug)
             ->where('ativo', true)
-            ->with(['imagens', 'categoria', 'imagemCapa', 'opcaoGrupos.valores', 'variantesAtivas'])
+            ->with(['imagens', 'categoria', 'imagemCapa', 'opcaoGrupos.valores', 'variantesAtivas.produto'])
             ->firstOrFail();
 
         // Buscar produtos relacionados (mesma categoria, excluindo o atual)
