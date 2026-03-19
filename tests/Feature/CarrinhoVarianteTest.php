@@ -100,6 +100,8 @@ class CarrinhoVarianteTest extends TestCase
         ]);
 
         $response->assertStatus(422);
+        $response->assertJson(['success' => false]);
+        $this->assertDatabaseMissing('itens_pedido', ['produto_id' => $produto1->id]);
     }
 
     public function test_opcoes_snapshot_is_built_server_side(): void
@@ -134,6 +136,30 @@ class CarrinhoVarianteTest extends TestCase
         $response->assertOk();
         $itens = $response->json('carrinho.itens');
         $this->assertArrayHasKey('opcoes_snapshot', $itens[0]);
+        $this->assertNotNull($itens[0]['opcoes_snapshot']);
+        $this->assertArrayHasKey('Cor', $itens[0]['opcoes_snapshot']);
+    }
+
+    public function test_atualizar_quantidade_rejects_variante_from_different_produto(): void
+    {
+        $this->loginUser();
+        $produto1 = Produto::factory()->create(['estoque' => 10, 'estoque_compartilhado' => true]);
+        $produto2 = Produto::factory()->create(['estoque' => 10, 'estoque_compartilhado' => true]);
+        $grupo2   = ProdutoOpcaoGrupo::factory()->create(['produto_id' => $produto2->id]);
+        $val2     = ProdutoOpcaoValor::factory()->create(['grupo_id' => $grupo2->id]);
+        $var2     = ProdutoVariante::factory()->create(['produto_id' => $produto2->id, 'valores' => [$val2->id]]);
+
+        // Add produto1 (no variant) to cart first
+        $this->postJson('/carrinho/adicionar', ['produto_id' => $produto1->id, 'quantidade' => 1]);
+
+        // Try to update with a variant belonging to produto2
+        $response = $this->postJson('/carrinho/atualizar', [
+            'produto_id'          => $produto1->id,
+            'produto_variante_id' => $var2->id,
+            'quantidade'          => 2,
+        ]);
+
+        $response->assertStatus(422);
     }
 
     public function test_remover_uses_composite_key(): void

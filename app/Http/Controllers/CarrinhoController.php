@@ -115,8 +115,13 @@ class CarrinhoController extends Controller
             $snapshot = null;
             if ($variante) {
                 $snapshot = [];
+                $valorModels = \App\Models\ProdutoOpcaoValor::with('grupo')
+                    ->whereIn('id', $variante->valores)
+                    ->get()
+                    ->keyBy('id');
+
                 foreach ($variante->valores as $valorId) {
-                    $valorModel = \App\Models\ProdutoOpcaoValor::with('grupo')->find($valorId);
+                    $valorModel = $valorModels->get($valorId);
                     if ($valorModel) {
                         $snapshot[$valorModel->grupo->nome] = $valorModel->valor;
                     }
@@ -134,6 +139,7 @@ class CarrinhoController extends Controller
         }
 
         $this->recalcularValorTotal($carrinho);
+        $carrinho->refresh();
 
         return response()->json([
             'success' => true,
@@ -214,13 +220,19 @@ class CarrinhoController extends Controller
 
         $produto = Produto::find($request->produto_id);
 
-        // Use estoque_efetivo when variant present
+        // Use estoque_efetivo when variant present; cross-FK: variante must belong to this produto
         $variante = null;
         if ($request->produto_variante_id) {
-            $variante = \App\Models\ProdutoVariante::with('produto')->find($request->produto_variante_id);
-            if ($variante) {
-                $variante->setRelation('produto', $produto);
+            $variante = \App\Models\ProdutoVariante::with('produto')
+                ->where('id', $request->produto_variante_id)
+                ->where('produto_id', $request->produto_id)
+                ->first();
+
+            if (!$variante) {
+                return response()->json(['success' => false, 'message' => 'Variante inválida.'], 422);
             }
+
+            $variante->setRelation('produto', $produto);
         }
         $estoqueEfetivo = $variante ? $variante->estoque_efetivo : $produto->estoque;
 
