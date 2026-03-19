@@ -16,15 +16,16 @@ class CarrinhoController extends Controller
     public function adicionar(Request $request)
     {
         $request->validate([
-            'produto_id' => 'required|exists:produtos,id',
-            'quantidade' => 'required|integer|min:1|max:10'
+            'produto_id'          => 'required|exists:produtos,id',
+            'quantidade'          => 'required|integer|min:1|max:10',
+            'produto_variante_id' => 'nullable|exists:produto_variantes,id',
         ], [
             'produto_id.required' => 'ID do produto é obrigatório.',
-            'produto_id.exists' => 'Produto não encontrado.',
+            'produto_id.exists'   => 'Produto não encontrado.',
             'quantidade.required' => 'Quantidade é obrigatória.',
-            'quantidade.integer' => 'Quantidade deve ser um número inteiro.',
-            'quantidade.min' => 'Quantidade deve ser pelo menos 1.',
-            'quantidade.max' => 'Quantidade máxima é 10.'
+            'quantidade.integer'  => 'Quantidade deve ser um número inteiro.',
+            'quantidade.min'      => 'Quantidade deve ser pelo menos 1.',
+            'quantidade.max'      => 'Quantidade máxima é 10.',
         ]);
 
         $produto = Produto::where('id', $request->produto_id)
@@ -38,7 +39,28 @@ class CarrinhoController extends Controller
             ], 404);
         }
 
-        if ($produto->estoque < $request->quantidade) {
+        // Validate and load variant (cross-FK check: variante must belong to this produto)
+        $variante = null;
+        if ($request->produto_variante_id) {
+            $variante = \App\Models\ProdutoVariante::with('produto')
+                ->where('id', $request->produto_variante_id)
+                ->where('produto_id', $produto->id)
+                ->where('ativo', true)
+                ->first();
+
+            if (!$variante) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Variante inválida ou inativa.'
+                ], 422);
+            }
+            // Ensure produto relation is set for accessor use
+            $variante->setRelation('produto', $produto);
+        }
+
+        $estoqueEfetivo = $variante ? $variante->estoque_efetivo : $produto->estoque;
+
+        if ($estoqueEfetivo < $request->quantidade) {
             return response()->json([
                 'success' => false,
                 'message' => 'Quantidade solicitada não disponível em estoque.'
@@ -48,55 +70,69 @@ class CarrinhoController extends Controller
         // Verificar se o usuário está logado
         if (!Auth::check()) {
             return response()->json([
-                'success' => false,
-                'message' => 'Você precisa estar logado para adicionar produtos ao carrinho.',
+                'success'  => false,
+                'message'  => 'Você precisa estar logado para adicionar produtos ao carrinho.',
                 'redirect' => route('site.login')
             ], 401);
         }
 
-        // Buscar carrinho ativo do usuário ou criar um novo
         $carrinho = Pedido::where('user_id', Auth::id())
             ->where('status', 'carrinho')
             ->first();
 
         if (!$carrinho) {
             $carrinho = Pedido::create([
-                'user_id' => Auth::id(),
-                'status' => 'carrinho',
+                'user_id'     => Auth::id(),
+                'status'      => 'carrinho',
                 'valor_total' => 0
             ]);
         }
 
-        // Verificar se o produto já está no carrinho
+        // Composite key lookup: (produto_id, produto_variante_id) — null is a valid key value
         $itemExistente = ItemPedido::where('pedido_id', $carrinho->id)
             ->where('produto_id', $produto->id)
+            ->where('produto_variante_id', $request->produto_variante_id)
             ->first();
 
         if ($itemExistente) {
-            // Atualizar quantidade
             $novaQuantidade = $itemExistente->quantidade + $request->quantidade;
-            
-            if ($novaQuantidade > $produto->estoque) {
+
+            if ($novaQuantidade > $estoqueEfetivo) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Quantidade total excede o estoque disponível.'
                 ], 400);
             }
 
+            // Only increment quantity — preco is NEVER refreshed (preserves price at time of add)
             $itemExistente->quantidade = $novaQuantidade;
-            $itemExistente->preco = $produto->preco;
             $itemExistente->save();
         } else {
-            // Adicionar novo item
+            // Price: use variant's preco_efetivo if variant present; product price otherwise
+            $precoGravado = $variante ? $variante->preco_efetivo : $produto->preco;
+
+            // Build opcoes_snapshot server-side from valor IDs — never from frontend
+            $snapshot = null;
+            if ($variante) {
+                $snapshot = [];
+                foreach ($variante->valores as $valorId) {
+                    $valorModel = \App\Models\ProdutoOpcaoValor::with('grupo')->find($valorId);
+                    if ($valorModel) {
+                        $snapshot[$valorModel->grupo->nome] = $valorModel->valor;
+                    }
+                }
+            }
+
             ItemPedido::create([
-                'pedido_id' => $carrinho->id,
-                'produto_id' => $produto->id,
-                'quantidade' => $request->quantidade,
-                'preco' => $produto->preco
+                'pedido_id'           => $carrinho->id,
+                'produto_id'          => $produto->id,
+                'produto_variante_id' => $variante?->id,
+                'quantidade'          => $request->quantidade,
+                'preco'               => $precoGravado,
+                'opcoes_snapshot'     => $snapshot,
             ]);
         }
 
-        // Recalcular valor total do carrinho
         $this->recalcularValorTotal($carrinho);
 
         return response()->json([
@@ -104,13 +140,13 @@ class CarrinhoController extends Controller
             'message' => 'Produto adicionado ao carrinho com sucesso!',
             'carrinho' => [
                 'total_itens' => $carrinho->itens()->sum('quantidade'),
-                'valor_total' => $carrinho->valor_total
+                'valor_total' => $carrinho->valor_total,
             ],
             'produto' => [
-                'id' => $produto->id,
-                'nome' => $produto->nome,
-                'quantidade' => $itemExistente ? $itemExistente->quantidade : $request->quantidade
-            ]
+                'id'         => $produto->id,
+                'nome'       => $produto->nome,
+                'quantidade' => $itemExistente ? $itemExistente->quantidade : $request->quantidade,
+            ],
         ]);
     }
 
@@ -120,7 +156,8 @@ class CarrinhoController extends Controller
     public function remover(Request $request)
     {
         $request->validate([
-            'produto_id' => 'required|exists:produtos,id'
+            'produto_id'          => 'required|exists:produtos,id',
+            'produto_variante_id' => 'nullable|exists:produto_variantes,id',
         ]);
 
         if (!Auth::check()) {
@@ -143,6 +180,7 @@ class CarrinhoController extends Controller
 
         $item = ItemPedido::where('pedido_id', $carrinho->id)
             ->where('produto_id', $request->produto_id)
+            ->where('produto_variante_id', $request->produto_variante_id)
             ->first();
 
         if ($item) {
@@ -162,8 +200,9 @@ class CarrinhoController extends Controller
     public function atualizar_quantidade(Request $request)
     {
         $request->validate([
-            'produto_id' => 'required|exists:produtos,id',
-            'quantidade' => 'required|integer|min:1|max:10'
+            'produto_id'          => 'required|exists:produtos,id',
+            'quantidade'          => 'required|integer|min:1|max:10',
+            'produto_variante_id' => 'nullable|exists:produto_variantes,id',
         ]);
 
         if (!Auth::check()) {
@@ -174,8 +213,18 @@ class CarrinhoController extends Controller
         }
 
         $produto = Produto::find($request->produto_id);
-        
-        if ($produto->estoque < $request->quantidade) {
+
+        // Use estoque_efetivo when variant present
+        $variante = null;
+        if ($request->produto_variante_id) {
+            $variante = \App\Models\ProdutoVariante::with('produto')->find($request->produto_variante_id);
+            if ($variante) {
+                $variante->setRelation('produto', $produto);
+            }
+        }
+        $estoqueEfetivo = $variante ? $variante->estoque_efetivo : $produto->estoque;
+
+        if ($estoqueEfetivo < $request->quantidade) {
             return response()->json([
                 'success' => false,
                 'message' => 'Quantidade solicitada não disponível em estoque.'
@@ -195,6 +244,7 @@ class CarrinhoController extends Controller
 
         $item = ItemPedido::where('pedido_id', $carrinho->id)
             ->where('produto_id', $request->produto_id)
+            ->where('produto_variante_id', $request->produto_variante_id)
             ->first();
 
         if ($item) {
@@ -265,12 +315,12 @@ class CarrinhoController extends Controller
 
         $carrinho = Pedido::where('user_id', Auth::id())
             ->where('status', 'carrinho')
-            ->with(['itens.produto.imagens'])
+            ->with(['itens.produto.imagens', 'itens.produtoVariante'])
             ->first();
 
         if (!$carrinho) {
             return response()->json([
-                'success' => true,
+                'success'  => true,
                 'carrinho' => null
             ]);
         }
@@ -278,21 +328,23 @@ class CarrinhoController extends Controller
         return response()->json([
             'success' => true,
             'carrinho' => [
-                'id' => $carrinho->id,
+                'id'          => $carrinho->id,
                 'valor_total' => $carrinho->valor_total,
-                'itens' => $carrinho->itens->map(function ($item) {
+                'itens'       => $carrinho->itens->map(function ($item) {
                     return [
-                        'id' => $item->id,
-                        'quantidade' => $item->quantidade,
-                        'preco' => $item->preco,
+                        'id'                  => $item->id,
+                        'quantidade'          => $item->quantidade,
+                        'preco'               => $item->preco,
+                        'produto_variante_id' => $item->produto_variante_id,
+                        'opcoes_snapshot'     => $item->opcoes_snapshot,
                         'produto' => [
-                            'id' => $item->produto->id,
-                            'nome' => $item->produto->nome,
-                            'primeira_imagem' => $item->produto->primeira_imagem
-                        ]
+                            'id'              => $item->produto->id,
+                            'nome'            => $item->produto->nome,
+                            'primeira_imagem' => $item->produto->primeira_imagem,
+                        ],
                     ];
-                })
-            ]
+                }),
+            ],
         ]);
     }
 
@@ -303,13 +355,14 @@ class CarrinhoController extends Controller
     {
         if (!Auth::check()) {
             return response()->json([
-                'success' => false,
+                'success'     => false,
                 'no_carrinho' => false
             ]);
         }
 
         $request->validate([
-            'produto_id' => 'required|exists:produtos,id'
+            'produto_id'          => 'required|exists:produtos,id',
+            'produto_variante_id' => 'nullable|exists:produto_variantes,id',
         ]);
 
         $carrinho = Pedido::where('user_id', Auth::id())
@@ -318,19 +371,21 @@ class CarrinhoController extends Controller
 
         if (!$carrinho) {
             return response()->json([
-                'success' => true,
+                'success'     => true,
                 'no_carrinho' => false
             ]);
         }
 
         $item = ItemPedido::where('pedido_id', $carrinho->id)
             ->where('produto_id', $request->produto_id)
+            ->where('produto_variante_id', $request->produto_variante_id)
             ->first();
 
         return response()->json([
-            'success' => true,
-            'no_carrinho' => $item ? true : false,
-            'quantidade' => $item ? $item->quantidade : 0
+            'success'             => true,
+            'no_carrinho'         => (bool) $item,
+            'quantidade'          => $item ? $item->quantidade : 0,
+            'produto_variante_id' => $item ? $item->produto_variante_id : null,
         ]);
     }
 
