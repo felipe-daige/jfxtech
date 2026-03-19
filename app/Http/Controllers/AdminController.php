@@ -712,17 +712,26 @@ class AdminController extends Controller
             }
         }
 
-        $variantes = $produto->variantes->map(function ($v) use ($valorMap) {
-            $label = collect($v->valores)->map(fn($vid) => $valorMap[$vid]['valor'] ?? '?')->join(' / ');
-            return [
-                'id'      => $v->id,
-                'valores' => $v->valores,
-                'preco'   => $v->preco,
-                'estoque' => $v->estoque,
-                'ativo'   => $v->ativo,
-                'label'   => $label,
-            ];
-        });
+        $variantes = $produto->variantes
+            ->filter(function ($v) use ($valorMap) {
+                // Exclude variants with broken valor references (ghost variants)
+                foreach ($v->valores ?? [] as $vid) {
+                    if (!isset($valorMap[$vid])) return false;
+                }
+                return true;
+            })
+            ->values()
+            ->map(function ($v) use ($valorMap) {
+                $label = collect($v->valores)->map(fn($vid) => $valorMap[$vid]['valor'] ?? '?')->join(' / ');
+                return [
+                    'id'      => $v->id,
+                    'valores' => $v->valores,
+                    'preco'   => $v->preco,
+                    'estoque' => $v->estoque,
+                    'ativo'   => $v->ativo,
+                    'label'   => $label,
+                ];
+            });
 
         return response()->json([
             'grupos'   => $produto->opcaoGrupos->map(fn($g) => [
@@ -749,7 +758,7 @@ class AdminController extends Controller
         $produto = Produto::findOrFail($id);
 
         $request->validate([
-            'grupos'                    => 'required|array',
+            'grupos'                    => 'array',
             'grupos.*.nome'             => 'required|string|max:50',
             'grupos.*.ordem'            => 'nullable|integer',
             'grupos.*.valores'          => 'nullable|array',
@@ -783,13 +792,18 @@ class AdminController extends Controller
                 ->flatMap(fn($g) => $g->valores->whereIn('valor', $valoresNoRequest)->pluck('id'))
                 ->all();
 
-            // Deactivate variants that contain any valor ID being removed
+            // Delete (or deactivate if referenced by orders) variants that contain any valor ID being removed
             $idsRemovidos = array_diff($currentValorIds, $idsAManter);
             if (!empty($idsRemovidos)) {
                 foreach ($produto->variantes()->get() as $variante) {
                     $variantValorIds = $variante->valores ?? [];
                     if (!empty(array_intersect($variantValorIds, $idsRemovidos))) {
-                        $variante->update(['ativo' => false]);
+                        $hasOrders = \App\Models\ItemPedido::where('produto_variante_id', $variante->id)->exists();
+                        if ($hasOrders) {
+                            $variante->update(['ativo' => false]); // preserve FK for order history
+                        } else {
+                            $variante->delete(); // hard-delete if no orders reference it
+                        }
                     }
                 }
             }
@@ -898,7 +912,7 @@ class AdminController extends Controller
         $request->validate([
             'estoque_compartilhado'    => 'nullable|boolean',
             'variantes'                => 'nullable|array',
-            'variantes.*.id'           => 'required|exists:produto_variantes,id',
+            'variantes.*.id'           => 'required|integer',
             'variantes.*.preco'        => 'nullable|numeric|min:0',
             'variantes.*.estoque'      => 'nullable|integer|min:0',
             'variantes.*.ativo'        => 'nullable|boolean',
@@ -912,7 +926,8 @@ class AdminController extends Controller
             foreach ($request->input('variantes', []) as $varData) {
                 $variante = ProdutoVariante::where('id', $varData['id'])
                     ->where('produto_id', $produto->id)
-                    ->firstOrFail();
+                    ->first();
+                if (!$variante) continue; // skip gracefully — variant deleted/replaced by rename
 
                 $update = [];
                 if (array_key_exists('preco', $varData))   $update['preco']   = $varData['preco'];

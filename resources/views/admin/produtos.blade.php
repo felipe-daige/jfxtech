@@ -298,16 +298,19 @@
                     {{-- Tab navigation --}}
                     <div class="flex border-b border-gray-200 mb-6" id="produto-modal-tabs">
                         <button type="button"
+                                onclick="switchProdutoTab('dados')"
                                 class="produto-tab-btn px-4 py-2 text-sm font-mono uppercase tracking-widest border-b-2 -mb-px transition-colors border-black text-black"
                                 data-tab="dados">
                             DADOS
                         </button>
                         <button type="button"
+                                onclick="switchProdutoTab('imagens')"
                                 class="produto-tab-btn px-4 py-2 text-sm font-mono uppercase tracking-widest border-b-2 -mb-px transition-colors border-transparent text-gray-400 hover:text-black"
                                 data-tab="imagens">
                             IMAGENS
                         </button>
                         <button type="button"
+                                onclick="switchProdutoTab('variantes')"
                                 class="produto-tab-btn px-4 py-2 text-sm font-mono uppercase tracking-widest border-b-2 -mb-px transition-colors border-transparent text-gray-400 hover:text-black"
                                 data-tab="variantes">
                             VARIANTES
@@ -448,23 +451,23 @@
                         {{-- Grupos e valores --}}
                         <div id="grupos-container" class="space-y-4 mb-6"></div>
                         <button type="button" id="add-grupo-btn"
+                                onclick="addGrupoOpcoes()"
                                 class="text-sm font-mono uppercase tracking-widest border border-dashed border-gray-400 px-4 py-2 hover:border-black transition-colors w-full mb-6">
                             + ADICIONAR GRUPO DE OPÇÕES
-                        </button>
-
-                        {{-- Botão gerar combinações --}}
-                        <button type="button" id="gerar-variantes-btn"
-                                class="bg-black text-white font-mono uppercase tracking-widest text-sm px-6 py-3 hover:bg-gray-800 transition-colors mb-6 w-full">
-                            GERAR COMBINAÇÕES
                         </button>
 
                         {{-- Tabela de variantes --}}
                         <div id="variantes-tabela-container" class="hidden">
                             <h4 class="font-mono text-xs uppercase tracking-widest text-gray-500 mb-3">VARIANTES GERADAS</h4>
                             <div id="variantes-tabela" class="space-y-2"></div>
-                            <button type="button" id="salvar-variantes-btn"
-                                    class="mt-4 bg-black text-white font-mono uppercase tracking-widest text-sm px-6 py-3 hover:bg-gray-800 transition-colors w-full">
-                                SALVAR VARIANTES
+                        </div>
+
+                        {{-- Botões salvar + recarregar --}}
+                        <div class="mt-4">
+                            <button type="button" id="salvar-btn"
+                                    onclick="salvarTudo(window.currentProdutoId)"
+                                    class="w-full bg-black text-white font-mono uppercase tracking-widest text-sm px-6 py-3 hover:bg-gray-800 transition-colors">
+                                SALVAR
                             </button>
                         </div>
                     </div>

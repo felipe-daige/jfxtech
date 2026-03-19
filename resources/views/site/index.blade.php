@@ -33,32 +33,32 @@
         {{-- ===== HERO CAROUSEL ===== --}}
         <section class="relative h-[70vh] min-h-[500px] w-full bg-black overflow-hidden group">
             {{-- Slide 1 --}}
-            <div class="carousel-slide active">
+            <div id="carousel-slide-1" class="carousel-slide active" style="background-image:url('{{ asset('carrossel/zowie_600hz_wallpaper_jfxtech_nomockup.png') }}');background-size:cover;background-position:center;">
                 <div class="absolute inset-0 bg-tech-grid-dark pointer-events-none opacity-30"></div>
-                <div class="absolute inset-0 flex flex-col justify-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div class="max-w-2xl">
+                <div class="absolute inset-0 grid grid-cols-3 items-end sm:items-center pb-16 sm:pb-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="col-span-1">
                         <div class="flex items-center gap-4 mb-4">
                             <span class="text-xs font-mono tracking-widest text-gray-400 uppercase border border-gray-700 px-2 py-1">LANÇAMENTO</span>
                             <div class="h-px bg-gray-700 flex-1 max-w-[100px]"></div>
                         </div>
-                        <h1 class="text-5xl md:text-7xl font-bold tracking-tighter text-white mb-2 uppercase">NOVOS PRODUTOS</h1>
-                        <p class="text-lg md:text-xl text-gray-400 font-mono mb-8">TECNOLOGIA DE ÚLTIMA GERAÇÃO DISPONÍVEL AGORA</p>
-                        <div class="flex gap-6 mb-10">
+                        <h1 class="text-2xl sm:text-5xl md:text-7xl font-bold tracking-tighter text-white mb-6 md:mb-2 uppercase">ZOWIE 600HZ</h1>
+                        <p class="hidden sm:block text-lg md:text-xl text-gray-400 font-mono mb-8">MONITOR GAMING COM A MAIOR TAXA DE ATUALIZAÇÃO DO MERCADO</p>
+                        <div class="hidden sm:flex gap-6 mb-10">
                             <div class="flex flex-col">
-                                <span class="text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-1">ESPEC_01</span>
-                                <span class="text-sm font-bold text-white uppercase">ENTREGA 24H</span>
+                                <span class="text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-1">REFRESH</span>
+                                <span class="text-sm font-bold text-white uppercase">600HZ</span>
                             </div>
                             <div class="flex flex-col">
-                                <span class="text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-1">ESPEC_02</span>
-                                <span class="text-sm font-bold text-white uppercase">100% ORIGINAL</span>
+                                <span class="text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-1">TEMPO RESP.</span>
+                                <span class="text-sm font-bold text-white uppercase">0.5MS GTG</span>
                             </div>
                             <div class="flex flex-col">
-                                <span class="text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-1">ESPEC_03</span>
-                                <span class="text-sm font-bold text-white uppercase">SUPORTE 24/7</span>
+                                <span class="text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-1">RESOLUÇÃO</span>
+                                <span class="text-sm font-bold text-white uppercase">FULL HD 1080P</span>
                             </div>
                         </div>
                         <a href="{{ route('site.produtos') }}" class="inline-flex items-center gap-2 bg-white text-black px-8 py-4 font-bold tracking-widest text-sm hover:bg-gray-200 transition-colors group/btn">
-                            VER CATÁLOGO
+                            VER MONITORES
                             <svg class="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
                         </a>
                     </div>
@@ -66,32 +66,32 @@
             </div>
 
             {{-- Slide 2 --}}
-            <div class="carousel-slide">
+            <div id="carousel-slide-2" class="carousel-slide" style="background-image:url('{{ asset('carrossel/wooting_60he_wallpaper_jfxtech_nomockup.png') }}');background-size:cover;background-position:center;">
                 <div class="absolute inset-0 bg-tech-grid-dark pointer-events-none opacity-30"></div>
-                <div class="absolute inset-0 flex flex-col justify-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div class="max-w-2xl">
+                <div class="absolute inset-0 grid grid-cols-3 items-end sm:items-center pb-16 sm:pb-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="col-span-1">
                         <div class="flex items-center gap-4 mb-4">
-                            <span class="text-xs font-mono tracking-widest text-gray-400 uppercase border border-gray-700 px-2 py-1">DESTAQUE</span>
+                            <span class="text-xs font-mono tracking-widest text-gray-400 uppercase border border-gray-700 px-2 py-1">EXCLUSIVO</span>
                             <div class="h-px bg-gray-700 flex-1 max-w-[100px]"></div>
                         </div>
-                        <h1 class="text-5xl md:text-7xl font-bold tracking-tighter text-white mb-2 uppercase whitespace-nowrap">PERFORMANCE EXTREMA</h1>
-                        <p class="text-lg md:text-xl text-gray-400 font-mono mb-8">HARDWARE DE PRECISÃO PARA A ELITE COMPETITIVA</p>
-                        <div class="flex gap-6 mb-10">
+                        <h1 class="text-2xl sm:text-5xl md:text-7xl font-bold tracking-tighter text-white mb-6 md:mb-2 uppercase">WOOTING 60HE</h1>
+                        <p class="hidden sm:block text-lg md:text-xl text-gray-400 font-mono mb-8">TECLADO HALL EFFECT COM RAPID TRIGGER AJUSTÁVEL</p>
+                        <div class="hidden sm:flex gap-6 mb-10">
                             <div class="flex flex-col">
-                                <span class="text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-1">ESPEC_01</span>
-                                <span class="text-sm font-bold text-white uppercase">500+ PRODUTOS</span>
+                                <span class="text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-1">TECNOLOGIA</span>
+                                <span class="text-sm font-bold text-white uppercase">HALL EFFECT</span>
                             </div>
                             <div class="flex flex-col">
-                                <span class="text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-1">ESPEC_02</span>
-                                <span class="text-sm font-bold text-white uppercase">FRETE GRÁTIS</span>
+                                <span class="text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-1">RECURSO</span>
+                                <span class="text-sm font-bold text-white uppercase">RAPID TRIGGER</span>
                             </div>
                             <div class="flex flex-col">
-                                <span class="text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-1">ESPEC_03</span>
-                                <span class="text-sm font-bold text-white uppercase">5 ANOS GARANTIA</span>
+                                <span class="text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-1">POLLING</span>
+                                <span class="text-sm font-bold text-white uppercase">1000HZ</span>
                             </div>
                         </div>
                         <a href="{{ route('site.produtos') }}" class="inline-flex items-center gap-2 bg-white text-black px-8 py-4 font-bold tracking-widest text-sm hover:bg-gray-200 transition-colors group/btn">
-                            EXPLORAR HARDWARE
+                            VER TECLADOS
                             <svg class="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
                         </a>
                     </div>
@@ -99,37 +99,46 @@
             </div>
 
             {{-- Slide 3 --}}
-            <div class="carousel-slide">
+            <div id="carousel-slide-3" class="carousel-slide" style="background-image:url('{{ asset('carrossel/mouses_wallpaper_jfxtech_nomockup.png') }}');background-size:cover;background-position:center;">
                 <div class="absolute inset-0 bg-tech-grid-dark pointer-events-none opacity-30"></div>
-                <div class="absolute inset-0 flex flex-col justify-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div class="max-w-2xl">
+                <div class="absolute inset-0 grid grid-cols-3 items-end sm:items-center pb-16 sm:pb-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="col-span-1">
                         <div class="flex items-center gap-4 mb-4">
                             <span class="text-xs font-mono tracking-widest text-gray-400 uppercase border border-gray-700 px-2 py-1">PROMOÇÃO</span>
                             <div class="h-px bg-gray-700 flex-1 max-w-[100px]"></div>
                         </div>
-                        <h1 class="text-5xl md:text-7xl font-bold tracking-tighter text-white mb-2 uppercase">OFERTAS ESPECIAIS</h1>
-                        <p class="text-lg md:text-xl text-gray-400 font-mono mb-8">ATÉ 40% OFF EM HARDWARE SELECIONADO</p>
-                        <div class="flex gap-6 mb-10">
+                        <h1 class="text-2xl sm:text-5xl md:text-7xl font-bold tracking-tighter text-white mb-6 md:mb-2 uppercase">MOUSES GAMING</h1>
+                        <p class="hidden sm:block text-lg md:text-xl text-gray-400 font-mono mb-8">PRECISÃO ABSOLUTA COM OS MELHORES SENSORES DO MERCADO</p>
+                        <div class="hidden sm:flex gap-6 mb-10">
                             <div class="flex flex-col">
-                                <span class="text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-1">ESPEC_01</span>
+                                <span class="text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-1">DESCONTO</span>
                                 <span class="text-sm font-bold text-white uppercase">ATÉ 40% OFF</span>
                             </div>
                             <div class="flex flex-col">
-                                <span class="text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-1">ESPEC_02</span>
-                                <span class="text-sm font-bold text-white uppercase">TEMPO LIMITADO</span>
+                                <span class="text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-1">ESTOQUE</span>
+                                <span class="text-sm font-bold text-white uppercase">LIMITADO</span>
                             </div>
                             <div class="flex flex-col">
-                                <span class="text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-1">ESPEC_03</span>
-                                <span class="text-sm font-bold text-white uppercase">COMPRE AGORA</span>
+                                <span class="text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-1">ENVIO</span>
+                                <span class="text-sm font-bold text-white uppercase">FRETE GRÁTIS</span>
                             </div>
                         </div>
                         <a href="{{ route('site.produtos') }}" class="inline-flex items-center gap-2 bg-white text-black px-8 py-4 font-bold tracking-widest text-sm hover:bg-gray-200 transition-colors group/btn">
-                            VER OFERTAS
+                            VER MOUSES
                             <svg class="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
                         </a>
                     </div>
                 </div>
             </div>
+
+            {{-- Mobile 4:5 wallpapers --}}
+            <style>
+                @media (max-width: 639px) {
+                    #carousel-slide-1 { background-image: url('{{ asset('carrossel/monitor_ wallpaper_4x5.PNG') }}') !important; }
+                    #carousel-slide-2 { background-image: url('{{ asset('carrossel/teclado_wallpaper_4x5.PNG') }}') !important; }
+                    #carousel-slide-3 { background-image: url('{{ asset('carrossel/mouses_wallpaper_4x5.PNG') }}') !important; }
+}
+            </style>
 
             {{-- Carousel Controls --}}
             <div class="absolute bottom-8 right-8 flex items-center gap-4 z-10">
@@ -218,6 +227,108 @@
 
         </div>
 
+        {{-- ===== FEATURED PRODUCTS ===== --}}
+        <section class="py-24 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16 reveal">
+                    <h2 class="text-3xl md:text-4xl font-black tracking-tight uppercase mb-4">Escolha Sua Arma.</h2>
+                    <p class="text-gray-600 font-mono text-sm">HARDWARE PREMIADO PARA TODOS OS TIPOS DE GAMERS.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    @forelse($produtos_destaque as $produto)
+                        <div class="reveal stagger-{{ $loop->iteration }}">
+                            @include('components.product-card', ['produto' => $produto])
+                        </div>
+                    @empty
+                        <div class="col-span-full text-center py-12">
+                            <div class="border-2 border-dashed border-[var(--color-lab-border)] p-12">
+                                <svg class="w-12 h-12 text-gray-300 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                                <h3 class="text-lg font-bold mb-2">Nenhum produto em destaque</h3>
+                                <p class="text-gray-500 text-sm font-mono mb-6">Ainda não há produtos em destaque disponíveis.</p>
+                                <a href="{{ route('site.produtos') }}" class="inline-block bg-black text-white px-6 py-3 text-xs font-bold tracking-widest uppercase hover:bg-gray-800 transition-colors">
+                                    Ver Todos os Produtos
+                                </a>
+                            </div>
+                        </div>
+                    @endforelse
+                </div>
+
+                <div class="mt-16 text-center reveal">
+                    <a href="{{ route('site.produtos') }}" class="bg-black text-white px-10 py-4 font-bold tracking-widest text-sm hover:bg-gray-800 transition-colors uppercase inline-block">
+                        Ver Todos os Produtos
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        {{-- ===== CATALOG PREVIEW ===== --}}
+        <section class="bg-[var(--color-lab-bg)] py-24">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+                {{-- Header editorial: esquerda + direita --}}
+                <div class="flex items-end justify-between border-b border-[var(--color-lab-border)] pb-8 mb-12 reveal">
+                    <div>
+                        <p class="text-xs font-mono text-[var(--color-lab-muted)] tracking-widest uppercase mb-2">Categorias</p>
+                        <h2 class="text-3xl md:text-4xl font-black tracking-tight uppercase leading-none">Explore o Catálogo.</h2>
+                    </div>
+                    <a href="{{ route('site.produtos') }}"
+                       class="inline-flex items-center gap-2 text-sm font-bold tracking-widest uppercase hover:text-gray-500 transition-colors shrink-0 mb-1">
+                        Ver tudo
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                    </a>
+                </div>
+
+                @if($categorias_preview->isNotEmpty())
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 reveal">
+                    @foreach($categorias_preview as $categoria)
+                    @php
+                        $imgs = $categoria->produtos
+                            ->map(fn($p) => $p->imagens->first()?->caminho)
+                            ->filter()
+                            ->values();
+                    @endphp
+                    <a href="{{ route('site.produtos', ['categorias[]' => $categoria->id]) }}"
+                       class="group flex flex-col border border-[var(--color-lab-border)] overflow-hidden hover:border-black transition-colors aspect-square">
+
+                        {{-- Área da imagem (flex-1) --}}
+                        <div class="flex-1 relative overflow-hidden bg-gray-100 min-h-0">
+                            @if($imgs->count() >= 4)
+                                <div class="absolute inset-0 grid grid-cols-2 grid-rows-2 gap-px bg-[var(--color-lab-border)]">
+                                    @foreach($imgs->take(4) as $caminho)
+                                    <div class="overflow-hidden bg-gray-100">
+                                        <img src="{{ asset('storage/' . $caminho) }}"
+                                             alt="{{ $categoria->nome }}"
+                                             class="w-full h-full object-cover grayscale group-hover:scale-105 transition-transform duration-500">
+                                    </div>
+                                    @endforeach
+                                </div>
+                            @elseif($imgs->isNotEmpty())
+                                <img src="{{ asset('storage/' . $imgs->first()) }}"
+                                     alt="{{ $categoria->nome }}"
+                                     class="absolute inset-0 w-full h-full object-cover grayscale group-hover:scale-105 transition-transform duration-500">
+                            @endif
+                        </div>
+
+                        {{-- Faixa preta sólida — sempre legível --}}
+                        <div class="bg-black px-4 py-3 shrink-0">
+                            <p class="text-white font-black tracking-widest uppercase text-xs leading-none mb-1">{{ $categoria->nome }}</p>
+                            <p class="text-white/50 font-mono text-xs">{{ $categoria->produtos_count }} {{ Str::plural('produto', $categoria->produtos_count) }}</p>
+                        </div>
+                    </a>
+                    @endforeach
+
+                    {{-- CTA card --}}
+                    <a href="{{ route('site.produtos') }}"
+                       class="group bg-black flex flex-col items-center justify-center gap-4 hover:bg-gray-900 transition-colors aspect-square border border-black">
+                        <p class="text-white font-black tracking-widest uppercase text-sm text-center px-6 leading-snug">Ver Todo<br>o Catálogo</p>
+                        <svg class="w-5 h-5 text-white/60 group-hover:translate-x-1 group-hover:text-white transition-all duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                    </a>
+                </div>
+                @endif
+            </div>
+        </section>
+
         {{-- ===== CTA SECTION ===== --}}
         <section class="py-24 md:py-32 bg-white text-center reveal">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -252,6 +363,7 @@
                     </div>
                     <div class="w-full md:w-1/2 order-1 md:order-2 reveal-right">
                         <div class="aspect-square bg-gray-100 border border-[var(--color-lab-border)] overflow-hidden">
+                            <img src="{{ asset('qualidade_profissional_cleanup.png') }}" alt="Qualidade Profissional" class="w-full h-full object-cover">
                         </div>
                     </div>
                 </div>
@@ -260,6 +372,7 @@
                 <div class="flex flex-col md:flex-row items-center gap-16">
                     <div class="w-full md:w-1/2 reveal-left">
                         <div class="aspect-square bg-gray-100 border border-[var(--color-lab-border)] overflow-hidden">
+                            <img src="{{ asset('entrega_zero_latencia_cleanup.png') }}" alt="Entrega com Zero Latência" class="w-full h-full object-cover">
                         </div>
                     </div>
                     <div class="w-full md:w-1/2 reveal-right">
@@ -276,37 +389,25 @@
             </div>
         </section>
 
-        {{-- ===== FEATURED PRODUCTS ===== --}}
-        <section class="py-24 bg-white">
+        {{-- ===== SUPPORT BLOCK ===== --}}
+        <section class="bg-[var(--color-lab-bg)] py-24">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center mb-16 reveal">
-                    <h2 class="text-3xl md:text-4xl font-black tracking-tight uppercase mb-4">Escolha Sua Arma.</h2>
-                    <p class="text-gray-600 font-mono text-sm">HARDWARE PREMIADO PARA TODOS OS TIPOS DE GAMERS.</p>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    @forelse($produtos_destaque as $produto)
-                        <div class="reveal stagger-{{ $loop->iteration }}">
-                            @include('components.product-card', ['produto' => $produto])
+                <div class="flex flex-col md:flex-row items-center gap-16">
+                    <div class="w-full md:w-1/2 order-2 md:order-1 reveal-left">
+                        <h3 class="text-3xl md:text-4xl font-black tracking-tight mb-4 uppercase">Suporte que Acompanha Você.</h3>
+                        <p class="text-gray-600 text-lg mb-8 leading-relaxed">
+                            Nossa equipe técnica está disponível do pré ao pós-venda. Garantia estendida, troca sem burocracia e suporte real com quem entende de hardware.
+                        </p>
+                        <a href="{{ route('site.contato') }}" class="inline-flex items-center gap-2 text-sm font-bold tracking-widest uppercase hover:text-gray-500 transition-colors border-b-2 border-black pb-1">
+                            FALAR COM SUPORTE
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                        </a>
+                    </div>
+                    <div class="w-full md:w-1/2 order-1 md:order-2 reveal-right">
+                        <div class="aspect-square bg-gray-100 border border-[var(--color-lab-border)] overflow-hidden">
+                            <img src="{{ asset('suporte_cleanup.png') }}" alt="Suporte que Acompanha Você" class="w-full h-full object-cover">
                         </div>
-                    @empty
-                        <div class="col-span-full text-center py-12">
-                            <div class="border-2 border-dashed border-[var(--color-lab-border)] p-12">
-                                <svg class="w-12 h-12 text-gray-300 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
-                                <h3 class="text-lg font-bold mb-2">Nenhum produto em destaque</h3>
-                                <p class="text-gray-500 text-sm font-mono mb-6">Ainda não há produtos em destaque disponíveis.</p>
-                                <a href="{{ route('site.produtos') }}" class="inline-block bg-black text-white px-6 py-3 text-xs font-bold tracking-widest uppercase hover:bg-gray-800 transition-colors">
-                                    Ver Todos os Produtos
-                                </a>
-                            </div>
-                        </div>
-                    @endforelse
-                </div>
-
-                <div class="mt-16 text-center reveal">
-                    <a href="{{ route('site.produtos') }}" class="bg-black text-white px-10 py-4 font-bold tracking-widest text-sm hover:bg-gray-800 transition-colors uppercase inline-block">
-                        Ver Todos os Produtos
-                    </a>
+                    </div>
                 </div>
             </div>
         </section>

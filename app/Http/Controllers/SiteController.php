@@ -158,7 +158,15 @@ class SiteController extends Controller
             }
         }
 
-        return view('site.produto-detalhes', compact('produto', 'produtos_relacionados', 'favoritado', 'produto_no_carrinho', 'quantidade_no_carrinho'));
+        $variantesData = $produto->variantesAtivas->map(fn($v) => [
+            'id'              => $v->id,
+            'valores'         => $v->valores,
+            'preco_efetivo'   => $v->preco_efetivo,
+            'estoque_efetivo' => $v->estoque_efetivo,
+            'ativo'           => $v->ativo,
+        ])->values()->toArray();
+
+        return view('site.produto-detalhes', compact('produto', 'produtos_relacionados', 'favoritado', 'produto_no_carrinho', 'quantidade_no_carrinho', 'variantesData'));
     }
 
     /**

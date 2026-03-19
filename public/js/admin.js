@@ -86,24 +86,9 @@ function abrirModalProduto() {
     window.currentProdutoId = null;
 
     // Reset tab to first tab when opening modal
-    document.querySelectorAll('.produto-tab-btn').forEach(function(b, i) {
-        if (i === 0) { b.classList.add('border-black', 'text-black'); b.classList.remove('border-transparent', 'text-gray-400'); }
-        else { b.classList.remove('border-black', 'text-black'); b.classList.add('border-transparent', 'text-gray-400'); }
-    });
-    document.querySelectorAll('.produto-tab-panel').forEach(function(p, i) {
-        if (i === 0) p.classList.remove('hidden'); else p.classList.add('hidden');
-    });
+    switchProdutoTab('dados');
 
     document.getElementById('modalProduto').classList.remove('hidden');
-
-    // Adicionar evento de clique no overlay
-    const modal = document.getElementById('modalProduto');
-    modal.addEventListener('click', function (e) {
-        // Verificar se o clique foi no overlay (modal principal) ou em elementos filhos do overlay
-        if (e.target === modal || e.target.classList.contains('flex') && e.target.classList.contains('items-center')) {
-            fecharModalProduto();
-        }
-    });
 }
 
 function editarProduto(id) {
@@ -159,24 +144,9 @@ function editarProduto(id) {
             window.currentProdutoId = id;
 
             // Reset tab to first tab when opening modal
-            document.querySelectorAll('.produto-tab-btn').forEach(function(b, i) {
-                if (i === 0) { b.classList.add('border-black', 'text-black'); b.classList.remove('border-transparent', 'text-gray-400'); }
-                else { b.classList.remove('border-black', 'text-black'); b.classList.add('border-transparent', 'text-gray-400'); }
-            });
-            document.querySelectorAll('.produto-tab-panel').forEach(function(p, i) {
-                if (i === 0) p.classList.remove('hidden'); else p.classList.add('hidden');
-            });
+            switchProdutoTab('dados');
 
             document.getElementById('modalProduto').classList.remove('hidden');
-
-            // Adicionar evento de clique no overlay
-            const modal = document.getElementById('modalProduto');
-            modal.addEventListener('click', function (e) {
-                // Verificar se o clique foi no overlay (modal principal) ou em elementos filhos do overlay
-                if (e.target === modal || e.target.classList.contains('flex') && e.target.classList.contains('items-center')) {
-                    fecharModalProduto();
-                }
-            });
         })
         .catch(error => {
             console.error('Erro ao carregar produto:', error);
@@ -978,32 +948,22 @@ function escapeHtml(str) {
 
 // ===== TAB SYSTEM FOR PRODUCT MODAL =====
 
-function initProdutoModalTabs() {
-    var tabBtns = document.querySelectorAll('.produto-tab-btn');
-    var tabPanels = document.querySelectorAll('.produto-tab-panel');
-
-    tabBtns.forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            var targetTab = this.getAttribute('data-tab');
-
-            tabBtns.forEach(function(b) {
-                b.classList.remove('border-black', 'text-black');
-                b.classList.add('border-transparent', 'text-gray-400');
-            });
-            this.classList.remove('border-transparent', 'text-gray-400');
-            this.classList.add('border-black', 'text-black');
-
-            tabPanels.forEach(function(panel) {
-                panel.classList.add('hidden');
-            });
-            var panel = document.getElementById('tab-' + targetTab);
-            if (panel) panel.classList.remove('hidden');
-
-            if (targetTab === 'variantes') {
-                loadVariantes(window.currentProdutoId);
-            }
-        });
+function switchProdutoTab(targetTab) {
+    document.querySelectorAll('.produto-tab-btn').forEach(function(b) {
+        var isActive = b.getAttribute('data-tab') === targetTab;
+        b.classList.toggle('border-black', isActive);
+        b.classList.toggle('text-black', isActive);
+        b.classList.toggle('border-transparent', !isActive);
+        b.classList.toggle('text-gray-400', !isActive);
     });
+    document.querySelectorAll('.produto-tab-panel').forEach(function(p) {
+        p.classList.add('hidden');
+    });
+    var panel = document.getElementById('tab-' + targetTab);
+    if (panel) panel.classList.remove('hidden');
+    if (targetTab === 'variantes') {
+        loadVariantes(window.currentProdutoId);
+    }
 }
 
 // ===== VARIANT MANAGEMENT FUNCTIONS =====
@@ -1057,19 +1017,19 @@ function buildGrupoHTML(grupo, idx) {
     var valoresHTML = (grupo.valores || []).map(function(v) {
         return '<span class="inline-flex items-center gap-1 bg-gray-100 px-2 py-1 text-xs font-mono" data-valor="' + escapeHtml(v.valor) + '">' +
                escapeHtml(v.valor) +
-               '<button type="button" class="remove-valor-btn text-gray-400 hover:text-black" data-valor-id="' + v.id + '">×</button>' +
+               '<button type="button" onclick="removeValor(this)" class="remove-valor-btn text-gray-400 hover:text-black" data-valor-id="' + v.id + '">×</button>' +
                '</span>';
     }).join('');
 
     return '<div class="grupo-item border border-gray-200 p-4" data-grupo-id="' + (grupo.id || '') + '" data-grupo-idx="' + idx + '">' +
         '<div class="flex items-center gap-2 mb-3">' +
         '<input type="text" class="grupo-nome-input flex-1 border border-gray-300 px-3 py-2 text-sm font-mono uppercase" value="' + escapeHtml(grupo.nome || '') + '" placeholder="EX: COR">' +
-        '<button type="button" class="remove-grupo-btn text-gray-400 hover:text-black font-mono text-sm px-2">REMOVER</button>' +
+        '<button type="button" onclick="removeGrupoOpcoes(this)" class="remove-grupo-btn text-gray-400 hover:text-black font-mono text-sm px-2">REMOVER</button>' +
         '</div>' +
         '<div class="flex flex-wrap gap-2 mb-2 valores-container">' + valoresHTML + '</div>' +
         '<div class="flex gap-2">' +
         '<input type="text" class="novo-valor-input flex-1 border border-gray-300 px-3 py-2 text-sm font-mono" placeholder="Novo valor...">' +
-        '<button type="button" class="add-valor-btn bg-gray-100 hover:bg-gray-200 px-3 py-2 text-sm font-mono uppercase transition-colors">+ ADD</button>' +
+        '<button type="button" onclick="addValorToGrupo(this)" class="add-valor-btn bg-gray-100 hover:bg-gray-200 px-3 py-2 text-sm font-mono uppercase transition-colors">+ ADD</button>' +
         '</div>' +
         '</div>';
 }
@@ -1084,80 +1044,149 @@ function renderVariantesTabela(variantes) {
     }
     if (wrapper) wrapper.classList.remove('hidden');
     container.innerHTML = variantes.map(function(v) {
-        return '<div class="variante-row flex items-center gap-3 border border-gray-100 p-3" data-variante-id="' + v.id + '">' +
+        return '<div class="variante-row" data-variante-id="' + v.id + '" data-valores=\'' + JSON.stringify(v.valores) + '\'>' +
+            '<div class="flex items-center gap-3 border border-gray-100 p-3">' +
             '<span class="flex-1 text-sm font-mono">' + escapeHtml(v.label) + '</span>' +
+            '<button type="button" onclick="toggleVarianteEdit(this)" class="text-xs font-mono uppercase tracking-widest border border-gray-300 px-3 py-1 hover:border-black hover:bg-gray-50 transition-colors">✎ EDITAR</button>' +
+            '</div>' +
+            '<div class="variante-edit hidden border border-t-0 border-gray-200 bg-gray-50 p-3 flex flex-wrap items-center gap-3">' +
             '<input type="number" class="variante-preco w-28 border border-gray-300 px-2 py-1 text-sm font-mono" placeholder="Preço" value="' + (v.preco || '') + '" step="0.01" min="0">' +
             '<input type="number" class="variante-estoque w-20 border border-gray-300 px-2 py-1 text-sm font-mono estoque-field" placeholder="Estq" value="' + (v.estoque !== null ? v.estoque : '') + '" min="0">' +
             '<label class="flex items-center gap-1 text-xs font-mono"><input type="checkbox" class="variante-ativo" ' + (v.ativo ? 'checked' : '') + '> ATIVO</label>' +
+            '<button type="button" onclick="toggleVarianteEdit(this)" class="text-xs font-mono uppercase tracking-widest bg-black text-white px-3 py-1 hover:bg-gray-800 transition-colors ml-auto">✔ OK</button>' +
+            '<button type="button" onclick="toggleVarianteEdit(this)" class="text-xs font-mono uppercase tracking-widest border border-gray-300 px-2 py-1 hover:border-black transition-colors">✖</button>' +
+            '</div>' +
             '</div>';
     }).join('');
 }
 
-// ===== VARIANT TAB EVENT DELEGATION =====
+function toggleVarianteEdit(btn) {
+    var row = btn.closest('.variante-row');
+    var panel = row.querySelector('.variante-edit');
+    panel.classList.toggle('hidden');
+}
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize tab system
-    initProdutoModalTabs();
+// ===== VARIANT BUTTON HANDLERS =====
 
-    // Delegate events for variant tab
-    document.addEventListener('click', function(e) {
-        // Add grupo
-        if (e.target && e.target.id === 'add-grupo-btn') {
-            var container = document.getElementById('grupos-container');
-            var idx = container ? container.children.length : 0;
-            container.insertAdjacentHTML('beforeend', buildGrupoHTML({nome: '', valores: []}, idx));
-        }
+function addGrupoOpcoes() {
+    var container = document.getElementById('grupos-container');
+    var idx = container ? container.children.length : 0;
+    container.insertAdjacentHTML('beforeend', buildGrupoHTML({nome: '', valores: []}, idx));
+}
 
-        // Remove grupo
-        if (e.target && e.target.classList.contains('remove-grupo-btn')) {
-            e.target.closest('.grupo-item').remove();
-        }
+function removeGrupoOpcoes(btn) {
+    btn.closest('.grupo-item').remove();
+    gerarPreviewLocal();
+}
 
-        // Add valor
-        if (e.target && e.target.classList.contains('add-valor-btn')) {
-            var grupoItem = e.target.closest('.grupo-item');
-            var input = grupoItem.querySelector('.novo-valor-input');
-            var valor = input.value.trim();
-            if (!valor) return;
-            var valoresContainer = grupoItem.querySelector('.valores-container');
-            valoresContainer.insertAdjacentHTML('beforeend',
-                '<span class="inline-flex items-center gap-1 bg-gray-100 px-2 py-1 text-xs font-mono" data-valor="' + escapeHtml(valor) + '">' +
-                escapeHtml(valor) +
-                '<button type="button" class="remove-valor-btn text-gray-400 hover:text-black" data-valor-id="">×</button>' +
-                '</span>');
-            input.value = '';
-        }
+function addValorToGrupo(btn) {
+    var grupoItem = btn.closest('.grupo-item');
+    var input = grupoItem.querySelector('.novo-valor-input');
+    var valor = input.value.trim();
+    if (!valor) return;
+    var valoresContainer = grupoItem.querySelector('.valores-container');
+    valoresContainer.insertAdjacentHTML('beforeend',
+        '<span class="inline-flex items-center gap-1 bg-gray-100 px-2 py-1 text-xs font-mono" data-valor="' + escapeHtml(valor) + '">' +
+        escapeHtml(valor) +
+        '<button type="button" onclick="removeValor(this)" class="remove-valor-btn text-gray-400 hover:text-black" data-valor-id="">×</button>' +
+        '</span>');
+    input.value = '';
+    gerarPreviewLocal();
+}
 
-        // Remove valor
-        if (e.target && e.target.classList.contains('remove-valor-btn')) {
-            e.target.closest('span').remove();
-        }
-
-        // Gerar variantes
-        if (e.target && e.target.id === 'gerar-variantes-btn') {
-            salvarGruposEGerar(window.currentProdutoId);
-        }
-
-        // Salvar variantes
-        if (e.target && e.target.id === 'salvar-variantes-btn') {
-            salvarVariantes(window.currentProdutoId);
-        }
+function gerarPreviewLocal() {
+    var grupos = [];
+    document.querySelectorAll('.grupo-item').forEach(function(item) {
+        var nome = item.querySelector('.grupo-nome-input').value.trim();
+        if (!nome) return;
+        var vals = [];
+        item.querySelectorAll('.valores-container span').forEach(function(span) {
+            var v = span.getAttribute('data-valor');
+            if (v) vals.push(v);
+        });
+        if (vals.length) grupos.push(vals);
     });
-});
+    if (!grupos.length) { renderVariantesTabela([]); return; }
 
-function salvarGruposEGerar(produtoId) {
-    var grupos = collectGruposFromUI();
+    var combos = [[]];
+    grupos.forEach(function(vals) {
+        var next = [];
+        combos.forEach(function(c) {
+            vals.forEach(function(v) { next.push(c.concat([v])); });
+        });
+        combos = next;
+    });
+
+    var saved = {};
+    document.querySelectorAll('.variante-row').forEach(function(row) {
+        var id = parseInt(row.getAttribute('data-variante-id')) || 0;
+        if (!id) return;
+        var labelEl = row.querySelector('.flex-1.text-sm.font-mono');
+        if (!labelEl) return;
+        saved[labelEl.textContent.trim()] = {
+            id: id,
+            preco: row.querySelector('.variante-preco').value,
+            estoque: row.querySelector('.variante-estoque').value,
+            ativo: row.querySelector('.variante-ativo').checked
+        };
+    });
+
+    var variantes = combos.map(function(combo) {
+        var label = combo.join(' / ');
+        var s = saved[label];
+        return {
+            id: s ? s.id : 0,
+            label: label,
+            valores: [],
+            preco: s ? (s.preco !== '' ? parseFloat(s.preco) : null) : null,
+            estoque: s ? (s.estoque !== '' ? parseInt(s.estoque) : null) : null,
+            ativo: s ? s.ativo : true
+        };
+    });
+
+    renderVariantesTabela(variantes);
+}
+
+function removeValor(btn) {
+    var span = btn.closest('span');
+    var valorId = parseInt(btn.getAttribute('data-valor-id'));
+    span.remove();
+    if (valorId) {
+        document.querySelectorAll('.variante-row').forEach(function(row) {
+            try {
+                var valores = JSON.parse(row.getAttribute('data-valores') || '[]');
+                if (valores.includes(valorId)) row.remove();
+            } catch(e) {}
+        });
+    }
+    gerarPreviewLocal();
+}
+
+function salvarTudo(produtoId) {
     var csrfToken = getCsrfToken();
+    var grupos = collectGruposFromUI();
+    var estoqueCompartilhado = document.getElementById('estoque-compartilhado').checked;
+    var variantesData = [];
+    document.querySelectorAll('.variante-row').forEach(function(row) {
+        var id = parseInt(row.getAttribute('data-variante-id'));
+        if (!id) return;
+        var preco = row.querySelector('.variante-preco').value;
+        var estoque = row.querySelector('.variante-estoque').value;
+        var ativo = row.querySelector('.variante-ativo').checked;
+        variantesData.push({
+            id: id,
+            preco: preco !== '' ? parseFloat(preco) : null,
+            estoque: estoque !== '' ? parseInt(estoque) : null,
+            ativo: ativo,
+        });
+    });
 
     fetch('/admin/produtos/' + produtoId + '/opcao-grupos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
         body: JSON.stringify({ grupos: grupos })
     })
-    .then(function(r) {
-        if (!r.ok) throw new Error('Erro ao salvar grupos: ' + r.status);
-        return r.json();
-    })
+    .then(function(r) { if (!r.ok) throw new Error('Erro ao salvar grupos: ' + r.status); return r.json(); })
     .then(function(data) {
         if (!data.success) throw new Error('Erro ao salvar grupos.');
         return fetch('/admin/produtos/' + produtoId + '/variantes/gerar', {
@@ -1165,18 +1194,18 @@ function salvarGruposEGerar(produtoId) {
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
         });
     })
-    .then(function(r) {
-        if (!r) return;
-        if (!r.ok) throw new Error('Erro ao gerar variantes: ' + r.status);
-        return r.json();
+    .then(function(r) { if (!r.ok) throw new Error('Erro ao gerar variantes: ' + r.status); return r.json(); })
+    .then(function() {
+        if (variantesData.length === 0) return null;
+        return fetch('/admin/produtos/' + produtoId + '/variantes', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+            body: JSON.stringify({ estoque_compartilhado: estoqueCompartilhado, variantes: variantesData })
+        });
     })
-    .then(function(data) {
-        if (data) loadVariantes(produtoId);
-    })
-    .catch(function(err) {
-        console.error(err);
-        alert('Erro: ' + err.message);
-    });
+    .then(function(r) { if (r && !r.ok) throw new Error('Erro ao salvar variantes: ' + r.status); return r ? r.json() : null; })
+    .then(function() { loadVariantes(produtoId); })
+    .catch(function(err) { console.error(err); alert('Erro: ' + err.message); });
 }
 
 function collectGruposFromUI() {
@@ -1194,41 +1223,3 @@ function collectGruposFromUI() {
     return grupos;
 }
 
-function salvarVariantes(produtoId) {
-    var variantes = [];
-    document.querySelectorAll('.variante-row').forEach(function(row) {
-        var id = parseInt(row.getAttribute('data-variante-id'));
-        var preco = row.querySelector('.variante-preco').value;
-        var estoque = row.querySelector('.variante-estoque').value;
-        var ativo = row.querySelector('.variante-ativo').checked;
-        variantes.push({
-            id: id,
-            preco: preco !== '' ? parseFloat(preco) : null,
-            estoque: estoque !== '' ? parseInt(estoque) : null,
-            ativo: ativo,
-        });
-    });
-
-    var estoqueCompartilhado = document.getElementById('estoque-compartilhado').checked;
-
-    fetch('/admin/produtos/' + produtoId + '/variantes', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken(), 'Accept': 'application/json' },
-        body: JSON.stringify({ estoque_compartilhado: estoqueCompartilhado, variantes: variantes })
-    })
-    .then(function(r) {
-        if (!r.ok) throw new Error('Erro ao salvar variantes: ' + r.status);
-        return r.json();
-    })
-    .then(function(data) {
-        if (data.success) {
-            adminNotify('Variantes salvas com sucesso!');
-        } else {
-            alert('Erro ao salvar variantes.');
-        }
-    })
-    .catch(function(err) {
-        console.error(err);
-        alert('Erro ao salvar variantes: ' + err.message);
-    });
-}

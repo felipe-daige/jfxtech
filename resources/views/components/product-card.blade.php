@@ -1,7 +1,9 @@
 {{-- JFXTECH Product Card Component --}}
 {{-- Usage: @include('components.product-card', ['produto' => $produto]) --}}
 
-<div class="product-card group relative bg-white border border-[var(--color-lab-border)] overflow-hidden flex flex-col h-full">
+<div class="product-card group relative bg-white border border-[var(--color-lab-border)] overflow-hidden flex flex-col h-full cursor-pointer"
+     onclick="window.location='{{ route('site.produto.detalhes', $produto->slug) }}'">
+
     {{-- Product Tags --}}
     <div class="absolute top-4 left-4 z-10 flex flex-col gap-1 items-start">
         {{-- Exemplos de tags baseadas em atributos do produto. Adapte as condições de acordo com seu banco de dados --}}
@@ -61,10 +63,10 @@
 
         {{-- Hover Overlay with Actions --}}
         <div class="card-overlay absolute inset-0 bg-black/5 flex items-center justify-center gap-2 backdrop-blur-[2px]">
-            <a href="{{ route('site.produto.detalhes', $produto->slug) }}" class="w-10 h-10 bg-white flex items-center justify-center text-black hover:bg-black hover:text-white transition-colors shadow-sm" title="Ver detalhes">
+            <a href="{{ route('site.produto.detalhes', $produto->slug) }}" class="w-10 h-10 bg-white flex items-center justify-center text-black hover:bg-black hover:text-white transition-colors shadow-sm" title="Ver detalhes" onclick="event.stopPropagation()">
                 <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
             </a>
-            <form action="{{ route('site.carrinho.adicionar') }}" method="POST" class="inline">
+            <form action="{{ route('site.carrinho.adicionar') }}" method="POST" class="inline" onclick="event.stopPropagation()">
                 @csrf
                 <input type="hidden" name="produto_id" value="{{ $produto->id }}">
                 <input type="hidden" name="quantidade" value="1">

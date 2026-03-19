@@ -125,13 +125,7 @@
 
                     {{-- Pass variant data as JSON for JS --}}
                     <script id="variantes-data" type="application/json">
-                    @json($produto->variantesAtivas->map(fn($v) => [
-                        'id'             => $v->id,
-                        'valores'        => $v->valores,
-                        'preco_efetivo'  => $v->preco_efetivo,
-                        'estoque_efetivo'=> $v->estoque_efetivo,
-                        'ativo'          => $v->ativo,
-                    ]))
+                    @json($variantesData)
                     </script>
                     @endif
 
