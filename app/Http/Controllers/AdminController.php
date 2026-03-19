@@ -8,6 +8,8 @@ use App\Models\Categoria;
 use App\Models\Pedido;
 use App\Models\ItemPedido;
 use App\Models\ProdutoImagem;
+use App\Models\ProdutoVariante;
+use App\Models\ProdutoOpcaoGrupo;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
@@ -58,7 +60,7 @@ class AdminController extends Controller
         // Aplicar filtro de pesquisa se fornecido
         if ($request->filled('pesquisa')) {
             $pesquisa = $request->pesquisa;
-            $query->where('nome', 'like', "%{$pesquisa}%");
+            $query->where('nome', 'ilike', "%{$pesquisa}%");
         }
         
         // Aplicar filtro de status (ativo/inativo)
@@ -106,7 +108,7 @@ class AdminController extends Controller
         // Aplicar filtro de pesquisa se fornecido
         if ($request->filled('pesquisa')) {
             $pesquisa = $request->pesquisa;
-            $query->where('nome', 'like', "%{$pesquisa}%");
+            $query->where('nome', 'ilike', "%{$pesquisa}%");
         }
         
         // Aplicar filtro de status (ativo/inativo)
@@ -692,5 +694,206 @@ class AdminController extends Controller
 
         $ids = $request->input('ids', []);
         return Excel::download(new ProdutosExport($ids), 'produtos-jfx-' . now()->format('Y-m-d') . '.xlsx');
+    }
+
+    public function buscarOpcoesProduto($id)
+    {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Não autorizado'], 401);
+        }
+
+        $produto = Produto::with(['opcaoGrupos.valores', 'variantes'])->findOrFail($id);
+
+        // Build a valor map for label resolution
+        $valorMap = [];
+        foreach ($produto->opcaoGrupos as $grupo) {
+            foreach ($grupo->valores as $valor) {
+                $valorMap[$valor->id] = ['grupo' => $grupo->nome, 'valor' => $valor->valor];
+            }
+        }
+
+        $variantes = $produto->variantes->map(function ($v) use ($valorMap) {
+            $label = collect($v->valores)->map(fn($vid) => $valorMap[$vid]['valor'] ?? '?')->join(' / ');
+            return [
+                'id'      => $v->id,
+                'valores' => $v->valores,
+                'preco'   => $v->preco,
+                'estoque' => $v->estoque,
+                'ativo'   => $v->ativo,
+                'label'   => $label,
+            ];
+        });
+
+        return response()->json([
+            'grupos'   => $produto->opcaoGrupos->map(fn($g) => [
+                'id'      => $g->id,
+                'nome'    => $g->nome,
+                'ordem'   => $g->ordem,
+                'valores' => $g->valores->map(fn($v) => [
+                    'id'    => $v->id,
+                    'valor' => $v->valor,
+                    'ordem' => $v->ordem,
+                ]),
+            ]),
+            'variantes'             => $variantes,
+            'estoque_compartilhado' => $produto->estoque_compartilhado,
+        ]);
+    }
+
+    public function salvarOpcaoGrupos(Request $request, $id)
+    {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Não autorizado'], 401);
+        }
+
+        $produto = Produto::findOrFail($id);
+
+        $request->validate([
+            'grupos'                    => 'required|array',
+            'grupos.*.nome'             => 'required|string|max:50',
+            'grupos.*.ordem'            => 'nullable|integer',
+            'grupos.*.valores'          => 'nullable|array',
+            'grupos.*.valores.*.valor'  => 'required|string|max:100',
+            'grupos.*.valores.*.ordem'  => 'nullable|integer',
+        ]);
+
+        // Validate unique names per produto
+        $nomes = collect($request->grupos)->pluck('nome');
+        if ($nomes->unique()->count() !== $nomes->count()) {
+            return response()->json(['error' => 'Nomes de grupo devem ser únicos por produto.'], 422);
+        }
+
+        \DB::transaction(function () use ($request, $produto) {
+            // Delete groups not in this request (by name)
+            $nomesNovos = collect($request->grupos)->pluck('nome')->all();
+            $produto->opcaoGrupos()->whereNotIn('nome', $nomesNovos)->delete();
+
+            foreach ($request->grupos as $idx => $grupoData) {
+                $grupo = $produto->opcaoGrupos()->updateOrCreate(
+                    ['nome' => $grupoData['nome']],
+                    ['ordem' => $grupoData['ordem'] ?? $idx]
+                );
+
+                if (!empty($grupoData['valores'])) {
+                    $valoresNovos = collect($grupoData['valores'])->pluck('valor')->all();
+                    $grupo->valores()->whereNotIn('valor', $valoresNovos)->delete();
+
+                    foreach ($grupoData['valores'] as $vIdx => $valorData) {
+                        $grupo->valores()->updateOrCreate(
+                            ['valor' => $valorData['valor']],
+                            ['ordem' => $valorData['ordem'] ?? $vIdx]
+                        );
+                    }
+                }
+            }
+        });
+
+        return response()->json(['success' => true]);
+    }
+
+    public function gerarVariantes($id)
+    {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Não autorizado'], 401);
+        }
+
+        $produto = Produto::with('opcaoGrupos.valores')->findOrFail($id);
+        $grupos = $produto->opcaoGrupos;
+
+        if ($grupos->isEmpty()) {
+            return response()->json(['success' => true, 'geradas' => 0]);
+        }
+
+        // Build cartesian product of valor_id arrays
+        $sets = $grupos->map(fn($g) => $g->valores->pluck('id')->all())->all();
+        $combinacoes = $this->cartesianProduct($sets);
+
+        $criadas = 0;
+        \DB::transaction(function () use ($produto, $combinacoes, &$criadas) {
+            foreach ($combinacoes as $combo) {
+                sort($combo); // always sorted for consistent comparison
+                $valoresJson = json_encode($combo);
+
+                // Check if variant already exists (compare sorted JSON)
+                $driver = \DB::getDriverName();
+                if ($driver === 'pgsql') {
+                    $existe = $produto->variantes()
+                        ->whereRaw("valores::text = ?", [$valoresJson])
+                        ->exists();
+                } else {
+                    // SQLite (tests): cast to text via JSON function
+                    $existe = $produto->variantes()
+                        ->whereRaw("CAST(valores AS TEXT) = ?", [$valoresJson])
+                        ->exists();
+                }
+
+                if (!$existe) {
+                    ProdutoVariante::create([
+                        'produto_id' => $produto->id,
+                        'valores'    => $combo,
+                        'preco'      => null,
+                        'estoque'    => null,
+                        'ativo'      => true,
+                    ]);
+                    $criadas++;
+                }
+            }
+        });
+
+        return response()->json(['success' => true, 'geradas' => $criadas]);
+    }
+
+    private function cartesianProduct(array $sets): array
+    {
+        $result = [[]];
+        foreach ($sets as $set) {
+            $newResult = [];
+            foreach ($result as $existing) {
+                foreach ($set as $item) {
+                    $newResult[] = array_merge($existing, [$item]);
+                }
+            }
+            $result = $newResult;
+        }
+        return $result;
+    }
+
+    public function salvarVariantes(Request $request, $id)
+    {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Não autorizado'], 401);
+        }
+
+        $produto = Produto::findOrFail($id);
+
+        $request->validate([
+            'estoque_compartilhado'    => 'nullable|boolean',
+            'variantes'                => 'nullable|array',
+            'variantes.*.id'           => 'required|exists:produto_variantes,id',
+            'variantes.*.preco'        => 'nullable|numeric|min:0',
+            'variantes.*.estoque'      => 'nullable|integer|min:0',
+            'variantes.*.ativo'        => 'nullable|boolean',
+        ]);
+
+        \DB::transaction(function () use ($request, $produto) {
+            if ($request->has('estoque_compartilhado')) {
+                $produto->update(['estoque_compartilhado' => $request->boolean('estoque_compartilhado')]);
+            }
+
+            foreach ($request->input('variantes', []) as $varData) {
+                $variante = ProdutoVariante::where('id', $varData['id'])
+                    ->where('produto_id', $produto->id)
+                    ->firstOrFail();
+
+                $update = [];
+                if (array_key_exists('preco', $varData))   $update['preco']   = $varData['preco'];
+                if (array_key_exists('estoque', $varData)) $update['estoque'] = $varData['estoque'];
+                if (array_key_exists('ativo', $varData))   $update['ativo']   = $varData['ativo'];
+
+                if (!empty($update)) $variante->update($update);
+            }
+        });
+
+        return response()->json(['success' => true]);
     }
 }
