@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -10,6 +11,8 @@ use Illuminate\Support\Str;
 
 class Produto extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'nome',
         'slug',
@@ -24,6 +27,7 @@ class Produto extends Model
         'em_promocao',
         'destaque',
         'estoque',
+        'estoque_compartilhado',
         'categoria_id',
         'ativo',
         'tags'
@@ -36,6 +40,7 @@ class Produto extends Model
         'em_promocao' => 'boolean',
         'destaque' => 'boolean',
         'estoque' => 'integer',
+        'estoque_compartilhado' => 'boolean',
         'ativo' => 'boolean',
         'tags' => 'array',
         'specs' => 'array',
@@ -176,5 +181,25 @@ class Produto extends Model
     public function getEstaEmPromocaoAttribute(): bool
     {
         return $this->em_promocao && $this->desconto_percentual > 0;
+    }
+
+    public function opcaoGrupos(): HasMany
+    {
+        return $this->hasMany(ProdutoOpcaoGrupo::class)->orderBy('ordem')->orderBy('id');
+    }
+
+    public function variantes(): HasMany
+    {
+        return $this->hasMany(ProdutoVariante::class);
+    }
+
+    public function variantesAtivas(): HasMany
+    {
+        return $this->hasMany(ProdutoVariante::class)->where('ativo', true);
+    }
+
+    public function getTemVariantesAttribute(): bool
+    {
+        return $this->opcaoGrupos()->exists();
     }
 }

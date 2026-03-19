@@ -12,13 +12,16 @@ class ItemPedido extends Model
     protected $fillable = [
         'pedido_id',
         'produto_id',
+        'produto_variante_id',
+        'opcoes_snapshot',
         'quantidade',
         'preco'
     ];
 
     protected $casts = [
         'quantidade' => 'integer',
-        'preco' => 'decimal:2'
+        'preco' => 'decimal:2',
+        'opcoes_snapshot' => 'array',
     ];
 
     /**
@@ -35,6 +38,14 @@ class ItemPedido extends Model
     public function produto(): BelongsTo
     {
         return $this->belongsTo(Produto::class);
+    }
+
+    /**
+     * Relacionamento: Um item pode pertencer a uma variante de produto
+     */
+    public function produtoVariante(): BelongsTo
+    {
+        return $this->belongsTo(ProdutoVariante::class, 'produto_variante_id');
     }
 
     /**
