@@ -200,6 +200,9 @@ class Produto extends Model
 
     public function getTemVariantesAttribute(): bool
     {
+        if ($this->relationLoaded('opcaoGrupos')) {
+            return $this->opcaoGrupos->isNotEmpty();
+        }
         return $this->opcaoGrupos()->exists();
     }
 }

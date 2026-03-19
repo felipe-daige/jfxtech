@@ -16,6 +16,7 @@ class ProdutoVariante extends Model
     protected $casts = [
         'valores' => 'array',
         'preco'   => 'decimal:2',
+        'estoque' => 'integer',
         'ativo'   => 'boolean',
     ];
 
