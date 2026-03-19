@@ -82,6 +82,18 @@ function abrirModalProduto() {
     });
 
 
+    // Clear current product id for variant tab (new product has no id yet)
+    window.currentProdutoId = null;
+
+    // Reset tab to first tab when opening modal
+    document.querySelectorAll('.produto-tab-btn').forEach(function(b, i) {
+        if (i === 0) { b.classList.add('border-black', 'text-black'); b.classList.remove('border-transparent', 'text-gray-400'); }
+        else { b.classList.remove('border-black', 'text-black'); b.classList.add('border-transparent', 'text-gray-400'); }
+    });
+    document.querySelectorAll('.produto-tab-panel').forEach(function(p, i) {
+        if (i === 0) p.classList.remove('hidden'); else p.classList.add('hidden');
+    });
+
     document.getElementById('modalProduto').classList.remove('hidden');
 
     // Adicionar evento de clique no overlay
@@ -143,6 +155,18 @@ function editarProduto(id) {
             // Mostrar imagens existentes com seleção de capa
             mostrarImagensExistentes(data.imagens);
 
+            // Set current product id for variant tab
+            window.currentProdutoId = id;
+
+            // Reset tab to first tab when opening modal
+            document.querySelectorAll('.produto-tab-btn').forEach(function(b, i) {
+                if (i === 0) { b.classList.add('border-black', 'text-black'); b.classList.remove('border-transparent', 'text-gray-400'); }
+                else { b.classList.remove('border-black', 'text-black'); b.classList.add('border-transparent', 'text-gray-400'); }
+            });
+            document.querySelectorAll('.produto-tab-panel').forEach(function(p, i) {
+                if (i === 0) p.classList.remove('hidden'); else p.classList.add('hidden');
+            });
+
             document.getElementById('modalProduto').classList.remove('hidden');
 
             // Adicionar evento de clique no overlay
@@ -179,9 +203,9 @@ function mostrarImagensExistentes(imagens) {
         container = document.createElement('div');
         container.id = 'imagensExistentes';
         container.className = 'mt-5';
-        const formContainer = document.getElementById('formFields');
-        if (formContainer) {
-            formContainer.appendChild(container);
+        const tabImagens = document.getElementById('tab-imagens');
+        if (tabImagens) {
+            tabImagens.querySelector('.px-6').appendChild(container);
         } else {
             document.getElementById('formProduto').appendChild(container);
         }
@@ -918,3 +942,236 @@ function mostrarPreviewSubstituir(imagemId, input) {
         if (!el.contains(e.relatedTarget)) tip.style.opacity = '0';
     });
 })();
+
+// ===== HELPER FUNCTIONS =====
+
+function getCsrfToken() {
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    return meta ? meta.getAttribute('content') : '';
+}
+
+function escapeHtml(str) {
+    var d = document.createElement('div');
+    d.appendChild(document.createTextNode(str));
+    return d.innerHTML;
+}
+
+// ===== TAB SYSTEM FOR PRODUCT MODAL =====
+
+function initProdutoModalTabs() {
+    var tabBtns = document.querySelectorAll('.produto-tab-btn');
+    var tabPanels = document.querySelectorAll('.produto-tab-panel');
+
+    tabBtns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var targetTab = this.getAttribute('data-tab');
+
+            tabBtns.forEach(function(b) {
+                b.classList.remove('border-black', 'text-black');
+                b.classList.add('border-transparent', 'text-gray-400');
+            });
+            this.classList.remove('border-transparent', 'text-gray-400');
+            this.classList.add('border-black', 'text-black');
+
+            tabPanels.forEach(function(panel) {
+                panel.classList.add('hidden');
+            });
+            var panel = document.getElementById('tab-' + targetTab);
+            if (panel) panel.classList.remove('hidden');
+
+            if (targetTab === 'variantes') {
+                loadVariantes(window.currentProdutoId);
+            }
+        });
+    });
+}
+
+// ===== VARIANT MANAGEMENT FUNCTIONS =====
+
+function loadVariantes(produtoId) {
+    if (!produtoId) return;
+    var loading = document.getElementById('variantes-loading');
+    var content = document.getElementById('variantes-content');
+    if (loading) loading.classList.remove('hidden');
+    if (content) content.classList.add('hidden');
+
+    fetch('/admin/produtos/' + produtoId + '/opcoes', {
+        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': getCsrfToken() }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        renderGrupos(data.grupos || []);
+        renderVariantesTabela(data.variantes || []);
+        var cb = document.getElementById('estoque-compartilhado');
+        if (cb) cb.checked = data.estoque_compartilhado;
+        if (loading) loading.classList.add('hidden');
+        if (content) content.classList.remove('hidden');
+    });
+}
+
+function renderGrupos(grupos) {
+    var container = document.getElementById('grupos-container');
+    if (!container) return;
+    container.innerHTML = '';
+    grupos.forEach(function(grupo, idx) {
+        container.insertAdjacentHTML('beforeend', buildGrupoHTML(grupo, idx));
+    });
+}
+
+function buildGrupoHTML(grupo, idx) {
+    var valoresHTML = (grupo.valores || []).map(function(v) {
+        return '<span class="inline-flex items-center gap-1 bg-gray-100 px-2 py-1 text-xs font-mono">' +
+               escapeHtml(v.valor) +
+               '<button type="button" class="remove-valor-btn text-gray-400 hover:text-black" data-valor-id="' + v.id + '">×</button>' +
+               '</span>';
+    }).join('');
+
+    return '<div class="grupo-item border border-gray-200 p-4" data-grupo-id="' + (grupo.id || '') + '" data-grupo-idx="' + idx + '">' +
+        '<div class="flex items-center gap-2 mb-3">' +
+        '<input type="text" class="grupo-nome-input flex-1 border border-gray-300 px-3 py-2 text-sm font-mono uppercase" value="' + escapeHtml(grupo.nome || '') + '" placeholder="EX: COR">' +
+        '<button type="button" class="remove-grupo-btn text-gray-400 hover:text-black font-mono text-sm px-2">REMOVER</button>' +
+        '</div>' +
+        '<div class="flex flex-wrap gap-2 mb-2 valores-container">' + valoresHTML + '</div>' +
+        '<div class="flex gap-2">' +
+        '<input type="text" class="novo-valor-input flex-1 border border-gray-300 px-3 py-2 text-sm font-mono" placeholder="Novo valor...">' +
+        '<button type="button" class="add-valor-btn bg-gray-100 hover:bg-gray-200 px-3 py-2 text-sm font-mono uppercase transition-colors">+ ADD</button>' +
+        '</div>' +
+        '</div>';
+}
+
+function renderVariantesTabela(variantes) {
+    var container = document.getElementById('variantes-tabela');
+    var wrapper = document.getElementById('variantes-tabela-container');
+    if (!container) return;
+    if (variantes.length === 0) {
+        if (wrapper) wrapper.classList.add('hidden');
+        return;
+    }
+    if (wrapper) wrapper.classList.remove('hidden');
+    container.innerHTML = variantes.map(function(v) {
+        return '<div class="variante-row flex items-center gap-3 border border-gray-100 p-3" data-variante-id="' + v.id + '">' +
+            '<span class="flex-1 text-sm font-mono">' + escapeHtml(v.label) + '</span>' +
+            '<input type="number" class="variante-preco w-28 border border-gray-300 px-2 py-1 text-sm font-mono" placeholder="Preço" value="' + (v.preco || '') + '" step="0.01" min="0">' +
+            '<input type="number" class="variante-estoque w-20 border border-gray-300 px-2 py-1 text-sm font-mono estoque-field" placeholder="Estq" value="' + (v.estoque !== null ? v.estoque : '') + '" min="0">' +
+            '<label class="flex items-center gap-1 text-xs font-mono"><input type="checkbox" class="variante-ativo" ' + (v.ativo ? 'checked' : '') + '> ATIVO</label>' +
+            '</div>';
+    }).join('');
+}
+
+// ===== VARIANT TAB EVENT DELEGATION =====
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tab system
+    initProdutoModalTabs();
+
+    // Delegate events for variant tab
+    document.addEventListener('click', function(e) {
+        // Add grupo
+        if (e.target && e.target.id === 'add-grupo-btn') {
+            var container = document.getElementById('grupos-container');
+            var idx = container ? container.children.length : 0;
+            container.insertAdjacentHTML('beforeend', buildGrupoHTML({nome: '', valores: []}, idx));
+        }
+
+        // Remove grupo
+        if (e.target && e.target.classList.contains('remove-grupo-btn')) {
+            e.target.closest('.grupo-item').remove();
+        }
+
+        // Add valor
+        if (e.target && e.target.classList.contains('add-valor-btn')) {
+            var grupoItem = e.target.closest('.grupo-item');
+            var input = grupoItem.querySelector('.novo-valor-input');
+            var valor = input.value.trim();
+            if (!valor) return;
+            var valoresContainer = grupoItem.querySelector('.valores-container');
+            valoresContainer.insertAdjacentHTML('beforeend',
+                '<span class="inline-flex items-center gap-1 bg-gray-100 px-2 py-1 text-xs font-mono">' +
+                escapeHtml(valor) +
+                '<button type="button" class="remove-valor-btn text-gray-400 hover:text-black" data-valor-id="">×</button>' +
+                '</span>');
+            input.value = '';
+        }
+
+        // Remove valor
+        if (e.target && e.target.classList.contains('remove-valor-btn')) {
+            e.target.closest('span').remove();
+        }
+
+        // Gerar variantes
+        if (e.target && e.target.id === 'gerar-variantes-btn') {
+            salvarGruposEGerar(window.currentProdutoId);
+        }
+
+        // Salvar variantes
+        if (e.target && e.target.id === 'salvar-variantes-btn') {
+            salvarVariantes(window.currentProdutoId);
+        }
+    });
+});
+
+function salvarGruposEGerar(produtoId) {
+    var grupos = collectGruposFromUI();
+    var csrfToken = getCsrfToken();
+
+    fetch('/admin/produtos/' + produtoId + '/opcao-grupos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+        body: JSON.stringify({ grupos: grupos })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (!data.success) { alert('Erro ao salvar grupos.'); return; }
+        return fetch('/admin/produtos/' + produtoId + '/variantes/gerar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
+        });
+    })
+    .then(function(r) { return r ? r.json() : null; })
+    .then(function(data) {
+        if (data) loadVariantes(produtoId);
+    });
+}
+
+function collectGruposFromUI() {
+    var grupos = [];
+    document.querySelectorAll('.grupo-item').forEach(function(item, idx) {
+        var nome = item.querySelector('.grupo-nome-input').value.trim();
+        if (!nome) return;
+        var valores = [];
+        item.querySelectorAll('.valores-container span').forEach(function(span, vIdx) {
+            var texto = span.childNodes[0].textContent.trim();
+            if (texto) valores.push({ valor: texto, ordem: vIdx });
+        });
+        grupos.push({ nome: nome, ordem: idx, valores: valores });
+    });
+    return grupos;
+}
+
+function salvarVariantes(produtoId) {
+    var variantes = [];
+    document.querySelectorAll('.variante-row').forEach(function(row) {
+        var id = parseInt(row.getAttribute('data-variante-id'));
+        var preco = row.querySelector('.variante-preco').value;
+        var estoque = row.querySelector('.variante-estoque').value;
+        var ativo = row.querySelector('.variante-ativo').checked;
+        variantes.push({
+            id: id,
+            preco: preco !== '' ? parseFloat(preco) : null,
+            estoque: estoque !== '' ? parseInt(estoque) : null,
+            ativo: ativo,
+        });
+    });
+
+    var estoqueCompartilhado = document.getElementById('estoque-compartilhado').checked;
+
+    fetch('/admin/produtos/' + produtoId + '/variantes', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken(), 'Accept': 'application/json' },
+        body: JSON.stringify({ estoque_compartilhado: estoqueCompartilhado, variantes: variantes })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.success && window.showNotification) window.showNotification('Variantes salvas!', 'success');
+    });
+}

@@ -294,7 +294,30 @@
                 <div id="formMethod" style="display: none;"></div>
                 <input type="hidden" id="produtoId" name="produto_id" value="">
 
-                <div id="formFields" class="p-6 space-y-5">
+                <div class="px-6 pt-4">
+                    {{-- Tab navigation --}}
+                    <div class="flex border-b border-gray-200 mb-6" id="produto-modal-tabs">
+                        <button type="button"
+                                class="produto-tab-btn px-4 py-2 text-sm font-mono uppercase tracking-widest border-b-2 -mb-px transition-colors border-black text-black"
+                                data-tab="dados">
+                            DADOS
+                        </button>
+                        <button type="button"
+                                class="produto-tab-btn px-4 py-2 text-sm font-mono uppercase tracking-widest border-b-2 -mb-px transition-colors border-transparent text-gray-400 hover:text-black"
+                                data-tab="imagens">
+                            IMAGENS
+                        </button>
+                        <button type="button"
+                                class="produto-tab-btn px-4 py-2 text-sm font-mono uppercase tracking-widest border-b-2 -mb-px transition-colors border-transparent text-gray-400 hover:text-black"
+                                data-tab="variantes">
+                            VARIANTES
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Tab panels --}}
+                <div id="tab-dados" class="produto-tab-panel">
+                <div id="formFields" class="px-6 pb-6 space-y-5">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <div>
                             <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Nome do Produto</label>
@@ -369,14 +392,14 @@
                             <input type="checkbox" name="destaque" id="destaque" value="1" class="h-4 w-4 border-[var(--color-lab-border)] text-black focus:ring-black">
                             <label for="destaque" class="ml-2 font-mono text-xs text-black">Produto em destaque (maximo 3)</label>
                         </div>
-                        
+
                         <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Tags do Produto (Máx. 2)</label>
                         <div class="space-y-2 mt-2" id="tagsSelectionGroup">
                             <div class="flex items-center">
                                 <input type="checkbox" name="tags[]" id="tag_exclusivo" value="Exclusivo" class="tag-checkbox h-4 w-4 border-[var(--color-lab-border)] text-black focus:ring-black">
                                 <label for="tag_exclusivo" class="ml-2 font-mono text-xs text-black">Exclusivo</label>
                             </div>
-                            
+
                             <div class="flex items-center">
                                 <input type="checkbox" name="tags[]" id="tag_em_breve" value="Em Breve" class="tag-checkbox h-4 w-4 border-[var(--color-lab-border)] text-black focus:ring-black">
                                 <label for="tag_em_breve" class="ml-2 font-mono text-xs text-black">Em Breve</label>
@@ -386,7 +409,7 @@
                                 <input type="checkbox" name="tags[]" id="tag_lancamento" value="Lançamento" class="tag-checkbox h-4 w-4 border-[var(--color-lab-border)] text-black focus:ring-black">
                                 <label for="tag_lancamento" class="ml-2 font-mono text-xs text-black">Lançamento</label>
                             </div>
-                            
+
                             <div class="flex items-center">
                                 <input type="checkbox" name="tags[]" id="tag_oferta" value="Oferta Especial" class="tag-checkbox h-4 w-4 border-[var(--color-lab-border)] text-black focus:ring-black">
                                 <label for="tag_oferta" class="ml-2 font-mono text-xs text-black">Oferta Especial</label>
@@ -395,14 +418,58 @@
                         <p id="tags_warning" class="hidden mt-1 font-mono text-[10px] text-red-500">Você só pode selecionar até 2 tags.</p>
                     </div>
 
+                </div>
+                </div>{{-- end #tab-dados --}}
+
+                <div id="tab-imagens" class="produto-tab-panel hidden">
+                <div class="px-6 pb-6 space-y-5">
                     <div>
                         <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Imagens</label>
                         <input type="file" name="imagens[]" id="imagens" multiple accept="image/*" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black file:mr-4 file:py-1 file:px-3 file:border-0 file:text-xs file:font-mono file:font-bold file:uppercase file:tracking-widest file:bg-black file:text-white">
                         <p class="font-mono text-[10px] text-[var(--color-lab-muted)] mt-1">Selecione uma ou mais imagens (maximo 2MB cada)</p>
                         <div id="novasImagensPreview" class="hidden mt-3 grid grid-cols-3 gap-2"></div>
                     </div>
-
                 </div>
+                </div>{{-- end #tab-imagens --}}
+
+                <div id="tab-variantes" class="produto-tab-panel hidden">
+                <div class="px-6 pb-6">
+                    <div id="variantes-loading" class="text-center py-8 text-gray-400 font-mono text-sm">CARREGANDO...</div>
+                    <div id="variantes-content" class="hidden">
+
+                        {{-- Estoque compartilhado --}}
+                        <div class="flex items-center gap-3 mb-6 p-4 border border-gray-200">
+                            <input type="checkbox" id="estoque-compartilhado" class="w-4 h-4">
+                            <label for="estoque-compartilhado" class="text-sm font-mono uppercase tracking-widest">
+                                Compartilhar estoque entre variantes
+                            </label>
+                        </div>
+
+                        {{-- Grupos e valores --}}
+                        <div id="grupos-container" class="space-y-4 mb-6"></div>
+                        <button type="button" id="add-grupo-btn"
+                                class="text-sm font-mono uppercase tracking-widest border border-dashed border-gray-400 px-4 py-2 hover:border-black transition-colors w-full mb-6">
+                            + ADICIONAR GRUPO DE OPÇÕES
+                        </button>
+
+                        {{-- Botão gerar combinações --}}
+                        <button type="button" id="gerar-variantes-btn"
+                                class="bg-black text-white font-mono uppercase tracking-widest text-sm px-6 py-3 hover:bg-gray-800 transition-colors mb-6 w-full">
+                            GERAR COMBINAÇÕES
+                        </button>
+
+                        {{-- Tabela de variantes --}}
+                        <div id="variantes-tabela-container" class="hidden">
+                            <h4 class="font-mono text-xs uppercase tracking-widest text-gray-500 mb-3">VARIANTES GERADAS</h4>
+                            <div id="variantes-tabela" class="space-y-2"></div>
+                            <button type="button" id="salvar-variantes-btn"
+                                    class="mt-4 bg-black text-white font-mono uppercase tracking-widest text-sm px-6 py-3 hover:bg-gray-800 transition-colors w-full">
+                                SALVAR VARIANTES
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                </div>{{-- end #tab-variantes --}}
 
                 <div class="p-6 border-t border-[var(--color-lab-border)] flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
                     <button type="button" onclick="fecharModalProduto()" class="w-full sm:w-auto px-5 py-2.5 text-xs font-bold tracking-widest uppercase border border-[var(--color-lab-border)] text-black hover:bg-gray-50 transition-colors">
