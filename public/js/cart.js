@@ -134,7 +134,16 @@ document.addEventListener('DOMContentLoaded', function() {
         var itemsHTML = '';
         carrinho.itens.forEach(function(item) {
             var preco = (parseFloat(item.preco) || 0).toFixed(2).replace('.', ',');
-            itemsHTML += '<div class="bg-white border border-[var(--color-lab-border)] p-4 mb-3 cart-item" data-produto-id="' + item.produto.id + '">' +
+            var opcoesHtml = '';
+            if (item.opcoes_snapshot && Object.keys(item.opcoes_snapshot).length > 0) {
+                var partes = Object.entries(item.opcoes_snapshot).map(function(entry) {
+                    return entry[0] + ': ' + entry[1];
+                });
+                opcoesHtml = '<span class="block text-xs font-mono text-gray-400 mt-1">' +
+                             partes.join(' · ') + '</span>';
+            }
+            var varianteId = item.produto_variante_id || '';
+            itemsHTML += '<div class="bg-white border border-[var(--color-lab-border)] p-4 mb-3 cart-item" data-produto-id="' + item.produto.id + '" data-variante-id="' + varianteId + '">' +
                 '<div class="flex items-center gap-3">' +
                     '<div class="w-14 h-14 bg-[var(--color-lab-bg)] border border-[var(--color-lab-border)] flex items-center justify-center flex-shrink-0 overflow-hidden">' +
                         (item.produto.primeira_imagem ?
@@ -144,15 +153,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     '</div>' +
                     '<div class="flex-1 min-w-0">' +
                         '<h4 class="font-bold text-sm truncate uppercase">' + item.produto.nome + '</h4>' +
+                        opcoesHtml +
                         '<p class="font-mono text-sm font-bold">R$ ' + preco + '</p>' +
                     '</div>' +
                     '<div class="flex items-center gap-2">' +
                         '<div class="flex items-center border border-[var(--color-lab-border)]">' +
-                            '<button class="quantity-decrease-btn w-7 h-7 flex items-center justify-center hover:bg-gray-100 transition-colors text-xs" data-produto-id="' + item.produto.id + '">−</button>' +
+                            '<button class="quantity-decrease-btn w-7 h-7 flex items-center justify-center hover:bg-gray-100 transition-colors text-xs" data-produto-id="' + item.produto.id + '" data-variante-id="' + varianteId + '">−</button>' +
                             '<span class="quantity-display w-7 h-7 flex items-center justify-center font-mono text-xs font-bold border-x border-[var(--color-lab-border)]">' + item.quantidade + '</span>' +
-                            '<button class="quantity-increase-btn w-7 h-7 flex items-center justify-center hover:bg-gray-100 transition-colors text-xs" data-produto-id="' + item.produto.id + '">+</button>' +
+                            '<button class="quantity-increase-btn w-7 h-7 flex items-center justify-center hover:bg-gray-100 transition-colors text-xs" data-produto-id="' + item.produto.id + '" data-variante-id="' + varianteId + '">+</button>' +
                         '</div>' +
-                        '<button class="remove-item-btn w-7 h-7 flex items-center justify-center text-gray-400 hover:text-red-600 transition-colors" data-produto-id="' + item.produto.id + '" title="Remover">' +
+                        '<button class="remove-item-btn w-7 h-7 flex items-center justify-center text-gray-400 hover:text-red-600 transition-colors" data-produto-id="' + item.produto.id + '" data-variante-id="' + varianteId + '" title="Remover">' +
                             '<svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>' +
                         '</button>' +
                     '</div>' +
@@ -210,7 +220,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.remove-item-btn').forEach(function(button) {
             button.addEventListener('click', function(e) {
                 e.preventDefault();
-                removeFromCart(this.getAttribute('data-produto-id'));
+                removeFromCart(this.getAttribute('data-produto-id'), this.getAttribute('data-variante-id'));
             });
         });
 
@@ -218,12 +228,13 @@ document.addEventListener('DOMContentLoaded', function() {
             button.addEventListener('click', function(e) {
                 e.preventDefault();
                 var produtoId = this.getAttribute('data-produto-id');
+                var varianteId = this.getAttribute('data-variante-id');
                 var quantityDisplay = this.parentElement.querySelector('.quantity-display');
                 var currentQuantity = parseInt(quantityDisplay.textContent);
                 if (currentQuantity > 1) {
-                    updateQuantity(produtoId, currentQuantity - 1);
+                    updateQuantity(produtoId, varianteId, currentQuantity - 1);
                 } else {
-                    removeFromCart(produtoId);
+                    removeFromCart(produtoId, varianteId);
                 }
             });
         });
@@ -232,21 +243,26 @@ document.addEventListener('DOMContentLoaded', function() {
             button.addEventListener('click', function(e) {
                 e.preventDefault();
                 var produtoId = this.getAttribute('data-produto-id');
+                var varianteId = this.getAttribute('data-variante-id');
                 var quantityDisplay = this.parentElement.querySelector('.quantity-display');
                 var currentQuantity = parseInt(quantityDisplay.textContent);
-                updateQuantity(produtoId, currentQuantity + 1);
+                updateQuantity(produtoId, varianteId, currentQuantity + 1);
             });
         });
     }
 
     // Update quantity
-    function updateQuantity(produtoId, newQuantity) {
+    function updateQuantity(produtoId, varianteId, newQuantity) {
         var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
         fetch('/carrinho/atualizar', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
-            body: JSON.stringify({ produto_id: produtoId, quantidade: newQuantity })
+            body: JSON.stringify({
+                produto_id: produtoId,
+                produto_variante_id: varianteId ? parseInt(varianteId) : null,
+                quantidade: newQuantity
+            })
         })
         .then(function(response) { return response.json(); })
         .then(function(data) {
@@ -256,13 +272,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Remove from cart
-    function removeFromCart(produtoId) {
+    function removeFromCart(produtoId, varianteId) {
         var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
         fetch('/carrinho/remover', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
-            body: JSON.stringify({ produto_id: produtoId })
+            body: JSON.stringify({
+                produto_id: produtoId,
+                produto_variante_id: varianteId ? parseInt(varianteId) : null
+            })
         })
         .then(function(response) { return response.json(); })
         .then(function(data) {
