@@ -91,6 +91,30 @@
                                 </div>
                             </div>
 
+                            {{-- Filtros Rápidos --}}
+                            <div class="filter-section">
+                                <div class="filter-section-header" data-filter-toggle>
+                                    FILTROS RÁPIDOS
+                                    <svg class="filter-chevron w-4 h-4 rotated" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                                </div>
+                                <div class="filter-section-content open">
+                                    <div class="space-y-2">
+                                        <label class="flex items-center gap-3 cursor-pointer group text-sm">
+                                            <input type="checkbox" name="em_promocao" value="1"
+                                                   class="tech-checkbox"
+                                                   {{ request('em_promocao') ? 'checked' : '' }}>
+                                            <span class="text-gray-600 group-hover:text-black transition-colors">EM PROMOÇÃO</span>
+                                        </label>
+                                        <label class="flex items-center gap-3 cursor-pointer group text-sm">
+                                            <input type="checkbox" name="em_estoque" value="1"
+                                                   class="tech-checkbox"
+                                                   {{ request('em_estoque') ? 'checked' : '' }}>
+                                            <span class="text-gray-600 group-hover:text-black transition-colors">EM ESTOQUE</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
                             {{-- Sort --}}
                             <div class="filter-section">
                                 <div class="filter-section-header" data-filter-toggle>
@@ -102,6 +126,9 @@
                                         <option value="nome" {{ request('ordenacao') == 'nome' ? 'selected' : '' }}>NOME A-Z</option>
                                         <option value="preco_asc" {{ request('ordenacao') == 'preco_asc' ? 'selected' : '' }}>PREÇO (MENOR-MAIOR)</option>
                                         <option value="preco_desc" {{ request('ordenacao') == 'preco_desc' ? 'selected' : '' }}>PREÇO (MAIOR-MENOR)</option>
+                                        <option value="destaque" {{ request('ordenacao') == 'destaque' ? 'selected' : '' }}>EM DESTAQUE</option>
+                                        <option value="novidade" {{ request('ordenacao') == 'novidade' ? 'selected' : '' }}>MAIS NOVOS</option>
+                                        <option value="promocao" {{ request('ordenacao') == 'promocao' ? 'selected' : '' }}>EM PROMOÇÃO</option>
                                     </select>
                                 </div>
                             </div>

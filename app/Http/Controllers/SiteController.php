@@ -70,7 +70,17 @@ class SiteController extends Controller
 
         // Busca por nome
         if ($request->filled('busca')) {
-            $query->where('nome', 'like', '%' . $request->busca . '%');
+            $query->where('nome', 'ilike', '%' . $request->busca . '%');
+        }
+
+        // Filtro: apenas em promoção
+        if ($request->boolean('em_promocao')) {
+            $query->where('em_promocao', true);
+        }
+
+        // Filtro: apenas em estoque
+        if ($request->boolean('em_estoque')) {
+            $query->where('estoque', '>', 0);
         }
 
         // Ordenação
@@ -81,6 +91,15 @@ class SiteController extends Controller
                 break;
             case 'preco_desc':
                 $query->orderBy('preco', 'desc');
+                break;
+            case 'destaque':
+                $query->orderBy('destaque', 'desc')->orderBy('nome', 'asc');
+                break;
+            case 'novidade':
+                $query->orderBy('created_at', 'desc');
+                break;
+            case 'promocao':
+                $query->orderBy('em_promocao', 'desc')->orderBy('preco', 'asc');
                 break;
             case 'nome':
             default:
