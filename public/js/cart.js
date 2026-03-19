@@ -1,4 +1,13 @@
 // Cart JavaScript - JFXTECH
+
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
 document.addEventListener('DOMContentLoaded', function() {
 
     // Cart elements
@@ -137,32 +146,33 @@ document.addEventListener('DOMContentLoaded', function() {
             var opcoesHtml = '';
             if (item.opcoes_snapshot && Object.keys(item.opcoes_snapshot).length > 0) {
                 var partes = Object.entries(item.opcoes_snapshot).map(function(entry) {
-                    return entry[0] + ': ' + entry[1];
+                    return escapeHtml(entry[0]) + ': ' + escapeHtml(entry[1]);
                 });
                 opcoesHtml = '<span class="block text-xs font-mono text-gray-400 mt-1">' +
                              partes.join(' · ') + '</span>';
             }
-            var varianteId = item.produto_variante_id || '';
-            itemsHTML += '<div class="bg-white border border-[var(--color-lab-border)] p-4 mb-3 cart-item" data-produto-id="' + item.produto.id + '" data-variante-id="' + varianteId + '">' +
+            var varianteId = item.produto_variante_id != null ? item.produto_variante_id : null;
+            var varianteAttr = varianteId !== null ? varianteId : '';
+            itemsHTML += '<div class="bg-white border border-[var(--color-lab-border)] p-4 mb-3 cart-item" data-produto-id="' + item.produto.id + '" data-variante-id="' + varianteAttr + '">' +
                 '<div class="flex items-center gap-3">' +
                     '<div class="w-14 h-14 bg-[var(--color-lab-bg)] border border-[var(--color-lab-border)] flex items-center justify-center flex-shrink-0 overflow-hidden">' +
                         (item.produto.primeira_imagem ?
-                            '<img src="/storage/' + item.produto.primeira_imagem + '" alt="' + item.produto.nome + '" class="w-full h-full object-cover">' :
+                            '<img src="/storage/' + item.produto.primeira_imagem + '" alt="' + escapeHtml(item.produto.nome) + '" class="w-full h-full object-cover">' :
                             '<svg class="w-6 h-6 text-gray-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>'
                         ) +
                     '</div>' +
                     '<div class="flex-1 min-w-0">' +
-                        '<h4 class="font-bold text-sm truncate uppercase">' + item.produto.nome + '</h4>' +
+                        '<h4 class="font-bold text-sm truncate uppercase">' + escapeHtml(item.produto.nome) + '</h4>' +
                         opcoesHtml +
                         '<p class="font-mono text-sm font-bold">R$ ' + preco + '</p>' +
                     '</div>' +
                     '<div class="flex items-center gap-2">' +
                         '<div class="flex items-center border border-[var(--color-lab-border)]">' +
-                            '<button class="quantity-decrease-btn w-7 h-7 flex items-center justify-center hover:bg-gray-100 transition-colors text-xs" data-produto-id="' + item.produto.id + '" data-variante-id="' + varianteId + '">−</button>' +
+                            '<button class="quantity-decrease-btn w-7 h-7 flex items-center justify-center hover:bg-gray-100 transition-colors text-xs" data-produto-id="' + item.produto.id + '" data-variante-id="' + varianteAttr + '">−</button>' +
                             '<span class="quantity-display w-7 h-7 flex items-center justify-center font-mono text-xs font-bold border-x border-[var(--color-lab-border)]">' + item.quantidade + '</span>' +
-                            '<button class="quantity-increase-btn w-7 h-7 flex items-center justify-center hover:bg-gray-100 transition-colors text-xs" data-produto-id="' + item.produto.id + '" data-variante-id="' + varianteId + '">+</button>' +
+                            '<button class="quantity-increase-btn w-7 h-7 flex items-center justify-center hover:bg-gray-100 transition-colors text-xs" data-produto-id="' + item.produto.id + '" data-variante-id="' + varianteAttr + '">+</button>' +
                         '</div>' +
-                        '<button class="remove-item-btn w-7 h-7 flex items-center justify-center text-gray-400 hover:text-red-600 transition-colors" data-produto-id="' + item.produto.id + '" data-variante-id="' + varianteId + '" title="Remover">' +
+                        '<button class="remove-item-btn w-7 h-7 flex items-center justify-center text-gray-400 hover:text-red-600 transition-colors" data-produto-id="' + item.produto.id + '" data-variante-id="' + varianteAttr + '" title="Remover">' +
                             '<svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>' +
                         '</button>' +
                     '</div>' +
@@ -230,7 +240,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 var produtoId = this.getAttribute('data-produto-id');
                 var varianteId = this.getAttribute('data-variante-id');
                 var quantityDisplay = this.parentElement.querySelector('.quantity-display');
-                var currentQuantity = parseInt(quantityDisplay.textContent);
+                var currentQuantity = parseInt(quantityDisplay.textContent, 10);
                 if (currentQuantity > 1) {
                     updateQuantity(produtoId, varianteId, currentQuantity - 1);
                 } else {
@@ -245,7 +255,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 var produtoId = this.getAttribute('data-produto-id');
                 var varianteId = this.getAttribute('data-variante-id');
                 var quantityDisplay = this.parentElement.querySelector('.quantity-display');
-                var currentQuantity = parseInt(quantityDisplay.textContent);
+                var currentQuantity = parseInt(quantityDisplay.textContent, 10);
                 updateQuantity(produtoId, varianteId, currentQuantity + 1);
             });
         });
@@ -260,7 +270,7 @@ document.addEventListener('DOMContentLoaded', function() {
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
             body: JSON.stringify({
                 produto_id: produtoId,
-                produto_variante_id: varianteId ? parseInt(varianteId) : null,
+                produto_variante_id: (varianteId !== null && varianteId !== '') ? parseInt(varianteId, 10) : null,
                 quantidade: newQuantity
             })
         })
@@ -280,7 +290,7 @@ document.addEventListener('DOMContentLoaded', function() {
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
             body: JSON.stringify({
                 produto_id: produtoId,
-                produto_variante_id: varianteId ? parseInt(varianteId) : null
+                produto_variante_id: varianteId !== null ? parseInt(varianteId, 10) : null
             })
         })
         .then(function(response) { return response.json(); })
