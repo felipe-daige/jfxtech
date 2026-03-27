@@ -148,6 +148,10 @@ document.addEventListener('DOMContentLoaded', function() {
         var variantes = JSON.parse(variantesDataEl.textContent);
         var selecao = {}; // { grupoId: valorId }
         var opcaoBtns = document.querySelectorAll('.opcao-btn');
+        var priceEl = document.querySelector('.text-3xl.font-mono.font-bold');
+        var precoOriginalTexto = priceEl ? priceEl.textContent.trim() : null;
+        var unitsEl = document.getElementById('stock-units');
+        var stockUnitsOriginalTexto = unitsEl ? unitsEl.textContent.trim() : null;
         var gruposIds = [];
 
         opcaoBtns.forEach(function(btn) {
@@ -172,6 +176,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         addToCartBtn.textContent = 'SELECIONE AS OPÇÕES';
                     }
                     thumbnailBtns.forEach(function(b) { b.style.display = ''; });
+                    if (quantityInput) {
+                        quantityInput.setAttribute('max', 0);
+                        quantityInput.value = 1;
+                    }
+                    if (priceEl && precoOriginalTexto) priceEl.textContent = precoOriginalTexto;
+                    if (unitsEl && stockUnitsOriginalTexto) unitsEl.textContent = stockUnitsOriginalTexto;
                     return;
                 }
 
