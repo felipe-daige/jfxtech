@@ -231,11 +231,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         addToCartBtn.textContent = 'INDISPONÍVEL';
                     }
                     if (quantityInput) quantityInput.setAttribute('max', 0);
+                    if (priceEl && precoOriginalTexto) priceEl.textContent = precoOriginalTexto;
+                    if (unitsEl && stockUnitsOriginalTexto) unitsEl.textContent = stockUnitsOriginalTexto;
                     return;
                 }
 
                 // Update price display
-                var priceEl = document.querySelector('.text-3xl.font-mono.font-bold');
+                priceEl = document.querySelector('.text-3xl.font-mono.font-bold');
                 if (priceEl) {
                     priceEl.textContent = 'R$ ' + varianteEncontrada.preco_efetivo.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 }
@@ -243,7 +245,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Update stock display
                 var stockEl = document.querySelector('.text-green-700, .text-red-600');
                 if (stockEl && varianteEncontrada.estoque_efetivo > 0) {
-                    var unitsEl = document.getElementById('stock-units');
+                    unitsEl = document.getElementById('stock-units');
                     if (unitsEl) {
                         unitsEl.textContent = '(' + varianteEncontrada.estoque_efetivo + ' un.)';
                     }
