@@ -160,6 +160,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 var grupoId = this.getAttribute('data-grupo');
                 var valorId = parseInt(this.getAttribute('data-valor'));
 
+                // --- DESELECT if already selected ---
+                if (selecao[grupoId] === valorId) {
+                    this.classList.remove('border-black', 'bg-black', 'text-white');
+                    this.classList.add('border-[var(--color-lab-border)]');
+                    delete selecao[grupoId];
+                    if (addToCartBtn) {
+                        addToCartBtn.removeAttribute('data-variante-id');
+                        addToCartBtn.disabled = true;
+                        addToCartBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                        addToCartBtn.textContent = 'SELECIONE AS OPÇÕES';
+                    }
+                    thumbnailBtns.forEach(function(b) { b.style.display = ''; });
+                    return;
+                }
+
+                // --- SELECT ---
+
+                // Restaurar todos os thumbnails visíveis ao trocar seleção
+                thumbnailBtns.forEach(function(btn) { btn.style.display = ''; });
+
                 // Deselect others in same group
                 opcaoBtns.forEach(function(b) {
                     if (b.getAttribute('data-grupo') === grupoId) {
@@ -228,6 +248,33 @@ document.addEventListener('DOMContentLoaded', function() {
                     addToCartBtn.disabled = false;
                     addToCartBtn.classList.remove('opacity-50', 'cursor-not-allowed');
                     addToCartBtn.textContent = 'ADICIONAR AO CARRINHO';
+                }
+
+                // Filtrar galeria pelas fotos da variante
+                var imagemIds = varianteEncontrada.imagem_ids || [];
+                if (imagemIds.length > 0) {
+                    var primeiroBtn = null;
+                    thumbnailBtns.forEach(function(btn) {
+                        var imgId = parseInt(btn.getAttribute('data-imagem-id'));
+                        if (imagemIds.indexOf(imgId) !== -1) {
+                            btn.style.display = '';
+                            if (!primeiroBtn) primeiroBtn = btn;
+                        } else {
+                            btn.style.display = 'none';
+                        }
+                    });
+                    if (primeiroBtn && mainImage) {
+                        mainImage.src = primeiroBtn.getAttribute('data-image');
+                        thumbnailBtns.forEach(function(b) {
+                            b.classList.remove('border-black');
+                            b.classList.add('border-[var(--color-lab-border)]');
+                        });
+                        primeiroBtn.classList.add('border-black');
+                        primeiroBtn.classList.remove('border-[var(--color-lab-border)]');
+                    }
+                } else {
+                    // Sem fotos associadas: mostra todas
+                    thumbnailBtns.forEach(function(btn) { btn.style.display = ''; });
                 }
             });
         });
