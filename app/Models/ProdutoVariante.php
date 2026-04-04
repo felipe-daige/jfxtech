@@ -12,11 +12,12 @@ class ProdutoVariante extends Model
 
     protected $table = 'produto_variantes';
 
-    protected $fillable = ['produto_id', 'valores', 'preco', 'estoque', 'ativo'];
+    protected $fillable = ['produto_id', 'valores', 'preco', 'custo_compra', 'estoque', 'ativo'];
 
     protected $casts = [
         'valores' => 'array',
         'preco'   => 'decimal:2',
+        'custo_compra' => 'decimal:2',
         'estoque' => 'integer',
         'ativo'   => 'boolean',
     ];
@@ -57,5 +58,16 @@ class ProdutoVariante extends Model
             return $this->produto->estoque;
         }
         return $this->estoque ?? 0;
+    }
+
+    public function getCustoEfetivoAttribute(): ?float
+    {
+        if ($this->custo_compra !== null) {
+            return (float) $this->custo_compra;
+        }
+
+        return $this->produto?->custo_compra !== null
+            ? (float) $this->produto->custo_compra
+            : null;
     }
 }

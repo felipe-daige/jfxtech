@@ -12,6 +12,13 @@ $(document).ready(function () {
         allowZero: true,
         allowNegative: false
     });
+    $('#custo_compra').maskMoney({
+        prefix: 'R$ ',
+        thousands: '.',
+        decimal: ',',
+        allowZero: true,
+        allowNegative: false
+    });
 
 
     // Event listeners para promoção
@@ -25,9 +32,13 @@ $(document).ready(function () {
 
     // Recalcular promoção quando o preço principal for alterado
     $('#preco').on('input', function () {
-        if (document.getElementById('em_promocao').checked) {
-            calcularPromocao();
-        }
+        calcularPromocao();
+    });
+    $('#custo_compra').on('input', function () {
+        calcularPromocao();
+    });
+    $('#descricao').on('input', function () {
+        syncDescriptionPreview(this.value);
     });
 
     // Fechar modal de produtos com tecla ESC
@@ -80,6 +91,13 @@ function abrirModalProduto() {
         allowZero: true,
         allowNegative: false
     });
+    $('#custo_compra').maskMoney({
+        prefix: 'R$ ',
+        thousands: '.',
+        decimal: ',',
+        allowZero: true,
+        allowNegative: false
+    });
 
 
     // Limpar campos de specs
@@ -91,6 +109,8 @@ function abrirModalProduto() {
 
     // Reset tab to first tab when opening modal
     switchProdutoTab('dados');
+    calcularPromocao();
+    syncDescriptionPreview('');
 
     document.getElementById('modalProduto').classList.remove('hidden');
 }
@@ -104,7 +124,9 @@ function editarProduto(id) {
             document.getElementById('produtoId').value = data.id;
             document.getElementById('nome').value = data.nome;
             document.getElementById('descricao').value = data.descricao;
+            syncDescriptionPreview(data.descricao || '');
             document.getElementById('preco').value = 'R$ ' + data.preco;
+            document.getElementById('custo_compra').value = data.custo_compra ? 'R$ ' + data.custo_compra : '';
             document.getElementById('estoque').value = data.estoque;
             document.getElementById('categoria_id').value = data.categoria_id;
 
@@ -140,6 +162,13 @@ function editarProduto(id) {
                 allowZero: true,
                 allowNegative: false
             });
+            $('#custo_compra').maskMoney({
+                prefix: 'R$ ',
+                thousands: '.',
+                decimal: ',',
+                allowZero: true,
+                allowNegative: false
+            });
 
             // Preencher specs
             const specs = data.specs || {};
@@ -154,6 +183,7 @@ function editarProduto(id) {
 
             // Reset tab to first tab when opening modal
             switchProdutoTab('dados');
+            calcularPromocao();
 
             document.getElementById('modalProduto').classList.remove('hidden');
         })
@@ -454,22 +484,65 @@ function toggleCamposPromocao() {
         resumo.classList.add('hidden');
         // Limpar campos
         document.getElementById('desconto_percentual').value = '';
+        calcularPromocao();
     }
 }
 
 function calcularPromocao() {
-    const precoAtual = parseFloat(document.getElementById('preco').value.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+    const precoAtual = parseCurrencyBRL(document.getElementById('preco').value);
+    const custoAtual = parseCurrencyBRL(document.getElementById('custo_compra').value);
     const descontoPercentual = parseFloat(document.getElementById('desconto_percentual').value) || 0;
+    const emPromocao = document.getElementById('em_promocao').checked;
+    const valorDesconto = emPromocao && descontoPercentual > 0 ? precoAtual * (descontoPercentual / 100) : 0;
+    const precoFinal = emPromocao && descontoPercentual > 0 ? precoAtual - valorDesconto : precoAtual;
+    const lucroUnitario = precoFinal - custoAtual;
+    const margemBruta = precoFinal > 0 ? (lucroUnitario / precoFinal) * 100 : 0;
 
-    if (precoAtual > 0 && descontoPercentual > 0) {
-        const valorDesconto = precoAtual * (descontoPercentual / 100);
-        const precoFinal = precoAtual - valorDesconto;
+    document.getElementById('precoOriginalDisplay').textContent = formatCurrencyBRL(precoAtual);
+    document.getElementById('descontoDisplay').textContent = formatCurrencyBRL(valorDesconto);
+    document.getElementById('precoFinalDisplay').textContent = formatCurrencyBRL(precoFinal);
+    document.getElementById('precoVendaResumoDisplay').textContent = formatCurrencyBRL(precoFinal);
+    document.getElementById('custoCompraDisplay').textContent = formatCurrencyBRL(custoAtual);
+    document.getElementById('lucroUnitarioDisplay').textContent = formatCurrencyBRL(lucroUnitario);
+    document.getElementById('margemBrutaDisplay').textContent = formatPercentBRL(margemBruta);
 
-        // Atualizar resumo
-        document.getElementById('precoOriginalDisplay').textContent = 'R$ ' + precoAtual.toFixed(2).replace('.', ',');
-        document.getElementById('descontoDisplay').textContent = 'R$ ' + valorDesconto.toFixed(2).replace('.', ',');
-        document.getElementById('precoFinalDisplay').textContent = 'R$ ' + precoFinal.toFixed(2).replace('.', ',');
+    var lucroEl = document.getElementById('lucroUnitarioDisplay');
+    var margemEl = document.getElementById('margemBrutaDisplay');
+    if (lucroEl) {
+        lucroEl.classList.toggle('text-red-600', lucroUnitario < 0);
+        lucroEl.classList.toggle('text-black', lucroUnitario >= 0);
     }
+    if (margemEl) {
+        margemEl.classList.toggle('text-red-600', margemBruta < 0);
+        margemEl.classList.toggle('text-black', margemBruta >= 0);
+    }
+}
+
+function syncDescriptionPreview(value) {
+    var preview = document.getElementById('descricaoPreview');
+    var status = document.getElementById('descricaoPreviewStatus');
+    if (!preview || !status) return;
+
+    var html = (value || '').trim();
+
+    if (!html) {
+        status.textContent = 'Aguardando texto';
+        preview.innerHTML = '<div class="product-description-content text-sm text-gray-500"><p>Digite a descrição usando HTML simples para ver a renderização aqui.</p></div>';
+        return;
+    }
+
+    status.textContent = html.indexOf('<') !== -1 ? 'HTML detectado' : 'Texto simples';
+    preview.innerHTML = '<div class="product-description-content">' + sanitizeDescriptionPreviewHtml(html) + '</div>';
+}
+
+function sanitizeDescriptionPreviewHtml(html) {
+    return String(html)
+        .replace(/<(?!\/?(p|ul|ol|li|strong|em|br)\b)[^>]*>/gi, '')
+        .replace(/<(\/?)(p|ul|ol|li|strong|em|br)\b[^>]*>/gi, function (_, slash, tag) {
+            tag = tag.toLowerCase();
+            if (tag === 'br') return '<br>';
+            return slash ? '</' + tag + '>' : '<' + tag + '>';
+        });
 }
 
 // ===== FUNÇÕES DE CATEGORIAS =====
@@ -1081,7 +1154,8 @@ function renderVariantesTabela(variantes, imagens) {
             '<button type="button" onclick="toggleVarianteEdit(this)" class="text-xs font-mono uppercase tracking-widest border border-gray-300 px-3 py-1 hover:border-black hover:bg-gray-50 transition-colors">✎ EDITAR</button>' +
             '</div>' +
             '<div class="variante-edit hidden border border-t-0 border-gray-200 bg-gray-50 p-3 flex flex-wrap items-center gap-3">' +
-            '<input type="number" class="variante-preco w-28 border border-gray-300 px-2 py-1 text-sm font-mono" placeholder="Preço" value="' + (v.preco || '') + '" step="0.01" min="0">' +
+            '<input type="number" class="variante-preco w-28 border border-gray-300 px-2 py-1 text-sm font-mono" placeholder="Preço" value="' + (v.preco !== null && v.preco !== undefined ? v.preco : '') + '" step="0.01" min="0">' +
+            '<input type="number" class="variante-custo w-28 border border-gray-300 px-2 py-1 text-sm font-mono" placeholder="Custo" value="' + (v.custo_compra !== null && v.custo_compra !== undefined ? v.custo_compra : '') + '" step="0.01" min="0">' +
             '<input type="number" class="variante-estoque w-20 border border-gray-300 px-2 py-1 text-sm font-mono estoque-field" placeholder="Estq" value="' + (v.estoque !== null ? v.estoque : '') + '" min="0">' +
             '<label class="flex items-center gap-1 text-xs font-mono"><input type="checkbox" class="variante-ativo" ' + (v.ativo ? 'checked' : '') + '> ATIVO</label>' +
             '<button type="button" onclick="toggleVarianteEdit(this)" class="text-xs font-mono uppercase tracking-widest bg-black text-white px-3 py-1 hover:bg-gray-800 transition-colors ml-auto">✔ OK</button>' +
@@ -1169,6 +1243,7 @@ function gerarPreviewLocal() {
         saved[labelEl.textContent.trim()] = {
             id: id,
             preco: row.querySelector('.variante-preco').value,
+            custo_compra: row.querySelector('.variante-custo').value,
             estoque: row.querySelector('.variante-estoque').value,
             ativo: row.querySelector('.variante-ativo').checked
         };
@@ -1182,6 +1257,7 @@ function gerarPreviewLocal() {
             label: label,
             valores: [],
             preco: s ? (s.preco !== '' ? parseFloat(s.preco) : null) : null,
+            custo_compra: s ? (s.custo_compra !== '' ? parseFloat(s.custo_compra) : null) : null,
             estoque: s ? (s.estoque !== '' ? parseInt(s.estoque) : null) : null,
             ativo: s ? s.ativo : true
         };
@@ -1214,6 +1290,7 @@ function salvarTudo(produtoId) {
         var id = parseInt(row.getAttribute('data-variante-id'));
         if (!id) return;
         var preco = row.querySelector('.variante-preco').value;
+        var custoCompra = row.querySelector('.variante-custo').value;
         var estoque = row.querySelector('.variante-estoque').value;
         var ativo = row.querySelector('.variante-ativo').checked;
         var imagem_ids = [];
@@ -1223,6 +1300,7 @@ function salvarTudo(produtoId) {
         variantesData.push({
             id: id,
             preco: preco !== '' ? parseFloat(preco) : null,
+            custo_compra: custoCompra !== '' ? parseFloat(custoCompra) : null,
             estoque: estoque !== '' ? parseInt(estoque) : null,
             ativo: ativo,
             imagem_ids: imagem_ids,
@@ -1271,3 +1349,15 @@ function collectGruposFromUI() {
     return grupos;
 }
 
+function parseCurrencyBRL(value) {
+    if (!value) return 0;
+    return parseFloat(String(value).replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+}
+
+function formatCurrencyBRL(value) {
+    return 'R$ ' + (Number(value) || 0).toFixed(2).replace('.', ',');
+}
+
+function formatPercentBRL(value) {
+    return (Number(value) || 0).toFixed(2).replace('.', ',') + '%';
+}

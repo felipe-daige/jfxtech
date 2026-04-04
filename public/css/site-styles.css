@@ -298,6 +298,11 @@ header {
     margin: 0 0 1.25rem;
 }
 
+.product-description-content p + ul,
+.product-description-content p + ol {
+    margin-top: -0.35rem;
+}
+
 .product-description-content h1,
 .product-description-content h2,
 .product-description-content h3,
@@ -315,13 +320,34 @@ header {
     padding-left: 1.25rem;
 }
 
+.product-description-content ul {
+    list-style: none;
+    padding-left: 0;
+}
+
 .product-description-content li + li {
     margin-top: 0.5rem;
+}
+
+.product-description-content li {
+    position: relative;
+    padding-left: 1.35rem;
+}
+
+.product-description-content ul li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.85rem;
+    width: 0.45rem;
+    height: 0.45rem;
+    background: #111111;
 }
 
 .product-description-content strong {
     color: #111827;
     font-weight: 700;
+    background: linear-gradient(transparent 62%, rgba(17, 17, 17, 0.12) 62%);
 }
 
 .product-description-content a {

@@ -25,5 +25,11 @@ Thumbs.db
 /.claude
 /.cursor
 *.rar
+AGENTS.md
 CLAUDE.md
+GEMINI.md
+CURSOR.md
+COPILOT.md
+AI.md
+AI-INSTRUCTIONS.md
 /imports/node_modules

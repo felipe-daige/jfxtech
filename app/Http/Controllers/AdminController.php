@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ProdutosExport;
+use App\Support\ProdutoDescricaoFormatter;
 
 class AdminController extends Controller
 {
@@ -32,6 +33,31 @@ class AdminController extends Controller
         $pedidos_entregues = Pedido::where('status', 'entregue')->count();
         $pedidos_cancelados = Pedido::where('status', 'cancelado')->count();
         $receita_total = Pedido::where('status', 'entregue')->sum('valor_total');
+        $itensEntregues = ItemPedido::with([
+            'produto:id,custo_compra',
+            'produtoVariante:id,produto_id,custo_compra',
+        ])->whereHas('pedido', function ($query) {
+            $query->where('status', 'entregue');
+        })->get();
+
+        $custo_total = 0;
+        $itens_sem_custo = 0;
+
+        foreach ($itensEntregues as $item) {
+            $custoUnitario = $this->resolveItemCost($item);
+
+            if ($custoUnitario === null) {
+                $itens_sem_custo += $item->quantidade;
+                $custoUnitario = 0;
+            }
+
+            $custo_total += $item->quantidade * $custoUnitario;
+        }
+
+        $lucro_bruto_total = $receita_total - $custo_total;
+        $margem_bruta_percentual = $receita_total > 0
+            ? round(($lucro_bruto_total / $receita_total) * 100, 2)
+            : 0;
         
         $pedidos_recentes = Pedido::with('user')->orderBy('created_at', 'desc')->limit(5)->get();
         
@@ -44,6 +70,10 @@ class AdminController extends Controller
             'pedidos_entregues',
             'pedidos_cancelados',
             'receita_total',
+            'custo_total',
+            'lucro_bruto_total',
+            'margem_bruta_percentual',
+            'itens_sem_custo',
             'pedidos_recentes'
         ));
     }
@@ -174,6 +204,7 @@ class AdminController extends Controller
             'preco' => $produto->em_promocao && $produto->preco_original ? 
                        number_format($produto->preco_original, 2, ',', '.') : 
                        number_format($produto->preco, 2, ',', '.'),
+            'custo_compra' => $produto->custo_compra !== null ? number_format($produto->custo_compra, 2, ',', '.') : '',
             'peso' => $produto->peso ? number_format($produto->peso, 3, ',', '.') : '',
             'desconto_percentual' => $produto->desconto_percentual,
             'em_promocao' => $produto->em_promocao,
@@ -201,6 +232,7 @@ class AdminController extends Controller
             'nome' => 'required|string|max:255',
             'descricao' => 'required|string',
             'preco' => 'required|string',
+            'custo_compra' => 'nullable|string',
             'peso' => 'nullable|numeric|min:0',
             'estoque' => 'required|integer|min:0',
             'categoria_id' => 'required|exists:categorias,id',
@@ -213,12 +245,16 @@ class AdminController extends Controller
         ]);
 
         // Converter preço do formato brasileiro para decimal
-        $preco = str_replace(['R$ ', '.'], '', $request->preco);
-        $preco = str_replace(',', '.', $preco);
+        $preco = $this->parseMoneyInput($request->preco);
         
         // Validar se o preço convertido é um número válido
         if (!is_numeric($preco) || $preco < 0) {
             return redirect()->back()->withErrors(['preco' => 'Preço deve ser um valor válido maior ou igual a zero.'])->withInput();
+        }
+
+        $custoCompra = $this->parseMoneyInput($request->custo_compra);
+        if ($request->filled('custo_compra') && (!is_numeric($custoCompra) || $custoCompra < 0)) {
+            return redirect()->back()->withErrors(['custo_compra' => 'Custo de compra deve ser um valor válido maior ou igual a zero.'])->withInput();
         }
 
         // Processar campos de promoção
@@ -243,11 +279,17 @@ class AdminController extends Controller
         }
 
         $specs = array_filter($request->input('specs', []), fn($v) => $v !== null && $v !== '');
+        $descricao = ProdutoDescricaoFormatter::sanitize($request->descricao);
+
+        if (ProdutoDescricaoFormatter::toPlainText($descricao) === '') {
+            return redirect()->back()->withErrors(['descricao' => 'Descrição deve conter conteúdo visível.'])->withInput();
+        }
 
         $produto = Produto::create([
             'nome' => $request->nome,
-            'descricao' => $request->descricao,
+            'descricao' => $descricao,
             'preco' => $precoFinal, // Preço final (com desconto se aplicável)
+            'custo_compra' => $request->filled('custo_compra') ? $custoCompra : null,
             'peso' => $request->peso, // Peso em KG
             'preco_original' => $emPromocao ? $preco : null, // Preço original (sem desconto)
             'desconto_percentual' => $descontoPercentual,
@@ -286,6 +328,7 @@ class AdminController extends Controller
             'nome' => 'required|string|max:255',
             'descricao' => 'required|string',
             'preco' => 'required|string',
+            'custo_compra' => 'nullable|string',
             'peso' => 'nullable|numeric|min:0',
             'estoque' => 'required|integer|min:0',
             'categoria_id' => 'required|exists:categorias,id',
@@ -299,12 +342,16 @@ class AdminController extends Controller
         ]);
 
         // Converter preço do formato brasileiro para decimal
-        $preco = str_replace(['R$ ', '.'], '', $request->preco);
-        $preco = str_replace(',', '.', $preco);
+        $preco = $this->parseMoneyInput($request->preco);
         
         // Validar se o preço convertido é um número válido
         if (!is_numeric($preco) || $preco < 0) {
             return redirect()->back()->withErrors(['preco' => 'Preço deve ser um valor válido maior ou igual a zero.'])->withInput();
+        }
+
+        $custoCompra = $this->parseMoneyInput($request->custo_compra);
+        if ($request->filled('custo_compra') && (!is_numeric($custoCompra) || $custoCompra < 0)) {
+            return redirect()->back()->withErrors(['custo_compra' => 'Custo de compra deve ser um valor válido maior ou igual a zero.'])->withInput();
         }
 
         // Processar campos de promoção
@@ -329,11 +376,17 @@ class AdminController extends Controller
         }
 
         $specs = array_filter($request->input('specs', []), fn($v) => $v !== null && $v !== '');
+        $descricao = ProdutoDescricaoFormatter::sanitize($request->descricao);
+
+        if (ProdutoDescricaoFormatter::toPlainText($descricao) === '') {
+            return redirect()->back()->withErrors(['descricao' => 'Descrição deve conter conteúdo visível.'])->withInput();
+        }
 
         $produto->update([
             'nome' => $request->nome,
-            'descricao' => $request->descricao,
+            'descricao' => $descricao,
             'preco' => $precoFinal, // Preço final (com desconto se aplicável)
+            'custo_compra' => $request->filled('custo_compra') ? $custoCompra : null,
             'peso' => $request->peso, // Peso em KG
             'preco_original' => $emPromocao ? $preco : null, // Preço original (sem desconto)
             'desconto_percentual' => $descontoPercentual,
@@ -744,6 +797,7 @@ class AdminController extends Controller
                     'id'         => $v->id,
                     'valores'    => $v->valores,
                     'preco'      => $v->preco,
+                    'custo_compra' => $v->custo_compra,
                     'estoque'    => $v->estoque,
                     'ativo'      => $v->ativo,
                     'label'      => $label,
@@ -897,6 +951,7 @@ class AdminController extends Controller
                         'produto_id' => $produto->id,
                         'valores'    => $combo,
                         'preco'      => null,
+                        'custo_compra' => null,
                         'estoque'    => null,
                         'ativo'      => true,
                     ]);
@@ -936,6 +991,7 @@ class AdminController extends Controller
             'variantes'                  => 'nullable|array',
             'variantes.*.id'             => 'required|integer',
             'variantes.*.preco'          => 'nullable|numeric|min:0',
+            'variantes.*.custo_compra'   => 'nullable|numeric|min:0',
             'variantes.*.estoque'        => 'nullable|integer|min:0',
             'variantes.*.ativo'          => 'nullable|boolean',
             'variantes.*.imagem_ids'     => 'nullable|array',
@@ -955,6 +1011,7 @@ class AdminController extends Controller
 
                 $update = [];
                 if (array_key_exists('preco', $varData))   $update['preco']   = $varData['preco'];
+                if (array_key_exists('custo_compra', $varData)) $update['custo_compra'] = $varData['custo_compra'];
                 if (array_key_exists('estoque', $varData)) $update['estoque'] = $varData['estoque'];
                 if (array_key_exists('ativo', $varData))   $update['ativo']   = $varData['ativo'];
 
@@ -968,5 +1025,35 @@ class AdminController extends Controller
         });
 
         return response()->json(['success' => true]);
+    }
+
+    private function parseMoneyInput(?string $value): ?float
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $normalized = trim($value);
+        if ($normalized === '') {
+            return null;
+        }
+
+        $normalized = str_replace(['R$ ', '.'], '', $normalized);
+        $normalized = str_replace(',', '.', $normalized);
+
+        return is_numeric($normalized) ? (float) $normalized : null;
+    }
+
+    private function resolveItemCost(ItemPedido $item): ?float
+    {
+        if ($item->produtoVariante && $item->produtoVariante->custo_compra !== null) {
+            return (float) $item->produtoVariante->custo_compra;
+        }
+
+        if ($item->produto && $item->produto->custo_compra !== null) {
+            return (float) $item->produto->custo_compra;
+        }
+
+        return null;
     }
 }

@@ -66,14 +66,15 @@
             <a href="{{ route('site.produto.detalhes', $produto->slug) }}" class="w-10 h-10 bg-white flex items-center justify-center text-black hover:bg-black hover:text-white transition-colors shadow-sm" title="Ver detalhes" onclick="event.stopPropagation()">
                 <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
             </a>
-            <form action="{{ route('site.carrinho.adicionar') }}" method="POST" class="inline" onclick="event.stopPropagation()">
-                @csrf
-                <input type="hidden" name="produto_id" value="{{ $produto->id }}">
-                <input type="hidden" name="quantidade" value="1">
-                <button type="submit" class="w-10 h-10 bg-black flex items-center justify-center text-white hover:bg-gray-800 transition-colors shadow-sm" title="Adicionar ao carrinho">
-                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
-                </button>
-            </form>
+            <button
+                type="button"
+                class="add-to-cart-btn w-10 h-10 bg-black flex items-center justify-center text-white hover:bg-gray-800 transition-colors shadow-sm"
+                title="Adicionar ao carrinho"
+                data-produto-id="{{ $produto->id }}"
+                onclick="return window.handleProductCardAddToCart ? window.handleProductCardAddToCart(event, this) : false"
+            >
+                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+            </button>
         </div>
     </div>
 

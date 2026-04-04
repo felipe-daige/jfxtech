@@ -119,8 +119,15 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(function(data) {
                 if (data.success) {
                     btn.innerHTML = 'ADICIONADO!';
+                    if (typeof window.animateAddToCartFeedback === 'function') {
+                        window.animateAddToCartFeedback(btn);
+                    }
                     if (window.showNotification) window.showNotification('Produto adicionado ao carrinho!', 'success');
                     if (window.updateCartCounter) window.updateCartCounter();
+                    if (window.loadCartItems) window.loadCartItems();
+                    setTimeout(function() {
+                        if (window.openCart) window.openCart();
+                    }, 180);
                     setTimeout(function() { btn.innerHTML = originalContent; btn.disabled = false; }, 2000);
                 } else {
                     if (data.message && data.message.includes('logado')) {

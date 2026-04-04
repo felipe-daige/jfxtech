@@ -1,61 +1,86 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# JFXTECH
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Storefront em Laravel para catálogo e venda de hardware gamer, com vitrine pública, favoritos, carrinho autenticado, checkout e painel administrativo para gestão de produtos, categorias e pedidos.
 
-## About Laravel
+## Stack
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- Laravel 12
+- PHP 8.3
+- PostgreSQL
+- Blade
+- Tailwind CSS 4 via Vite
+- JavaScript direto em `public/js` para interações específicas de página
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Execução
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+O projeto roda com Docker no backend e Node.js no host para os assets.
 
-## Learning Laravel
+### Backend
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Todos os comandos Laravel e Composer devem ser executados dentro do container `laravel-app`:
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+```bash
+docker exec laravel-app composer install
+docker exec laravel-app php artisan migrate --force
+docker exec laravel-app php artisan test
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Frontend
 
-## Laravel Sponsors
+Os assets Vite são gerados no host:
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```bash
+npm install
+npm run dev
+npm run build
+```
 
-### Premium Partners
+## Estrutura Do Projeto
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+- `app/`:
+  lógica da aplicação, controllers, models, exports e commands
+- `routes/`:
+  rotas web e comandos artisan
+- `resources/views/`:
+  Blade templates do site e admin
+- `resources/js` e `resources/css`:
+  assets compilados pelo Vite
+- `public/js`:
+  scripts carregados diretamente no navegador por página
+- `database/`:
+  migrations, seeders e factories
 
-## Contributing
+## Funcionalidades Principais
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- Catálogo de produtos com filtros e páginas de detalhe
+- Carrinho baseado em `Pedido` com status `carrinho`
+- Favoritos por usuário autenticado
+- Checkout e fluxo de pedidos
+- Painel admin para CRUD de produtos, imagens, categorias e pedidos
+- Gestão de variantes, specs e destaques
 
-## Code of Conduct
+## Operação E Manutenção
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Após alterações em views Blade, limpe os caches:
 
-## Security Vulnerabilities
+```bash
+docker exec laravel-app php artisan view:clear
+docker exec laravel-app php artisan cache:clear
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+As imagens dos produtos são armazenadas no disco `public` do Laravel e servidas por `public/storage`. Evite caminhos absolutos hardcoded nas views.
 
-## License
+## Testes
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Rodar a suíte principal:
+
+```bash
+docker exec laravel-app php artisan test
+```
+
+Se algum teste de exemplo falhar por ambiente local, valide ao menos os testes de domínio/fluxos alterados antes de publicar mudanças sensíveis.
+
+## Observações
+
+- Node roda no host, não dentro do container PHP.
+- O projeto mistura assets via Vite e scripts estáticos em `public/js`, então mudanças nesses arquivos devem considerar versionamento de cache quando necessário.

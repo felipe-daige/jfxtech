@@ -3,6 +3,52 @@
 @section('title', 'Gerenciar Produtos')
 
 @section('content')
+<style>
+    .admin-description-preview .product-description-content {
+        color: #374151;
+        font-size: 0.95rem;
+        line-height: 1.85;
+    }
+
+    .admin-description-preview .product-description-content > *:first-child {
+        margin-top: 0;
+    }
+
+    .admin-description-preview .product-description-content > *:last-child {
+        margin-bottom: 0;
+    }
+
+    .admin-description-preview .product-description-content p,
+    .admin-description-preview .product-description-content ul,
+    .admin-description-preview .product-description-content ol {
+        margin: 0 0 1rem;
+    }
+
+    .admin-description-preview .product-description-content ul {
+        list-style: none;
+        padding-left: 0;
+    }
+
+    .admin-description-preview .product-description-content li {
+        position: relative;
+        padding-left: 1.15rem;
+    }
+
+    .admin-description-preview .product-description-content li::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0.8rem;
+        width: 0.4rem;
+        height: 0.4rem;
+        background: #111111;
+    }
+
+    .admin-description-preview .product-description-content strong {
+        color: #111827;
+        background: linear-gradient(transparent 62%, rgba(17, 17, 17, 0.12) 62%);
+    }
+</style>
 <div class="space-y-6 lg:space-y-8">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
@@ -301,7 +347,25 @@
 
                     <div>
                         <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Descricao</label>
-                        <textarea name="descricao" id="descricao" rows="3" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black" required></textarea>
+                        <p class="text-xs text-[var(--color-lab-muted)] leading-6 mb-3">
+                            Use HTML simples para destacar a leitura: <code>&lt;p&gt;</code>, <code>&lt;strong&gt;</code>, <code>&lt;ul&gt;</code> e <code>&lt;li&gt;</code>.
+                            Exemplo: um parágrafo curto, um bloco com <strong>Principais destaques</strong> e uma lista de benefícios.
+                        </p>
+                        <textarea name="descricao" id="descricao" rows="12" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black" required></textarea>
+                        <div class="admin-description-preview mt-4 border border-[var(--color-lab-border)] bg-[var(--color-lab-bg)]">
+                            <div class="border-b border-[var(--color-lab-border)] px-4 py-3 flex items-center justify-between gap-3">
+                                <div>
+                                    <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Prévia da descrição</p>
+                                    <p class="text-xs text-[var(--color-lab-muted)] mt-1">A prévia renderiza o HTML permitido antes de salvar.</p>
+                                </div>
+                                <span id="descricaoPreviewStatus" class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Aguardando texto</span>
+                            </div>
+                            <div id="descricaoPreview" class="p-4 sm:p-5">
+                                <div class="product-description-content text-sm text-gray-500">
+                                    <p>Digite a descrição usando HTML simples para ver a renderização aqui.</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -310,8 +374,35 @@
                             <input type="text" name="preco" id="preco" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black" placeholder="0,00" required>
                         </div>
                         <div>
+                            <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Custo de Compra (R$)</label>
+                            <input type="text" name="custo_compra" id="custo_compra" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black" placeholder="0,00">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div>
                             <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Estoque</label>
                             <input type="number" name="estoque" id="estoque" min="0" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black" required>
+                        </div>
+                        <div id="resumoFinanceiroProduto" class="border border-[var(--color-lab-border)] bg-[var(--color-lab-bg)] p-4">
+                            <div class="font-mono text-sm text-black space-y-1">
+                                <div class="flex justify-between">
+                                    <span class="text-[var(--color-lab-muted)]">Venda efetiva:</span>
+                                    <span id="precoVendaResumoDisplay">R$ 0,00</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-[var(--color-lab-muted)]">Custo:</span>
+                                    <span id="custoCompraDisplay">R$ 0,00</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-[var(--color-lab-muted)]">Lucro unitario:</span>
+                                    <span id="lucroUnitarioDisplay">R$ 0,00</span>
+                                </div>
+                                <div class="flex justify-between font-bold text-base border-t border-[var(--color-lab-border)] pt-2 mt-2">
+                                    <span>Margem bruta:</span>
+                                    <span id="margemBrutaDisplay">0,00%</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 

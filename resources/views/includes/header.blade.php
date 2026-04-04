@@ -269,5 +269,5 @@
 
 {{-- Scripts --}}
 <script src="{{ asset('js/dropdowns.js') }}"></script>
-<script src="{{ asset('js/cart.js') }}"></script>
+<script src="{{ asset('js/cart.js') }}?v={{ filemtime(public_path('js/cart.js')) }}"></script>
 <script src="{{ asset('js/topbar.js') }}?v=2"></script>

@@ -36,6 +36,124 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 300);
     }
 
+    function pulseCartCounter() {
+        if (!cartCounter) return;
+
+        cartCounter.classList.remove('scale-125', 'ring-4', 'ring-black/10');
+        void cartCounter.offsetWidth;
+        cartCounter.classList.add('scale-125', 'ring-4', 'ring-black/10', 'transition-all', 'duration-300');
+
+        setTimeout(function() {
+            cartCounter.classList.remove('scale-125', 'ring-4', 'ring-black/10');
+        }, 320);
+    }
+
+    function animateAddToCartFeedback(sourceElement) {
+        if (!sourceElement || !cartDropdownTrigger) return;
+
+        var sourceRect = sourceElement.getBoundingClientRect();
+        var targetRect = cartDropdownTrigger.getBoundingClientRect();
+        var ghost = document.createElement('div');
+
+        ghost.className = 'fixed z-[70] w-10 h-10 rounded-full bg-black text-white flex items-center justify-center shadow-2xl pointer-events-none';
+        ghost.innerHTML = '<svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>';
+        ghost.style.left = sourceRect.left + (sourceRect.width / 2) - 20 + 'px';
+        ghost.style.top = sourceRect.top + (sourceRect.height / 2) - 20 + 'px';
+        ghost.style.transition = 'transform 520ms cubic-bezier(0.22, 1, 0.36, 1), opacity 520ms ease';
+        ghost.style.transform = 'translate3d(0, 0, 0) scale(1)';
+        ghost.style.opacity = '0.96';
+
+        document.body.appendChild(ghost);
+
+        requestAnimationFrame(function() {
+            var deltaX = (targetRect.left + (targetRect.width / 2)) - (sourceRect.left + (sourceRect.width / 2));
+            var deltaY = (targetRect.top + (targetRect.height / 2)) - (sourceRect.top + (sourceRect.height / 2));
+            ghost.style.transform = 'translate3d(' + deltaX + 'px, ' + deltaY + 'px, 0) scale(0.35)';
+            ghost.style.opacity = '0.2';
+        });
+
+        setTimeout(function() {
+            ghost.remove();
+            pulseCartCounter();
+        }, 560);
+    }
+
+    function restoreCardButton(button, originalContent) {
+        if (!button) return;
+
+        button.innerHTML = originalContent;
+        button.disabled = false;
+        button.classList.remove('scale-110', 'bg-emerald-600', 'hover:bg-emerald-700');
+        button.classList.add('bg-black', 'hover:bg-gray-800');
+    }
+
+    function showCardButtonSuccess(button) {
+        if (!button) return;
+
+        button.innerHTML = '<svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+        button.classList.add('scale-110', 'bg-emerald-600', 'hover:bg-emerald-700');
+        button.classList.remove('bg-black', 'hover:bg-gray-800');
+    }
+
+    function handleProductCardAddToCart(event, button) {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+
+        if (!button || button.disabled) return false;
+
+        var produtoId = button.getAttribute('data-produto-id');
+        if (!produtoId) return false;
+
+        var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+        if (!csrfMeta) return false;
+
+        button.disabled = true;
+        var originalContent = button.innerHTML;
+        button.innerHTML = '<svg class="w-4 h-4 loading-spinner" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>';
+
+        fetch('/carrinho/adicionar', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfMeta.getAttribute('content'),
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ produto_id: produtoId, quantidade: 1 })
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.success) {
+                showCardButtonSuccess(button);
+                animateAddToCartFeedback(button);
+                showNotification('Produto adicionado ao carrinho!', 'success');
+                updateCartCounter();
+                loadCartItems();
+
+                setTimeout(function() {
+                    restoreCardButton(button, originalContent);
+                }, 1800);
+
+                return;
+            }
+
+            if (data.message && data.message.includes('logado')) {
+                window.location.href = '/login';
+                return;
+            }
+
+            showNotification(data.message || 'Erro ao adicionar', 'error');
+            restoreCardButton(button, originalContent);
+        })
+        .catch(function() {
+            showNotification('Erro ao adicionar produto', 'error');
+            restoreCardButton(button, originalContent);
+        });
+
+        return false;
+    }
+
     // Close cart
     function closeCart() {
         if (!cartSidebar) return;
@@ -334,6 +452,10 @@ document.addEventListener('DOMContentLoaded', function() {
     window.updateCartCounter = updateCartCounter;
     window.loadCartItems = loadCartItems;
     window.showNotification = showNotification;
+    window.openCart = openCart;
+    window.animateAddToCartFeedback = animateAddToCartFeedback;
+    window.pulseCartCounter = pulseCartCounter;
+    window.handleProductCardAddToCart = handleProductCardAddToCart;
 
     // Initialize
     updateCartCounter();

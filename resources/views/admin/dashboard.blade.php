@@ -16,7 +16,7 @@
     </div>
 
     <!-- Cards de Estatisticas -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+    <div class="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 lg:gap-6">
         <!-- Total de Produtos -->
         <div class="border border-[var(--color-lab-border)] bg-white p-6">
             <div class="flex items-start justify-between">
@@ -68,6 +68,42 @@
                 </div>
             </div>
         </div>
+
+        <div class="border border-[var(--color-lab-border)] bg-white p-6">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-2">Custo</p>
+                    <p class="text-lg sm:text-2xl font-bold text-black font-mono">R$ {{ number_format($custo_total, 2, ',', '.') }}</p>
+                </div>
+                <div class="text-[var(--color-lab-muted)]">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-[var(--color-lab-border)] bg-white p-6">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-2">Lucro Bruto</p>
+                    <p class="text-lg sm:text-2xl font-bold text-black font-mono">R$ {{ number_format($lucro_bruto_total, 2, ',', '.') }}</p>
+                </div>
+                <div class="text-[var(--color-lab-muted)]">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3 17 6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-[var(--color-lab-border)] bg-white p-6">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-2">Margem</p>
+                    <p class="text-2xl sm:text-3xl font-bold text-black font-mono">{{ number_format($margem_bruta_percentual, 2, ',', '.') }}%</p>
+                </div>
+                <div class="text-[var(--color-lab-muted)]">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8h-6a2 2 0 0 0 0 4h4a2 2 0 0 1 0 4H8"/><path d="M12 18V6"/></svg>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Status dos Pedidos + Acoes Rapidas -->
@@ -110,6 +146,13 @@
                         <span class="font-mono text-sm text-black">Cancelados</span>
                     </div>
                     <span class="font-mono text-sm font-bold text-black">{{ $pedidos_cancelados }}</span>
+                </div>
+                <div class="pt-4 border-t border-[var(--color-lab-border)]">
+                    <div class="flex items-center justify-between">
+                        <span class="font-mono text-sm text-black">Itens entregues sem custo</span>
+                        <span class="font-mono text-sm font-bold text-black">{{ $itens_sem_custo }}</span>
+                    </div>
+                    <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mt-2">Custos e lucro consideram apenas pedidos entregues</p>
                 </div>
             </div>
         </div>

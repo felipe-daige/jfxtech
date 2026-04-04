@@ -21,6 +21,7 @@ class Produto extends Model
         'descricao_curta',
         'specs',
         'preco',
+        'custo_compra',
         'peso',
         'preco_original',
         'desconto_percentual',
@@ -35,6 +36,7 @@ class Produto extends Model
 
     protected $casts = [
         'preco' => 'decimal:2',
+        'custo_compra' => 'decimal:2',
         'preco_original' => 'decimal:2',
         'desconto_percentual' => 'decimal:2',
         'em_promocao' => 'boolean',
@@ -162,6 +164,25 @@ class Produto extends Model
             return $this->preco_original * (1 - $this->desconto_percentual / 100);
         }
         return $this->preco;
+    }
+
+    public function getLucroBrutoUnitarioAttribute(): ?float
+    {
+        if ($this->custo_compra === null) {
+            return null;
+        }
+
+        return round($this->preco_com_desconto - (float) $this->custo_compra, 2);
+    }
+
+    public function getMargemBrutaPercentualAttribute(): ?float
+    {
+        $precoEfetivo = $this->preco_com_desconto;
+        if ($this->custo_compra === null || $precoEfetivo <= 0) {
+            return null;
+        }
+
+        return round((($precoEfetivo - (float) $this->custo_compra) / $precoEfetivo) * 100, 2);
     }
 
     /**

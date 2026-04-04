@@ -225,7 +225,7 @@
 
     @include('includes.footer')
 
-    <script src="{{ asset('js/produtos.js') }}"></script>
+    <script src="{{ asset('js/produtos.js') }}?v={{ filemtime(public_path('js/produtos.js')) }}"></script>
     <script src="{{ asset('js/favoritos-produtos.js') }}"></script>
     <script src="{{ asset('js/filters.js') }}"></script>
 </body>

@@ -3,7 +3,7 @@
 ])
 
 @php
-    $descricaoRaw = trim((string) $description);
+    $descricaoRaw = \App\Support\ProdutoDescricaoFormatter::sanitize((string) $description);
     $descricaoTemHtml = preg_match('/<\/?(p|br|ul|ol|li|h[1-6]|strong|em|b|i|a|blockquote|table|tr|td|th|div|span)\b/i', $descricaoRaw) === 1;
 
     if ($descricaoTemHtml) {
@@ -30,8 +30,8 @@
         <div class="grid lg:grid-cols-[240px_minmax(0,1fr)]">
             <div class="border-b lg:border-b-0 lg:border-r border-[var(--color-lab-border)] bg-[var(--color-lab-bg)] p-6 sm:p-8">
                 <p class="font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-gray-500 mb-3">Descrição</p>
-                <h3 class="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">Entenda o produto antes de comprar.</h3>
-                <p class="mt-4 text-sm leading-7 text-gray-600">Resumo claro no topo e leitura completa sob demanda para evitar um bloco de texto pesado.</p>
+                <h3 class="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">Diferenciais em blocos rápidos.</h3>
+                <p class="mt-4 text-sm leading-7 text-gray-600">A leitura fica mais leve, com destaques visuais, tópicos úteis e contexto sem aquele paredão de texto corrido.</p>
             </div>
 
             <div class="p-6 sm:p-8 lg:p-10 js-product-description">
