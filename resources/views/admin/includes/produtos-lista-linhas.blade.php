@@ -18,19 +18,27 @@ function toggleProdutoMenu(event, id) {
     event.stopPropagation();
     const menu = document.getElementById('pdrop-' + id);
     const isHidden = menu.classList.contains('hidden');
+    const trigger = event.currentTarget;
 
     document.querySelectorAll('[id^="pdrop-"]').forEach(m => m.classList.add('hidden'));
 
     if (isHidden) {
-        const x = event.clientX;
-        const y = event.clientY;
-        menu.style.left = x + 'px';
-        menu.style.top  = y + 'px';
-
         menu.classList.remove('hidden');
-        const rect = menu.getBoundingClientRect();
-        if (rect.right > window.innerWidth)  menu.style.left = (x - rect.width) + 'px';
-        if (rect.bottom > window.innerHeight) menu.style.top = (y - rect.height) + 'px';
+        const rect = trigger.getBoundingClientRect();
+        const margin = 12;
+        let left = rect.right - menu.offsetWidth;
+        let top = rect.bottom + 8;
+
+        if (left < margin) left = margin;
+        if (left + menu.offsetWidth > window.innerWidth - margin) {
+            left = window.innerWidth - menu.offsetWidth - margin;
+        }
+        if (top + menu.offsetHeight > window.innerHeight - margin) {
+            top = Math.max(margin, rect.top - menu.offsetHeight - 8);
+        }
+
+        menu.style.left = left + 'px';
+        menu.style.top  = top + 'px';
     }
 }
 

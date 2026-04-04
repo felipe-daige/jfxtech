@@ -13,9 +13,9 @@
     </div>
 
     <!-- Filtros -->
-    <div class="border border-[var(--color-lab-border)] bg-white p-6">
+    <div class="border border-[var(--color-lab-border)] bg-white p-4 sm:p-6">
         <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-4">Filtros</p>
-        <div class="flex flex-col sm:flex-row gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] gap-4">
             <select id="filtroStatus" class="flex-1 px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black bg-white">
                 <option value="">Todos os status</option>
                 <option value="pendente">Pendente</option>
@@ -35,9 +35,9 @@
     </div>
 
     <!-- Lista de Pedidos -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 lg:gap-6">
         @forelse($pedidos as $pedido)
-        <div class="border border-[var(--color-lab-border)] bg-white p-5">
+        <div class="border border-[var(--color-lab-border)] bg-white p-4 sm:p-5">
             <div class="flex justify-between items-start mb-4">
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center space-x-2 mb-2">
@@ -52,8 +52,8 @@
                         </div>
                     </div>
                     <div class="space-y-0.5">
-                        <div class="font-mono text-sm text-black truncate">{{ $pedido->user->name }}</div>
-                        <div class="font-mono text-[10px] text-[var(--color-lab-muted)] truncate">{{ $pedido->user->email }}</div>
+                        <div class="font-mono text-sm text-black break-words sm:truncate">{{ $pedido->user->name }}</div>
+                        <div class="font-mono text-[10px] text-[var(--color-lab-muted)] break-all sm:truncate">{{ $pedido->user->email }}</div>
                     </div>
                 </div>
                 <div class="flex space-x-1 ml-2 flex-shrink-0">
@@ -68,13 +68,13 @@
 
             <div class="space-y-2 border-t border-[var(--color-lab-border)] pt-3">
                 <!-- Valor -->
-                <div class="flex items-center justify-between">
+                <div class="flex items-center justify-between gap-3">
                     <span class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Valor:</span>
                     <span class="font-mono text-sm font-bold text-black">R$ {{ number_format($pedido->valor_total, 2, ',', '.') }}</span>
                 </div>
 
                 <!-- Status -->
-                <div class="flex items-center justify-between">
+                <div class="flex items-center justify-between gap-3">
                     <span class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Status:</span>
                     @php
                         $statusColors = [
@@ -131,7 +131,7 @@
 <!-- Modal de Alterar Status -->
 <div id="modalStatus" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-50">
     <div class="flex items-center justify-center min-h-screen p-2 sm:p-4">
-        <div class="bg-white border border-[var(--color-lab-border)] w-full max-w-md">
+        <div class="bg-white border border-[var(--color-lab-border)] w-full max-w-md max-h-[92vh] overflow-y-auto">
             <div class="p-6 border-b border-[var(--color-lab-border)]">
                 <div class="flex justify-between items-center">
                     <h3 class="font-mono text-sm font-bold uppercase tracking-widest text-black">Alterar Status</h3>

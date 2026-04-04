@@ -2,7 +2,7 @@
 <div id="modalProduto" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-50">
     <div class="flex items-center justify-center min-h-screen p-2 sm:p-4">
         <div class="bg-white border border-[var(--color-lab-border)] w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
-            <div class="p-6 border-b border-[var(--color-lab-border)]">
+            <div class="p-4 sm:p-6 border-b border-[var(--color-lab-border)]">
                 <div class="flex justify-between items-center">
                     <h3 class="font-mono text-sm font-bold uppercase tracking-widest text-black" id="modalTitulo">Novo Produto</h3>
                     <button onclick="fecharModalProduto()" class="text-[var(--color-lab-muted)] hover:text-black p-1">
@@ -16,30 +16,30 @@
                 <div id="formMethod" style="display: none;"></div>
                 <input type="hidden" id="produtoId" name="produto_id" value="">
 
-                <div class="px-6 pt-4">
+                <div class="px-4 sm:px-6 pt-4">
                     {{-- Tab navigation --}}
-                    <div class="flex border-b border-gray-200 mb-6" id="produto-modal-tabs">
+                    <div class="flex overflow-x-auto admin-mobile-scroll border-b border-gray-200 mb-6" id="produto-modal-tabs">
                         <button type="button"
                                 onclick="switchProdutoTab('dados')"
-                                class="produto-tab-btn px-4 py-2 text-sm font-mono uppercase tracking-widest border-b-2 -mb-px transition-colors border-black text-black"
+                                class="produto-tab-btn shrink-0 px-4 py-2 text-sm font-mono uppercase tracking-widest border-b-2 -mb-px transition-colors border-black text-black"
                                 data-tab="dados">
                             DADOS
                         </button>
                         <button type="button"
                                 onclick="switchProdutoTab('imagens')"
-                                class="produto-tab-btn px-4 py-2 text-sm font-mono uppercase tracking-widest border-b-2 -mb-px transition-colors border-transparent text-gray-400 hover:text-black"
+                                class="produto-tab-btn shrink-0 px-4 py-2 text-sm font-mono uppercase tracking-widest border-b-2 -mb-px transition-colors border-transparent text-gray-400 hover:text-black"
                                 data-tab="imagens">
                             IMAGENS
                         </button>
                         <button type="button"
                                 onclick="switchProdutoTab('variantes')"
-                                class="produto-tab-btn px-4 py-2 text-sm font-mono uppercase tracking-widest border-b-2 -mb-px transition-colors border-transparent text-gray-400 hover:text-black"
+                                class="produto-tab-btn shrink-0 px-4 py-2 text-sm font-mono uppercase tracking-widest border-b-2 -mb-px transition-colors border-transparent text-gray-400 hover:text-black"
                                 data-tab="variantes">
                             VARIANTES
                         </button>
                         <button type="button"
                                 onclick="switchProdutoTab('specs')"
-                                class="produto-tab-btn px-4 py-2 text-sm font-mono uppercase tracking-widest border-b-2 -mb-px transition-colors border-transparent text-gray-400 hover:text-black"
+                                class="produto-tab-btn shrink-0 px-4 py-2 text-sm font-mono uppercase tracking-widest border-b-2 -mb-px transition-colors border-transparent text-gray-400 hover:text-black"
                                 data-tab="specs">
                             SPECS
                         </button>
@@ -48,7 +48,7 @@
 
                 {{-- Tab panels --}}
                 <div id="tab-dados" class="produto-tab-panel">
-                <div id="formFields" class="px-6 pb-6 space-y-5">
+                <div id="formFields" class="px-4 sm:px-6 pb-6 space-y-5">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <div>
                             <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Nome do Produto</label>
@@ -198,25 +198,25 @@
                 </div>{{-- end #tab-dados --}}
 
                 <div id="tab-imagens" class="produto-tab-panel hidden">
-                <div class="px-6 pb-6 space-y-5">
+                <div class="px-4 sm:px-6 pb-6 space-y-5">
                     <div>
                         <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Imagens</label>
-                        <input type="file" name="imagens[]" id="imagens" multiple accept="image/*" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black file:mr-4 file:py-1 file:px-3 file:border-0 file:text-xs file:font-mono file:font-bold file:uppercase file:tracking-widest file:bg-black file:text-white">
+                        <input type="file" name="imagens[]" id="imagens" multiple accept="image/*" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black file:mr-3 file:mb-2 sm:file:mb-0 file:py-1 file:px-3 file:border-0 file:text-xs file:font-mono file:font-bold file:uppercase file:tracking-widest file:bg-black file:text-white">
                         <p class="font-mono text-[10px] text-[var(--color-lab-muted)] mt-1">Selecione uma ou mais imagens (maximo 2MB cada)</p>
-                        <div id="novasImagensPreview" class="hidden mt-3 grid grid-cols-3 gap-2"></div>
+                        <div id="novasImagensPreview" class="hidden mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
                     </div>
                 </div>
                 </div>{{-- end #tab-imagens --}}
 
                 <div id="tab-variantes" class="produto-tab-panel hidden">
-                <div class="px-6 pb-6">
+                <div class="px-4 sm:px-6 pb-6">
                     <div id="variantes-loading" class="text-center py-8 text-gray-400 font-mono text-sm">CARREGANDO...</div>
                     <div id="variantes-content" class="hidden">
 
                         {{-- Estoque compartilhado --}}
-                        <div class="flex items-center gap-3 mb-6 p-4 border border-gray-200">
+                        <div class="flex items-start gap-3 mb-6 p-4 border border-gray-200">
                             <input type="checkbox" id="estoque-compartilhado" class="w-4 h-4">
-                            <label for="estoque-compartilhado" class="text-sm font-mono uppercase tracking-widest">
+                            <label for="estoque-compartilhado" class="text-xs sm:text-sm font-mono uppercase tracking-widest leading-5">
                                 Compartilhar estoque entre variantes
                             </label>
                         </div>
@@ -248,7 +248,7 @@
                 </div>{{-- end #tab-variantes --}}
 
                 <div id="tab-specs" class="produto-tab-panel hidden">
-                <div class="px-6 pb-6 space-y-5">
+                <div class="px-4 sm:px-6 pb-6 space-y-5">
                     <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Especificações técnicas — deixe em branco os campos não aplicáveis</p>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <div>
@@ -323,7 +323,7 @@
                 </div>
                 </div>{{-- end #tab-specs --}}
 
-                <div class="p-6 border-t border-[var(--color-lab-border)] flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
+                <div class="p-4 sm:p-6 border-t border-[var(--color-lab-border)] flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
                     <button type="button" onclick="fecharModalProduto()" class="w-full sm:w-auto px-5 py-2.5 text-xs font-bold tracking-widest uppercase border border-[var(--color-lab-border)] text-black hover:bg-gray-50 transition-colors">
                         Cancelar
                     </button>
@@ -341,4 +341,3 @@
     <button onclick="fecharLightbox()" class="absolute top-4 right-4 text-white text-2xl font-mono leading-none hover:text-gray-300">✕</button>
     <img id="lightboxImg" src="" alt="" class="max-h-[90vh] max-w-[90vw] object-contain" onclick="event.stopPropagation()">
 </div>
-

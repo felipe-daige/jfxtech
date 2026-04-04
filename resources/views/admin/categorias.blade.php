@@ -17,14 +17,14 @@
     </div>
 
     <!-- Lista de Categorias -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 lg:gap-6">
         @forelse($categorias as $categoria)
-        <div class="border border-[var(--color-lab-border)] bg-white p-5">
+        <div class="border border-[var(--color-lab-border)] bg-white p-4 sm:p-5">
             <div class="flex justify-between items-start mb-4">
                 <div class="flex-1 min-w-0">
-                    <h3 class="font-mono text-sm font-bold text-black truncate uppercase tracking-wide">{{ $categoria->nome }}</h3>
+                    <h3 class="font-mono text-sm font-bold text-black break-words sm:truncate uppercase tracking-wide">{{ $categoria->nome }}</h3>
                     @if($categoria->descricao)
-                        <p class="font-mono text-xs text-[var(--color-lab-muted)] mt-1 line-clamp-2">{{ $categoria->descricao }}</p>
+                        <p class="font-mono text-xs text-[var(--color-lab-muted)] mt-1 line-clamp-3">{{ $categoria->descricao }}</p>
                     @endif
                 </div>
                 <div class="flex space-x-1 ml-2 flex-shrink-0">
@@ -68,7 +68,7 @@
 <!-- Modal de Categoria -->
 <div id="modalCategoria" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-50">
     <div class="flex items-center justify-center min-h-screen p-2 sm:p-4">
-        <div class="bg-white border border-[var(--color-lab-border)] w-full max-w-md">
+        <div class="bg-white border border-[var(--color-lab-border)] w-full max-w-md max-h-[92vh] overflow-y-auto">
             <div class="p-6 border-b border-[var(--color-lab-border)]">
                 <div class="flex justify-between items-center">
                     <h3 class="font-mono text-sm font-bold uppercase tracking-widest text-black" id="modalTitulo">Nova Categoria</h3>

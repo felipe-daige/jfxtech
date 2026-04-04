@@ -17,52 +17,54 @@
     </div>
 
     {{-- ACTION BAR --}}
-    <div class="flex flex-wrap gap-2">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2">
         <button onclick="abrirModalProduto()"
-                class="inline-flex items-center gap-2 px-4 py-2 bg-black text-white font-mono text-[10px] uppercase tracking-widest hover:bg-gray-800 transition-colors">
+                class="inline-flex items-center justify-center gap-2 px-4 py-3 bg-black text-white font-mono text-[10px] uppercase tracking-widest hover:bg-gray-800 transition-colors text-center">
             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
             Novo Produto
         </button>
         <a href="{{ route('admin.pedidos') }}"
-           class="inline-flex items-center gap-2 px-4 py-2 border font-mono text-[10px] uppercase tracking-widest hover:border-black transition-colors {{ $pedidos_pendentes > 0 ? 'border-yellow-400 text-yellow-700' : 'border-[var(--color-lab-border)] text-black' }}">
+           class="inline-flex items-center justify-center gap-2 px-4 py-3 border font-mono text-[10px] uppercase tracking-widest hover:border-black transition-colors text-center {{ $pedidos_pendentes > 0 ? 'border-yellow-400 text-yellow-700' : 'border-[var(--color-lab-border)] text-black' }}">
             Pendentes: {{ $pedidos_pendentes }}
         </a>
         <a href="{{ route('admin.pedidos') }}"
-           class="inline-flex items-center gap-2 px-4 py-2 border border-[var(--color-lab-border)] font-mono text-[10px] uppercase tracking-widest text-black hover:border-black transition-colors">
+           class="inline-flex items-center justify-center gap-2 px-4 py-3 border border-[var(--color-lab-border)] font-mono text-[10px] uppercase tracking-widest text-black hover:border-black transition-colors text-center">
             Processando: {{ $pedidos_processando }}
         </a>
         <a href="{{ route('admin.pedidos') }}"
-           class="inline-flex items-center gap-2 px-4 py-2 border border-[var(--color-lab-border)] font-mono text-[10px] uppercase tracking-widest text-black hover:border-black transition-colors">
+           class="inline-flex items-center justify-center gap-2 px-4 py-3 border border-[var(--color-lab-border)] font-mono text-[10px] uppercase tracking-widest text-black hover:border-black transition-colors text-center">
             Ver Pedidos
         </a>
-        <form action="{{ route('admin.produtos.exportar') }}" method="POST" class="inline">
-            @csrf
-            <button type="submit"
-                    class="inline-flex items-center gap-2 px-4 py-2 border border-[var(--color-lab-border)] font-mono text-[10px] uppercase tracking-widest text-black hover:border-black transition-colors">
+        <a href="{{ route('admin.dashboard.exportar.csv') }}"
+           class="inline-flex items-center justify-center gap-2 px-4 py-3 border border-[var(--color-lab-border)] font-mono text-[10px] uppercase tracking-widest text-black hover:border-black transition-colors text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+            Exportar Analytics CSV
+        </a>
+        <a href="{{ route('admin.dashboard.exportar.pdf') }}"
+           class="inline-flex items-center justify-center gap-2 px-4 py-3 border border-[var(--color-lab-border)] font-mono text-[10px] uppercase tracking-widest text-black hover:border-black transition-colors text-center sm:col-span-2 xl:col-span-1">
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-                Exportar CSV
-            </button>
-        </form>
+            Exportar Analytics PDF
+        </a>
     </div>
 
     {{-- KPI CARDS --}}
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="border border-[var(--color-lab-border)] bg-white p-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div class="border border-[var(--color-lab-border)] bg-white p-5 sm:p-6">
             <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-2">Receita Total</p>
             <p class="text-lg sm:text-2xl font-bold text-black font-mono">R$&nbsp;{{ number_format($receita_total, 2, ',', '.') }}</p>
             <p class="font-mono text-[10px] text-[var(--color-lab-muted)] mt-1">pedidos entregues</p>
         </div>
-        <div class="border border-[var(--color-lab-border)] bg-white p-6">
+        <div class="border border-[var(--color-lab-border)] bg-white p-5 sm:p-6">
             <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-2">Lucro Bruto</p>
             <p class="text-lg sm:text-2xl font-bold font-mono {{ $lucro_bruto_total >= 0 ? 'text-black' : 'text-red-600' }}">R$&nbsp;{{ number_format($lucro_bruto_total, 2, ',', '.') }}</p>
             <p class="font-mono text-[10px] text-[var(--color-lab-muted)] mt-1">receita &minus; custo</p>
         </div>
-        <div class="border border-[var(--color-lab-border)] bg-white p-6">
+        <div class="border border-[var(--color-lab-border)] bg-white p-5 sm:p-6">
             <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-2">Margem Bruta</p>
             <p class="text-2xl sm:text-3xl font-bold font-mono @if($margem_bruta_percentual >= 20) text-black @elseif($margem_bruta_percentual >= 0) text-yellow-600 @else text-red-600 @endif">{{ number_format($margem_bruta_percentual, 1, ',', '.') }}%</p>
             <p class="font-mono text-[10px] text-[var(--color-lab-muted)] mt-1">sobre receita</p>
         </div>
-        <div class="border border-[var(--color-lab-border)] bg-white p-6">
+        <div class="border border-[var(--color-lab-border)] bg-white p-5 sm:p-6">
             <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-2">Pendentes</p>
             <p class="text-2xl sm:text-3xl font-bold text-black font-mono">{{ $pedidos_pendentes }}</p>
             <p class="font-mono text-[10px] text-[var(--color-lab-muted)] mt-1">aguardando</p>
@@ -71,12 +73,12 @@
 
     {{-- SECTION: ALERTAS + STATUS --}}
     <div data-section="alertas" data-default-open="true" class="border border-[var(--color-lab-border)] bg-white">
-        <div data-section-toggle class="flex items-center justify-between px-6 py-4 cursor-pointer hover:bg-gray-50 border-b border-[var(--color-lab-border)] select-none">
+        <div data-section-toggle class="flex items-center justify-between gap-3 px-4 sm:px-6 py-4 cursor-pointer hover:bg-gray-50 border-b border-[var(--color-lab-border)] select-none">
             <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">
                 <span data-section-arrow>&#9660;</span>&nbsp; Alertas &amp; Status
             </p>
         </div>
-        <div data-section-content class="p-6">
+        <div data-section-content class="p-4 sm:p-6">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
                 {{-- Alertas --}}
@@ -112,8 +114,8 @@
                             </div>
                             <div id="alert-margem-neg" class="hidden ml-3 mt-1 space-y-1">
                                 @foreach($alertas['produtos_margem_negativa'] as $ap)
-                                <div class="flex items-center justify-between py-1.5 px-3 bg-red-50" data-alert-produto="{{ $ap->id }}">
-                                    <span class="font-mono text-xs text-black truncate max-w-[140px]">{{ $ap->nome }}</span>
+                                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between py-2 px-3 bg-red-50" data-alert-produto="{{ $ap->id }}">
+                                    <span class="font-mono text-xs text-black break-words sm:truncate sm:max-w-[140px]">{{ $ap->nome }}</span>
                                     <button onclick="abrirQuickFix({{ $ap->id }}, '{{ addslashes($ap->nome) }}', '{{ $ap->custo_compra }}', {{ $ap->estoque }})"
                                             class="font-mono text-[10px] uppercase tracking-widest px-2 py-1 border border-red-300 text-red-600 hover:bg-red-100 shrink-0">
                                         &#9998; Editar
@@ -135,8 +137,8 @@
                             </div>
                             <div id="alert-margem-zero" class="hidden ml-3 mt-1 space-y-1">
                                 @foreach($alertas['produtos_margem_zero'] as $ap)
-                                <div class="flex items-center justify-between py-1.5 px-3 bg-red-50" data-alert-produto="{{ $ap->id }}">
-                                    <span class="font-mono text-xs text-black truncate max-w-[140px]">{{ $ap->nome }}</span>
+                                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between py-2 px-3 bg-red-50" data-alert-produto="{{ $ap->id }}">
+                                    <span class="font-mono text-xs text-black break-words sm:truncate sm:max-w-[140px]">{{ $ap->nome }}</span>
                                     <button onclick="abrirQuickFix({{ $ap->id }}, '{{ addslashes($ap->nome) }}', '{{ $ap->custo_compra }}', {{ $ap->estoque }})"
                                             class="font-mono text-[10px] uppercase tracking-widest px-2 py-1 border border-red-300 text-red-600 hover:bg-red-100 shrink-0">
                                         &#9998; Editar
@@ -162,9 +164,9 @@
                             </div>
                             <div id="alert-margem-baixa" class="hidden ml-3 mt-1 space-y-1">
                                 @foreach($alertas['produtos_margem_baixa'] as $ap)
-                                <div class="flex items-center justify-between py-1.5 px-3 bg-yellow-50" data-alert-produto="{{ $ap->id }}">
+                                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between py-2 px-3 bg-yellow-50" data-alert-produto="{{ $ap->id }}">
                                     <div>
-                                        <span class="font-mono text-xs text-black truncate max-w-[120px] block">{{ $ap->nome }}</span>
+                                        <span class="font-mono text-xs text-black break-words sm:truncate sm:max-w-[120px] block">{{ $ap->nome }}</span>
                                         <span class="font-mono text-[10px] text-yellow-600">{{ number_format($ap->margem_bruta_percentual, 1, ',', '.') }}%</span>
                                     </div>
                                     <button onclick="abrirQuickFix({{ $ap->id }}, '{{ addslashes($ap->nome) }}', '{{ $ap->custo_compra }}', {{ $ap->estoque }})"
@@ -188,8 +190,8 @@
                             </div>
                             <div id="alert-estoque" class="hidden ml-3 mt-1 space-y-1">
                                 @foreach($alertas['produtos_estoque_zerado'] as $ap)
-                                <div class="flex items-center justify-between py-1.5 px-3 bg-yellow-50" data-alert-produto="{{ $ap->id }}">
-                                    <span class="font-mono text-xs text-black truncate max-w-[140px]">{{ $ap->nome }}</span>
+                                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between py-2 px-3 bg-yellow-50" data-alert-produto="{{ $ap->id }}">
+                                    <span class="font-mono text-xs text-black break-words sm:truncate sm:max-w-[140px]">{{ $ap->nome }}</span>
                                     <button onclick="abrirQuickFix({{ $ap->id }}, '{{ addslashes($ap->nome) }}', '{{ $ap->custo_compra }}', {{ $ap->estoque }})"
                                             class="font-mono text-[10px] uppercase tracking-widest px-2 py-1 border border-yellow-300 text-yellow-700 hover:bg-yellow-100 shrink-0">
                                         &#9998; Estoque
@@ -215,9 +217,9 @@
                             </div>
                             <div id="alert-sem-custo" class="hidden ml-3 mt-1 space-y-1">
                                 @foreach($alertas['produtos_sem_custo'] as $ap)
-                                <div class="flex items-center justify-between py-1.5 px-3 bg-blue-50" data-alert-produto="{{ $ap->id }}">
+                                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between py-2 px-3 bg-blue-50" data-alert-produto="{{ $ap->id }}">
                                     <div>
-                                        <span class="font-mono text-xs text-black truncate max-w-[120px] block">{{ $ap->nome }}</span>
+                                        <span class="font-mono text-xs text-black break-words sm:truncate sm:max-w-[120px] block">{{ $ap->nome }}</span>
                                         <span class="font-mono text-[10px] text-gray-400">R$ {{ number_format($ap->preco_com_desconto, 2, ',', '.') }}</span>
                                     </div>
                                     <button onclick="abrirQuickFix({{ $ap->id }}, '{{ addslashes($ap->nome) }}', '', {{ $ap->estoque }})"
@@ -310,7 +312,7 @@
     {{-- SECTION: PEDIDOS QUE PRECISAM DE ACAO --}}
     @if($pedidos_acao->isNotEmpty())
     <div data-section="pedidos-acao" data-default-open="true" class="border border-[var(--color-lab-border)] bg-white">
-        <div data-section-toggle class="flex items-center justify-between px-6 py-4 cursor-pointer hover:bg-gray-50 border-b border-[var(--color-lab-border)] select-none">
+        <div data-section-toggle class="flex items-center justify-between gap-3 px-4 sm:px-6 py-4 cursor-pointer hover:bg-gray-50 border-b border-[var(--color-lab-border)] select-none">
             <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">
                 <span data-section-arrow>&#9660;</span>&nbsp; Pedidos que Precisam de A&ccedil;&atilde;o
                 <span class="ml-2 px-2 py-0.5 bg-yellow-100 text-yellow-700 text-[10px] font-bold">{{ $pedidos_acao->count() }}</span>
@@ -318,9 +320,9 @@
         </div>
         <div data-section-content id="lista-pedidos-acao">
             @foreach($pedidos_acao as $pedido)
-            <div id="pedido-acao-{{ $pedido->id }}" class="flex flex-col sm:flex-row sm:items-center sm:justify-between px-6 py-4 border-b border-[var(--color-lab-border)] last:border-0">
+            <div id="pedido-acao-{{ $pedido->id }}" class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-4 sm:px-6 py-4 border-b border-[var(--color-lab-border)] last:border-0">
                 <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-3 mb-0.5">
+                    <div class="flex flex-wrap items-center gap-2 sm:gap-3 mb-0.5">
                         <span class="font-mono text-sm font-bold text-black">#{{ $pedido->id }}</span>
                         <span class="font-mono text-[10px] text-[var(--color-lab-muted)]">{{ $pedido->created_at->format('d/m H:i') }}</span>
                         <span data-status-badge class="inline-block px-2 py-0.5 font-mono text-[10px] border {{ $pedido->status === 'pendente' ? 'border-gray-400 text-gray-600' : 'border-gray-600 text-gray-700' }}">
@@ -330,15 +332,15 @@
                     <div class="font-mono text-sm text-black">{{ $pedido->user->name }}</div>
                     <div class="font-mono text-xs text-[var(--color-lab-muted)]">R$&nbsp;{{ number_format($pedido->valor_total, 2, ',', '.') }}</div>
                 </div>
-                <div class="mt-2 sm:mt-0">
+                <div class="sm:mt-0">
                     @if($pedido->status === 'pendente')
                     <button onclick="avancarStatusPedido(this, {{ $pedido->id }}, 'processando')"
-                            class="font-mono text-[10px] uppercase tracking-widest px-3 py-2 border border-black text-black hover:bg-black hover:text-white transition-colors">
+                            class="w-full sm:w-auto font-mono text-[10px] uppercase tracking-widest px-3 py-2 border border-black text-black hover:bg-black hover:text-white transition-colors">
                         &rarr; Processando
                     </button>
                     @elseif($pedido->status === 'processando')
                     <button onclick="avancarStatusPedido(this, {{ $pedido->id }}, 'enviado')"
-                            class="font-mono text-[10px] uppercase tracking-widest px-3 py-2 border border-black text-black hover:bg-black hover:text-white transition-colors">
+                            class="w-full sm:w-auto font-mono text-[10px] uppercase tracking-widest px-3 py-2 border border-black text-black hover:bg-black hover:text-white transition-colors">
                         &rarr; Enviado
                     </button>
                     @endif
@@ -351,12 +353,12 @@
 
     {{-- SECTION: PERFORMANCE --}}
     <div data-section="performance" data-default-open="true" class="border border-[var(--color-lab-border)] bg-white">
-        <div data-section-toggle class="flex items-center justify-between px-6 py-4 cursor-pointer hover:bg-gray-50 border-b border-[var(--color-lab-border)] select-none">
+        <div data-section-toggle class="flex items-center justify-between gap-3 px-4 sm:px-6 py-4 cursor-pointer hover:bg-gray-50 border-b border-[var(--color-lab-border)] select-none">
             <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">
                 <span data-section-arrow>&#9660;</span>&nbsp; Performance
             </p>
         </div>
-        <div data-section-content class="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div data-section-content class="p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
 
             <div>
                 <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-4">Top 5 Mais Vendidos</p>
@@ -416,14 +418,69 @@
 
     {{-- SECTION: ANALYTICS DE PRODUTOS --}}
     <div data-section="analytics" data-default-open="true" class="border border-[var(--color-lab-border)] bg-white">
-        <div data-section-toggle class="flex items-center justify-between px-6 py-4 cursor-pointer hover:bg-gray-50 border-b border-[var(--color-lab-border)] select-none">
+        <div data-section-toggle class="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between px-4 sm:px-6 py-4 cursor-pointer hover:bg-gray-50 border-b border-[var(--color-lab-border)] select-none">
             <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">
                 <span data-section-arrow>&#9660;</span>&nbsp; Analytics de Produtos
             </p>
             <span class="font-mono text-xs text-[var(--color-lab-muted)]">{{ $produtos_analytics->count() }} produtos &middot; clique nos cabe&ccedil;alhos para ordenar</span>
         </div>
-        <div data-section-content class="overflow-x-auto">
-            <table id="tabela-analytics" class="w-full text-sm">
+        <div data-section-content>
+            <div class="md:hidden p-4 space-y-3">
+                @foreach($produtos_analytics as $p)
+                @php $margem = $p->margem_bruta_percentual; $lucro = $p->lucro_bruto_unitario; @endphp
+                <div class="border border-[var(--color-lab-border)] p-4">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <p class="font-mono text-sm font-bold text-black break-words">{{ $p->nome }}</p>
+                            <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mt-1">{{ $p->marca ?: 'Sem marca' }}</p>
+                        </div>
+                        <button onclick="abrirQuickFix({{ $p->id }}, '{{ addslashes($p->nome) }}', '{{ $p->custo_compra ?? '' }}', {{ $p->estoque }})"
+                                class="shrink-0 font-mono text-[10px] px-2 py-1 border border-[var(--color-lab-border)] text-[var(--color-lab-muted)] hover:border-black hover:text-black transition-colors"
+                                title="Editar custo e estoque">
+                            &#9998;
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 mt-4">
+                        <div>
+                            <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Venda</p>
+                            <p class="font-mono text-xs text-black mt-1">R$ {{ number_format($p->preco_com_desconto, 2, ',', '.') }}</p>
+                        </div>
+                        <div>
+                            <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Custo</p>
+                            <p class="font-mono text-xs mt-1 {{ $p->custo_compra ? 'text-black' : 'text-gray-300' }}">
+                                {!! $p->custo_compra ? 'R$ ' . number_format($p->custo_compra, 2, ',', '.') : '&mdash;' !!}
+                            </p>
+                        </div>
+                        <div>
+                            <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Lucro unit.</p>
+                            <p class="font-mono text-xs mt-1 {{ $lucro === null ? 'text-gray-300' : ($lucro >= 0 ? 'text-black' : 'text-red-600') }}">
+                                {!! $lucro !== null ? 'R$ ' . number_format($lucro, 2, ',', '.') : '&mdash;' !!}
+                            </p>
+                        </div>
+                        <div>
+                            <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Estoque</p>
+                            <p class="font-mono text-xs mt-1 {{ $p->estoque == 0 && $p->ativo ? 'text-yellow-600 font-bold' : 'text-black' }}">{{ $p->estoque }}</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 mt-4">
+                        @if($margem === null)
+                            <span class="inline-block px-2 py-0.5 font-mono text-[10px] bg-blue-50 text-blue-500 border border-blue-200">Sem custo</span>
+                        @elseif($margem < 0)
+                            <span class="inline-block px-2 py-0.5 font-mono text-[10px] bg-red-100 text-red-700 font-bold">{{ number_format($margem, 1, ',', '.') }}%</span>
+                        @elseif($margem < 20)
+                            <span class="inline-block px-2 py-0.5 font-mono text-[10px] bg-yellow-100 text-yellow-700 font-bold">{{ number_format($margem, 1, ',', '.') }}%</span>
+                        @else
+                            <span class="inline-block px-2 py-0.5 font-mono text-[10px] bg-green-100 text-green-700 font-bold">{{ number_format($margem, 1, ',', '.') }}%</span>
+                        @endif
+                        <span class="inline-block px-2 py-0.5 font-mono text-[10px] border {{ $p->ativo ? 'border-black text-black' : 'border-gray-300 text-gray-400' }}">
+                            {{ $p->ativo ? 'Ativo' : 'Inativo' }}
+                        </span>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+            <div class="hidden md:block overflow-x-auto admin-mobile-scroll">
+                <table id="tabela-analytics" class="w-full min-w-[920px] text-sm">
                 <thead>
                     <tr class="border-b border-[var(--color-lab-border)]">
                         <th data-col="nome"    class="analytics-th text-left    px-4 py-3 font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] cursor-pointer hover:text-black select-none whitespace-nowrap">Produto <span class="sort-arrow ml-1"></span></th>
@@ -451,13 +508,13 @@
                         data-estoque="{{ $p->estoque }}"
                         data-status="{{ $p->ativo ? '1' : '0' }}">
                         <td class="px-4 py-3 font-mono text-xs text-black">{{ $p->nome }}</td>
-                        <td class="px-4 py-3 font-mono text-xs text-[var(--color-lab-muted)]">{{ $p->marca ?? '&mdash;' }}</td>
+                        <td class="px-4 py-3 font-mono text-xs text-[var(--color-lab-muted)]">{!! $p->marca ?? '&mdash;' !!}</td>
                         <td class="px-4 py-3 font-mono text-xs text-black text-right">R$&nbsp;{{ number_format($p->preco_com_desconto, 2, ',', '.') }}</td>
                         <td class="px-4 py-3 font-mono text-xs text-right {{ $p->custo_compra ? 'text-black' : 'text-gray-300' }}" data-cell="custo">
-                            {{ $p->custo_compra ? 'R$ ' . number_format($p->custo_compra, 2, ',', '.') : '&mdash;' }}
+                            {!! $p->custo_compra ? 'R$ ' . number_format($p->custo_compra, 2, ',', '.') : '&mdash;' !!}
                         </td>
                         <td class="px-4 py-3 font-mono text-xs text-right {{ $lucro === null ? 'text-gray-300' : ($lucro >= 0 ? 'text-black' : 'text-red-600') }}" data-cell="lucro">
-                            {{ $lucro !== null ? 'R$ ' . number_format($lucro, 2, ',', '.') : '&mdash;' }}
+                            {!! $lucro !== null ? 'R$ ' . number_format($lucro, 2, ',', '.') : '&mdash;' !!}
                         </td>
                         <td class="px-4 py-3 text-right" data-cell="margem">
                             @if($margem === null)
@@ -486,28 +543,29 @@
                     </tr>
                     @endforeach
                 </tbody>
-            </table>
+                </table>
+            </div>
         </div>
     </div>
 
     {{-- SECTION: PEDIDOS RECENTES --}}
     <div data-section="pedidos-recentes" data-default-open="false" class="border border-[var(--color-lab-border)] bg-white">
-        <div data-section-toggle class="flex items-center justify-between px-6 py-4 cursor-pointer hover:bg-gray-50 select-none">
+        <div data-section-toggle class="flex items-center justify-between gap-3 px-4 sm:px-6 py-4 cursor-pointer hover:bg-gray-50 select-none">
             <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">
                 <span data-section-arrow>&#9654;</span>&nbsp; Pedidos Recentes
             </p>
         </div>
-        <div data-section-content class="hidden p-6">
+        <div data-section-content class="hidden p-4 sm:p-6">
             @forelse($pedidos_recentes as $pedido)
             <div class="border border-[var(--color-lab-border)] p-4 mb-3 last:mb-0">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                     <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-3 mb-1">
+                        <div class="flex flex-wrap items-center gap-2 sm:gap-3 mb-1">
                             <span class="font-mono text-sm font-bold text-black">#{{ $pedido->id }}</span>
                             <span class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">{{ $pedido->created_at->format('d/m/Y H:i') }}</span>
                         </div>
-                        <div class="font-mono text-sm text-black truncate">{{ $pedido->user->name }}</div>
-                        <div class="font-mono text-xs text-[var(--color-lab-muted)] truncate">{{ $pedido->user->email }}</div>
+                        <div class="font-mono text-sm text-black break-words sm:truncate">{{ $pedido->user->name }}</div>
+                        <div class="font-mono text-xs text-[var(--color-lab-muted)] break-all sm:truncate">{{ $pedido->user->email }}</div>
                     </div>
                     <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2 sm:mt-0">
                         <div class="font-mono text-sm font-bold text-black text-right">R$&nbsp;{{ number_format($pedido->valor_total, 2, ',', '.') }}</div>
@@ -529,11 +587,11 @@
 {{-- QUICK-FIX MODAL --}}
 <div id="modal-quickfix" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-50" onclick="fecharQuickFix()">
     <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white border border-[var(--color-lab-border)] w-full max-w-sm" onclick="event.stopPropagation()">
+        <div class="bg-white border border-[var(--color-lab-border)] w-full max-w-sm max-h-[92vh] overflow-y-auto" onclick="event.stopPropagation()">
             <div class="p-4 border-b border-[var(--color-lab-border)] flex justify-between items-center">
-                <div>
+                <div class="min-w-0">
                     <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Edi&ccedil;&atilde;o R&aacute;pida</p>
-                    <p id="qf-nome" class="font-mono text-sm font-bold text-black mt-0.5 truncate max-w-[240px]"></p>
+                    <p id="qf-nome" class="font-mono text-sm font-bold text-black mt-0.5 break-words"></p>
                 </div>
                 <button onclick="fecharQuickFix()" class="text-[var(--color-lab-muted)] hover:text-black p-1">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
@@ -552,13 +610,13 @@
                     <input id="qf-estoque" type="number" min="0"
                            class="w-full border border-[var(--color-lab-border)] px-3 py-2 font-mono text-sm focus:outline-none focus:border-black">
                 </div>
-                <div class="flex gap-2 pt-2">
+                <div class="flex flex-col sm:flex-row gap-2 pt-2">
                     <button type="submit" id="qf-btn-salvar"
                             class="flex-1 bg-black text-white font-mono text-[10px] uppercase tracking-widest py-2 hover:bg-gray-800 transition-colors">
                         Salvar
                     </button>
                     <button type="button" onclick="fecharQuickFix()"
-                            class="px-4 border border-[var(--color-lab-border)] font-mono text-[10px] uppercase tracking-widest text-black hover:border-black transition-colors">
+                            class="px-4 py-2 border border-[var(--color-lab-border)] font-mono text-[10px] uppercase tracking-widest text-black hover:border-black transition-colors">
                         Cancelar
                     </button>
                 </div>

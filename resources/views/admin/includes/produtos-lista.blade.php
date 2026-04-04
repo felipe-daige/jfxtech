@@ -1,8 +1,8 @@
 @forelse($produtos as $produto)
-<div class="border border-[var(--color-lab-border)] bg-white p-5">
-    <div class="flex justify-between items-start mb-3">
+<div class="border border-[var(--color-lab-border)] bg-white p-4 sm:p-5">
+    <div class="flex justify-between items-start gap-3 mb-3">
         <div class="flex-1 min-w-0">
-            <div class="flex items-center space-x-3 mb-2">
+            <div class="flex items-start space-x-3 mb-2">
                 {{-- Checkbox de seleção --}}
                 <input type="checkbox"
                        class="produto-checkbox w-4 h-4 cursor-pointer accent-black flex-shrink-0"
@@ -19,11 +19,11 @@
                     </div>
                 @endif
                 <div class="flex-1 min-w-0">
-                    <h3 class="font-mono text-sm font-bold text-black truncate">{{ $produto->nome }}</h3>
-                    <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">{{ $produto->categoria->nome }}</p>
+                    <h3 class="font-mono text-sm font-bold text-black break-words sm:truncate">{{ $produto->nome }}</h3>
+                    <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] break-words">{{ $produto->categoria->nome }}</p>
                 </div>
             </div>
-            <p class="font-mono text-xs text-[var(--color-lab-muted)] line-clamp-2 mb-2">{{ Str::limit($produto->descricao, 60) }}</p>
+            <p class="font-mono text-xs text-[var(--color-lab-muted)] line-clamp-3 mb-2">{{ Str::limit($produto->descricao, 90) }}</p>
         </div>
         <div class="relative ml-2 flex-shrink-0" id="menu-container-{{ $produto->id }}">
             {{-- Botão três pontos --}}
@@ -120,9 +120,9 @@
         </div>
     </div>
 
-    <div class="space-y-2 border-t border-[var(--color-lab-border)] pt-3">
+    <div class="space-y-3 border-t border-[var(--color-lab-border)] pt-3">
         <!-- Preco -->
-        <div class="flex items-center justify-between">
+        <div class="flex items-start justify-between gap-3">
             <span class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Preco:</span>
             @if($produto->em_promocao && $produto->desconto_percentual > 0)
                 <div class="text-right">
@@ -136,14 +136,14 @@
         </div>
 
         <!-- Estoque -->
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between gap-3">
             <span class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Estoque:</span>
             <span class="font-mono text-sm font-bold text-black">{{ $produto->estoque }}</span>
         </div>
 
         <!-- Status e Destaque -->
-        <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-2">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex flex-wrap items-center gap-2">
                 @if($produto->ativo)
                     <span class="inline-block px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest border border-black text-black">
                         Ativo
@@ -170,22 +170,28 @@ function toggleProdutoMenu(event, id) {
     event.stopPropagation();
     const menu = document.getElementById('pdrop-' + id);
     const isHidden = menu.classList.contains('hidden');
+    const trigger = event.currentTarget;
 
     // Fecha todos os dropdowns abertos
     document.querySelectorAll('[id^="pdrop-"]').forEach(m => m.classList.add('hidden'));
 
     if (isHidden) {
-        // Posiciona no cursor
-        const x = event.clientX;
-        const y = event.clientY;
-        menu.style.left = x + 'px';
-        menu.style.top  = y + 'px';
-
-        // Ajuste para não sair da tela
         menu.classList.remove('hidden');
-        const rect = menu.getBoundingClientRect();
-        if (rect.right > window.innerWidth)  menu.style.left = (x - rect.width) + 'px';
-        if (rect.bottom > window.innerHeight) menu.style.top = (y - rect.height) + 'px';
+        const rect = trigger.getBoundingClientRect();
+        const margin = 12;
+        let left = rect.right - menu.offsetWidth;
+        let top = rect.bottom + 8;
+
+        if (left < margin) left = margin;
+        if (left + menu.offsetWidth > window.innerWidth - margin) {
+            left = window.innerWidth - menu.offsetWidth - margin;
+        }
+        if (top + menu.offsetHeight > window.innerHeight - margin) {
+            top = Math.max(margin, rect.top - menu.offsetHeight - 8);
+        }
+
+        menu.style.left = left + 'px';
+        menu.style.top  = top + 'px';
     }
 }
 

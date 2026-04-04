@@ -63,7 +63,7 @@
     </div>
 
     <!-- Filtros e Pesquisa -->
-    <div class="border border-[var(--color-lab-border)] bg-white p-6">
+    <div class="border border-[var(--color-lab-border)] bg-white p-4 sm:p-6">
         <div class="space-y-4">
             <!-- Campo de Pesquisa -->
             <div class="flex flex-col sm:flex-row gap-3">
@@ -95,7 +95,7 @@
             </div>
 
             <!-- Filtros -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 <!-- Filtro de Status -->
                 <div>
                     <label for="status" class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Status</label>
@@ -131,11 +131,11 @@
     </div>
 
     {{-- Barra de Resultados / View Toolbar --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3
                 py-3 border-b border-[var(--color-lab-border)]">
 
         {{-- Contador + Select-all --}}
-        <div class="flex items-center gap-3">
+        <div class="flex flex-wrap items-center gap-3">
             <label class="flex items-center gap-2 cursor-pointer group" title="Selecionar todos">
                 <input type="checkbox" id="selectAll"
                        class="w-4 h-4 cursor-pointer accent-black flex-shrink-0">
@@ -151,20 +151,20 @@
         </div>
 
         {{-- Controles --}}
-        <div class="flex items-center">
+        <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-0">
 
             {{-- Select per-page --}}
             <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mr-2 hidden sm:inline"
                    for="per_page">Por página</label>
             <select id="per_page"
-                    class="h-9 px-2 border border-[var(--color-lab-border)] bg-white font-mono text-[10px] uppercase tracking-widest text-black focus:outline-none focus:ring-1 focus:ring-black">
+                    class="h-9 w-full sm:w-auto px-2 border border-[var(--color-lab-border)] bg-white font-mono text-[10px] uppercase tracking-widest text-black focus:outline-none focus:ring-1 focus:ring-black">
                 @foreach([12, 24, 48, 96] as $opt)
                     <option value="{{ $opt }}" {{ $perPage == $opt ? 'selected' : '' }}>{{ $opt }}</option>
                 @endforeach
             </select>
 
             {{-- Separador vertical --}}
-            <div class="w-px h-5 bg-[var(--color-lab-border)] mx-4" aria-hidden="true"></div>
+            <div class="hidden sm:block w-px h-5 bg-[var(--color-lab-border)] mx-4" aria-hidden="true"></div>
 
             {{-- View toggle --}}
             <div class="flex items-center border border-[var(--color-lab-border)]"
@@ -195,13 +195,14 @@
     </div>
 
     {{-- Barra de seleção (aparece quando há itens marcados) --}}
-    <div id="selectionBar" class="hidden flex-col sm:flex-row items-center sm:justify-between gap-3
+    <div id="selectionBar" class="hidden flex-col items-start sm:flex-row sm:items-center sm:justify-between gap-3
          py-2.5 px-3 mt-3 border border-[var(--color-lab-border)] bg-[var(--color-lab-bg)]">
         <span id="selectionCount"
               class="font-mono text-[10px] uppercase tracking-widest text-black whitespace-nowrap">
             0 selecionados
         </span>
-        <div class="flex flex-wrap items-center gap-2 justify-center sm:justify-end">
+        <div class="w-full overflow-x-auto admin-mobile-scroll">
+        <div class="flex min-w-max items-center gap-2 justify-start sm:justify-end">
             {{-- Tags Actions --}}
             <div class="flex items-center gap-1 border-r border-[var(--color-lab-border)] pr-2 mr-1">
                 <div class="relative group">
@@ -251,13 +252,14 @@
                 &#x2715; Limpar
             </button>
         </div>
+        </div>
     </div>
 
     <!-- Lista de Produtos -->
     @php
         $containerClass = $viewMode === 'lista'
-            ? 'border-t border-[var(--color-lab-border)] bg-white'
-            : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6';
+            ? 'border-t border-[var(--color-lab-border)] bg-white overflow-hidden'
+            : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 lg:gap-6';
         $partial = $viewMode === 'lista'
             ? 'admin.includes.produtos-lista-linhas'
             : 'admin.includes.produtos-lista';
@@ -282,7 +284,7 @@
 <!-- Modal de Confirmacao de Exclusao -->
 <div id="modalConfirmacaoExclusao" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-50">
     <div class="flex items-center justify-center min-h-screen p-2 sm:p-4">
-        <div class="bg-white border border-[var(--color-lab-border)] w-full max-w-md" onclick="event.stopPropagation()">
+        <div class="bg-white border border-[var(--color-lab-border)] w-full max-w-md max-h-[92vh] overflow-y-auto" onclick="event.stopPropagation()">
             <div class="p-6">
                 <div class="flex items-center justify-center mb-4">
                     <div class="w-10 h-10 border border-black flex items-center justify-center">
@@ -309,7 +311,7 @@
 <!-- Modal de Confirmacao de Destaque -->
 <div id="modalConfirmacaoDestaque" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-50">
     <div class="flex items-center justify-center min-h-screen p-2 sm:p-4">
-        <div class="bg-white border border-[var(--color-lab-border)] w-full max-w-md" onclick="event.stopPropagation()">
+        <div class="bg-white border border-[var(--color-lab-border)] w-full max-w-md max-h-[92vh] overflow-y-auto" onclick="event.stopPropagation()">
             <div class="p-6">
                 <div class="flex items-center justify-center mb-4">
                     <div class="w-10 h-10 border border-black flex items-center justify-center">
@@ -336,7 +338,7 @@
 <!-- Modal de Confirmacao de Status -->
 <div id="modalConfirmacaoStatus" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-50">
     <div class="flex items-center justify-center min-h-screen p-2 sm:p-4">
-        <div class="bg-white border border-[var(--color-lab-border)] w-full max-w-md" onclick="event.stopPropagation()">
+        <div class="bg-white border border-[var(--color-lab-border)] w-full max-w-md max-h-[92vh] overflow-y-auto" onclick="event.stopPropagation()">
             <div class="p-6">
                 <div class="flex items-center justify-center mb-4">
                     <div class="w-10 h-10 border border-black flex items-center justify-center">
@@ -363,7 +365,7 @@
 <!-- Modal de Confirmacao de Remocao de Imagem -->
 <div id="modalConfirmacaoRemoverImagem" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-[60]">
     <div class="flex items-center justify-center min-h-screen p-2 sm:p-4">
-        <div class="bg-white border border-[var(--color-lab-border)] w-full max-w-md" onclick="event.stopPropagation()">
+        <div class="bg-white border border-[var(--color-lab-border)] w-full max-w-md max-h-[92vh] overflow-y-auto" onclick="event.stopPropagation()">
             <div class="p-6">
                 <div class="flex items-center justify-center mb-4">
                     <div class="w-10 h-10 border border-black flex items-center justify-center">
@@ -438,7 +440,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const isLista = data.view_mode === 'lista';
             produtosContainer.className = isLista
                 ? 'border-t border-[var(--color-lab-border)] bg-white'
-                : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6';
+                : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 lg:gap-6';
 
             // Atualizar o container com os novos produtos
             produtosContainer.innerHTML = data.html;

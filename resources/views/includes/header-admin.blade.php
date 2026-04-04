@@ -13,6 +13,34 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-maskmoney/3.0.2/jquery.maskMoney.min.js"></script>
     <script src="{{ asset('js/dropdowns.js') }}"></script>
     <script src="{{ asset('js/admin.js') }}?v{{time()}}"></script>
+    <style>
+        body {
+            overflow-x: hidden;
+        }
+
+        .admin-shell-main {
+            width: 100%;
+            min-width: 0;
+        }
+
+        .admin-mobile-scroll {
+            scrollbar-width: thin;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        @media (max-width: 380px) {
+            .admin-compact-text {
+                letter-spacing: 0.18em;
+                font-size: 9px;
+            }
+        }
+
+        @media (min-width: 1024px) and (max-width: 1439px) {
+            .admin-shell-main {
+                padding: 1.5rem;
+            }
+        }
+    </style>
     <script>
         // Variáveis globais para o admin.js
         window.baseUrl = '{{ url("/") }}';
@@ -30,25 +58,25 @@
 </head>
 <body class="bg-[var(--color-lab-bg)]">
     <!-- Header -->
-    <header class="bg-white border-b border-[var(--color-lab-border)]">
-        <div class="container mx-auto px-4 py-4">
+    <header class="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-[var(--color-lab-border)]">
+        <div class="container mx-auto px-4 py-3 sm:py-4">
             <div class="flex justify-between items-center">
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-3 sm:space-x-4 min-w-0">
                     <!-- Menu hamburguer para mobile -->
                     <button id="menuToggle" class="lg:hidden text-black hover:text-gray-600 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
                     </button>
 
-                    <div class="flex items-center space-x-3">
+                    <div class="flex items-center space-x-3 min-w-0">
                         <img src="{{ asset('storage/images/jfxtech-logo-500x500-removebg-preview.png') }}" alt="JFXTECH" class="h-7 w-7 object-contain">
-                        <div>
-                            <h1 class="text-sm font-mono font-bold uppercase tracking-widest text-black">Admin Panel</h1>
-                            <p class="text-[10px] font-mono uppercase tracking-widest text-[var(--color-lab-muted)]">JFXTECH System</p>
+                        <div class="min-w-0">
+                            <h1 class="admin-compact-text text-xs sm:text-sm font-mono font-bold uppercase tracking-widest text-black truncate">Admin Panel</h1>
+                            <p class="admin-compact-text text-[10px] font-mono uppercase tracking-widest text-[var(--color-lab-muted)] truncate">JFXTECH System</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="flex items-center space-x-4 lg:space-x-6">
+                <div class="flex items-center space-x-3 sm:space-x-4 lg:space-x-6 shrink-0">
                     <a href="{{ route('site.index') }}" class="flex items-center space-x-2 text-[var(--color-lab-muted)] hover:text-black transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                         <span class="hidden sm:inline font-mono text-xs uppercase tracking-widest">Site</span>
@@ -69,7 +97,7 @@
         <div id="sidebarOverlay" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 lg:hidden hidden"></div>
 
         <!-- Sidebar -->
-        <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-50 w-60 bg-white border-r border-[var(--color-lab-border)] min-h-screen transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out lg:block">
+        <aside id="sidebar" class="fixed lg:sticky lg:top-[73px] inset-y-0 left-0 z-50 w-[82vw] max-w-60 lg:w-56 xl:w-60 bg-white border-r border-[var(--color-lab-border)] min-h-screen lg:h-[calc(100vh-73px)] transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out lg:block overflow-y-auto admin-mobile-scroll">
             <div class="flex items-center justify-between p-4 border-b border-[var(--color-lab-border)] lg:hidden">
                 <span class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Navigation</span>
                 <button id="closeSidebar" class="text-black hover:text-gray-600">
@@ -115,7 +143,7 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 p-4 sm:p-6 lg:p-8">
+        <main class="admin-shell-main flex-1 p-4 sm:p-6 lg:p-8">
             @if(session('success'))
                 <div class="border border-black bg-white p-4 mb-6 flex items-start space-x-3">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 flex-shrink-0"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
