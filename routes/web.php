@@ -76,11 +76,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::post('/produtos/{id}/status', [AdminController::class, 'alterarStatusProduto'])->name('produtos.alterar-status');
     Route::post('/produtos/{id}/destaque', [AdminController::class, 'alterarDestaqueProduto'])->name('produtos.alterar-destaque');
     Route::post('/produtos/{id}/excluir', [AdminController::class, 'excluirProduto'])->name('produtos.excluir');
-    
+    Route::post('/produtos/{id}/quick-edit', [AdminController::class, 'quickEditProduto'])->name('produtos.quick-edit');
+
     // Pedidos
     Route::get('/pedidos', [AdminController::class, 'pedidos'])->name('pedidos');
     Route::get('/pedidos/{id}', [AdminController::class, 'detalhesPedido'])->name('pedidos.detalhes');
     Route::post('/pedidos/{id}/status', [AdminController::class, 'atualizarStatusPedido'])->name('pedidos.status');
+    Route::post('/pedidos/{id}/quick-status', [AdminController::class, 'quickStatusPedido'])->name('pedidos.quick-status');
     
     // Categorias
     Route::get('/categorias', [AdminController::class, 'categorias'])->name('categorias');

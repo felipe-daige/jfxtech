@@ -19,10 +19,12 @@
         window.routes = {
             adminProdutosCriar: '{{ route("admin.produtos.criar") }}',
             adminProdutosEditar: '{{ route("admin.produtos.editar", ":id") }}',
+            adminProdutosQuickEdit: '{{ route("admin.produtos.quick-edit", ":id") }}',
             adminCategoriasCriar: '{{ route("admin.categorias.criar") }}',
             adminCategoriasEditar: '{{ route("admin.categorias.editar", ":id") }}',
             adminPedidosStatus: '{{ route("admin.pedidos.status", ":id") }}',
-            adminPedidosDetalhes: '{{ route("admin.pedidos.detalhes", ":id") }}'
+            adminPedidosDetalhes: '{{ route("admin.pedidos.detalhes", ":id") }}',
+            adminPedidosQuickStatus: '{{ route("admin.pedidos.quick-status", ":id") }}',
         };
     </script>
 </head>

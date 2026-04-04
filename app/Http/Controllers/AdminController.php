@@ -24,15 +24,18 @@ class AdminController extends Controller
         if (!Auth::check()) {
             return redirect()->route('site.login');
         }
-        
-        $total_produtos = Produto::count();
-        $total_pedidos = Pedido::count();
-        $pedidos_pendentes = Pedido::where('status', 'pendente')->count();
+
+        // Métricas de pedidos
+        $total_produtos      = Produto::count();
+        $total_pedidos       = Pedido::count();
+        $pedidos_pendentes   = Pedido::where('status', 'pendente')->count();
         $pedidos_processando = Pedido::where('status', 'processando')->count();
-        $pedidos_enviados = Pedido::where('status', 'enviado')->count();
-        $pedidos_entregues = Pedido::where('status', 'entregue')->count();
-        $pedidos_cancelados = Pedido::where('status', 'cancelado')->count();
-        $receita_total = Pedido::where('status', 'entregue')->sum('valor_total');
+        $pedidos_enviados    = Pedido::where('status', 'enviado')->count();
+        $pedidos_entregues   = Pedido::where('status', 'entregue')->count();
+        $pedidos_cancelados  = Pedido::where('status', 'cancelado')->count();
+        $receita_total       = Pedido::where('status', 'entregue')->sum('valor_total');
+
+        // Custo e lucro (apenas pedidos entregues)
         $itensEntregues = ItemPedido::with([
             'produto:id,custo_compra',
             'produtoVariante:id,produto_id,custo_compra',
@@ -40,7 +43,7 @@ class AdminController extends Controller
             $query->where('status', 'entregue');
         })->get();
 
-        $custo_total = 0;
+        $custo_total     = 0;
         $itens_sem_custo = 0;
 
         foreach ($itensEntregues as $item) {
@@ -54,27 +57,91 @@ class AdminController extends Controller
             $custo_total += $item->quantidade * $custoUnitario;
         }
 
-        $lucro_bruto_total = $receita_total - $custo_total;
+        $lucro_bruto_total       = $receita_total - $custo_total;
         $margem_bruta_percentual = $receita_total > 0
             ? round(($lucro_bruto_total / $receita_total) * 100, 2)
             : 0;
-        
+
+        // Produtos para analytics e alertas
+        $produtos_analytics = Produto::select(
+            'id', 'nome', 'marca', 'preco', 'preco_original', 'custo_compra',
+            'desconto_percentual', 'em_promocao', 'estoque', 'ativo'
+        )->with('imagemCapa:id,produto_id')->orderBy('nome')->get();
+
+        // Collections para alertas expansíveis
+        $margemMinima          = 20;
+        $produtosSemCusto      = $produtos_analytics->whereNull('custo_compra');
+        $produtosEstoqueZerado = $produtos_analytics->where('ativo', true)->where('estoque', 0);
+        $produtosMargemNeg     = $produtos_analytics->filter(
+            fn($p) => $p->custo_compra !== null && $p->margem_bruta_percentual !== null && $p->margem_bruta_percentual < 0
+        );
+        $produtosMargemZero    = $produtos_analytics->filter(
+            fn($p) => $p->custo_compra !== null && $p->margem_bruta_percentual !== null && $p->margem_bruta_percentual == 0
+        );
+        $produtosMargemBaixa   = $produtos_analytics->filter(
+            fn($p) => $p->custo_compra !== null && $p->margem_bruta_percentual !== null
+                && $p->margem_bruta_percentual > 0 && $p->margem_bruta_percentual < $margemMinima
+        );
+
+        $alertas = [
+            'margem_negativa'          => $produtosMargemNeg->count(),
+            'margem_zero'              => $produtosMargemZero->count(),
+            'margem_baixa'             => $produtosMargemBaixa->count(),
+            'estoque_zerado'           => $produtosEstoqueZerado->count(),
+            'sem_custo'                => $produtosSemCusto->count(),
+            'sem_imagem'               => $produtos_analytics->where('ativo', true)
+                                             ->filter(fn($p) => $p->imagemCapa === null)->count(),
+            'inativos'                 => $produtos_analytics->where('ativo', false)->count(),
+            'produtos_sem_custo'       => $produtosSemCusto->values(),
+            'produtos_estoque_zerado'  => $produtosEstoqueZerado->values(),
+            'produtos_margem_negativa' => $produtosMargemNeg->values(),
+            'produtos_margem_zero'     => $produtosMargemZero->values(),
+            'produtos_margem_baixa'    => $produtosMargemBaixa->values(),
+        ];
+
+        // Performance
+        $top_produtos = ItemPedido::select(
+            'produto_id',
+            \DB::raw('SUM(quantidade) as total_vendido'),
+            \DB::raw('SUM(preco * quantidade) as receita_gerada')
+        )->whereHas('pedido', fn($q) => $q->where('status', 'entregue'))
+            ->groupBy('produto_id')
+            ->orderByDesc('total_vendido')
+            ->limit(5)
+            ->with('produto:id,nome,marca')
+            ->get();
+
+        $receita_categoria = \DB::table('itens_pedido')
+            ->join('pedidos', 'pedidos.id', '=', 'itens_pedido.pedido_id')
+            ->join('produtos', 'produtos.id', '=', 'itens_pedido.produto_id')
+            ->join('categorias', 'categorias.id', '=', 'produtos.categoria_id')
+            ->where('pedidos.status', 'entregue')
+            ->select('categorias.nome', \DB::raw('SUM(itens_pedido.preco * itens_pedido.quantidade) as receita'))
+            ->groupBy('categorias.id', 'categorias.nome')
+            ->orderByDesc('receita')
+            ->get();
+
+        $ticket_medio   = $pedidos_entregues > 0 ? round($receita_total / $pedidos_entregues, 2) : 0;
+        $total_unidades = ItemPedido::whereHas('pedido', fn($q) => $q->where('status', 'entregue'))->sum('quantidade');
+        $total_ativos   = Produto::where('ativo', true)->count();
+
+        // Pedidos que precisam de ação
+        $pedidos_acao = Pedido::whereIn('status', ['pendente', 'processando'])
+            ->with('user:id,name')
+            ->orderBy('created_at')
+            ->get();
+
         $pedidos_recentes = Pedido::with('user')->orderBy('created_at', 'desc')->limit(5)->get();
-        
+
         return view('admin.dashboard', compact(
-            'total_produtos', 
-            'total_pedidos', 
-            'pedidos_pendentes',
-            'pedidos_processando',
-            'pedidos_enviados',
-            'pedidos_entregues',
-            'pedidos_cancelados',
-            'receita_total',
-            'custo_total',
-            'lucro_bruto_total',
-            'margem_bruta_percentual',
-            'itens_sem_custo',
-            'pedidos_recentes'
+            'total_produtos', 'total_pedidos', 'pedidos_pendentes',
+            'pedidos_processando', 'pedidos_enviados', 'pedidos_entregues', 'pedidos_cancelados',
+            'receita_total', 'custo_total', 'lucro_bruto_total', 'margem_bruta_percentual',
+            'itens_sem_custo', 'pedidos_recentes',
+            'produtos_analytics', 'alertas',
+            'top_produtos', 'receita_categoria',
+            'ticket_medio', 'total_unidades', 'total_ativos',
+            'pedidos_acao'
         ));
     }
 
@@ -1055,5 +1122,58 @@ class AdminController extends Controller
         }
 
         return null;
+    }
+
+    public function quickEditProduto(Request $request, $id)
+    {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $produto = Produto::findOrFail($id);
+        $data = [];
+
+        if ($request->filled('custo_compra')) {
+            $data['custo_compra'] = $this->parseMoneyInput($request->custo_compra);
+        } elseif ($request->has('custo_compra') && $request->custo_compra === '') {
+            $data['custo_compra'] = null;
+        }
+
+        if ($request->filled('estoque')) {
+            $data['estoque'] = max(0, (int) $request->estoque);
+        }
+
+        if (!empty($data)) {
+            $produto->update($data);
+            $produto->refresh();
+        }
+
+        return response()->json([
+            'success'      => true,
+            'custo_compra' => $produto->custo_compra,
+            'estoque'      => $produto->estoque,
+            'margem'       => $produto->margem_bruta_percentual,
+            'lucro'        => $produto->lucro_bruto_unitario,
+        ]);
+    }
+
+    public function quickStatusPedido(Request $request, $id)
+    {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $pedido = Pedido::findOrFail($id);
+
+        $request->validate([
+            'status' => 'required|in:pendente,processando,enviado,entregue,cancelado',
+        ]);
+
+        $pedido->update(['status' => $request->status]);
+
+        return response()->json([
+            'success' => true,
+            'status'  => $pedido->status,
+        ]);
     }
 }
