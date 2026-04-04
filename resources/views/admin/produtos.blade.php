@@ -484,6 +484,14 @@
                             <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Layout</label>
                             <input type="text" name="specs[layout]" id="spec_layout" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black" placeholder="ex: TKL, 60%, 65%, 75%">
                         </div>
+                        <div>
+                            <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Superfície</label>
+                            <input type="text" name="specs[superficie]" id="spec_superficie" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black" placeholder="ex: Cloth — Alta Controle">
+                        </div>
+                        <div>
+                            <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Base</label>
+                            <input type="text" name="specs[base]" id="spec_base" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black" placeholder="ex: Borracha antiderrapante">
+                        </div>
                     </div>
                 </div>
                 </div>{{-- end #tab-specs --}}

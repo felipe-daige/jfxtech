@@ -230,6 +230,8 @@
                         'dimensoes'    => 'Dimensões',   'cabo'         => 'Cabo',
                         'iluminacao'   => 'Iluminação',  'garantia'     => 'Garantia',
                         'layout'       => 'Layout',
+                        'superficie'   => 'Superfície',
+                        'base'         => 'Base',
                     ];
                 @endphp
 
