@@ -12,6 +12,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
 </head>
 <body class="min-h-screen flex flex-col bg-[var(--color-lab-bg)] text-[var(--color-lab-ink)] antialiased">
+    @php($subtotalProdutos = $carrinho->itens->sum(fn ($item) => $item->preco * $item->quantidade))
     @include('includes.header')
 
     <main class="flex-grow">
@@ -22,8 +23,8 @@
                 <svg class="w-4 h-4 mx-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
                 <span class="text-black">FINALIZAR COMPRA</span>
             </nav>
-            <h1 class="text-4xl font-bold tracking-tight mb-2">ENDEREÇO DE ENTREGA</h1>
-            <p class="text-gray-500 font-mono text-sm">CONFIRME SEU ENDEREÇO PARA CONTINUAR</p>
+            <h1 id="checkout-title" class="text-4xl font-bold tracking-tight mb-2">ENDEREÇO DE ENTREGA</h1>
+            <p id="checkout-subtitle" class="text-gray-500 font-mono text-sm">CONFIRME SEU ENDEREÇO PARA CONTINUAR</p>
         </div>
     </div>
 
@@ -171,7 +172,7 @@
                         <div class="space-y-2">
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-600">Subtotal:</span>
-                                <span class="font-semibold">R$ {{ number_format($carrinho->valor_total, 2, ',', '.') }}</span>
+                                <span class="font-semibold">R$ {{ number_format($subtotalProdutos, 2, ',', '.') }}</span>
                             </div>
 
                             <!-- Opções de Frete -->
@@ -208,7 +209,7 @@
                             <div class="border-t pt-2">
                                 <div class="flex justify-between text-lg font-bold">
                                     <span>Total:</span>
-                                    <span class="font-mono font-bold" id="total-valor">R$ {{ number_format($carrinho->valor_total, 2, ',', '.') }}</span>
+                                    <span class="font-mono font-bold" id="total-valor">R$ {{ number_format($subtotalProdutos, 2, ',', '.') }}</span>
                                 </div>
                             </div>
                         </div>
@@ -339,7 +340,7 @@
         $('#frete-valor').text('R$ ' + valor.toFixed(2).replace('.', ','));
 
         // Atualizar total
-        const subtotal = parseFloat('{{ $carrinho->valor_total }}');
+        const subtotal = parseFloat('{{ $subtotalProdutos }}');
         const total = subtotal + valor;
         $('#total-valor').text('R$ ' + total.toFixed(2).replace('.', ','));
     }
@@ -347,6 +348,12 @@
     // Create order
     function createOrder() {
         let dadosEndereco;
+        const freteTipo = $('input[name="frete"]:checked').val();
+
+        if (!freteTipo) {
+            alert('Selecione uma opção de frete antes de continuar.');
+            return;
+        }
 
         @if($enderecos->count() > 0)
         // Usar endereço salvo
@@ -358,7 +365,8 @@
             bairro: '{{ $enderecos->first()->bairro }}',
             cidade: '{{ $enderecos->first()->cidade }}',
             estado: '{{ $enderecos->first()->estado }}',
-            pais: 'BR'
+            pais: 'BR',
+            frete_tipo: freteTipo
         };
         @else
         // Validar formulário se não tiver endereço salvo
@@ -387,7 +395,8 @@
             bairro: $('#bairro').val(),
             cidade: $('#cidade').val(),
             estado: $('#estado').val(),
-            pais: 'BR'
+            pais: 'BR',
+            frete_tipo: freteTipo
         };
         @endif
 
@@ -398,7 +407,7 @@
         continueBtn.html('PROCESSANDO...');
 
         $.ajax({
-            url: '/pedidos',
+            url: '{{ route('site.checkout.mercadopago.prepare') }}',
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
@@ -407,80 +416,7 @@
             data: dadosEndereco,
             success: function(data) {
                 if (data.success) {
-                    // Trocar apenas o conteúdo da seção principal
-                    const paymentContent = `
-                        <div class="max-w-4xl mx-auto">
-                            <div class="bg-white border border-[var(--color-lab-border)] p-8">
-                                <h2 class="text-2xl font-bold tracking-tight mb-8 text-center">Método de Pagamento</h2>
-
-                                <div class="space-y-4 mb-8">
-                                    <label class="flex items-center p-6 border border-[var(--color-lab-border)] cursor-pointer hover:bg-gray-50 payment-option">
-                                        <input type="radio" name="payment_method" value="pix" class="mr-4 text-black focus:ring-black">
-                                        <div class="flex-1">
-                                            <div class="font-mono text-sm font-bold">PIX</div>
-                                            <div class="text-sm text-gray-600">Pagamento instantâneo</div>
-                                        </div>
-                                        <div class="text-right">
-                                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-                                        </div>
-                                    </label>
-
-                                    <label class="flex items-center p-6 border border-[var(--color-lab-border)] cursor-pointer hover:bg-gray-50 payment-option">
-                                        <input type="radio" name="payment_method" value="credit" class="mr-4 text-black focus:ring-black">
-                                        <div class="flex-1">
-                                            <div class="font-mono text-sm font-bold">Cartão de Crédito</div>
-                                            <div class="text-sm text-gray-600">Visa, Mastercard, Elo</div>
-                                        </div>
-                                        <div class="text-right">
-                                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-                                        </div>
-                                    </label>
-
-                                    <label class="flex items-center p-6 border border-[var(--color-lab-border)] cursor-pointer hover:bg-gray-50 payment-option">
-                                        <input type="radio" name="payment_method" value="debit" class="mr-4 text-black focus:ring-black">
-                                        <div class="flex-1">
-                                            <div class="font-mono text-sm font-bold">Cartão de Débito</div>
-                                            <div class="text-sm text-gray-600">Visa, Mastercard, Elo</div>
-                                        </div>
-                                        <div class="text-right">
-                                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-                                        </div>
-                                    </label>
-                                </div>
-
-                                <button id="finalize-payment-btn" class="w-full bg-black text-white font-bold py-3 px-6 tracking-widest uppercase text-sm hover:bg-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                                    Finalizar Pagamento
-                                </button>
-                            </div>
-                        </div>
-                    `;
-
-                    // Trocar apenas o conteúdo da seção
-                    $('section.py-12 .max-w-7xl').html(paymentContent);
-
-                    // Atualizar título da página
-                    $('h1').text('Finalizar Pagamento');
-                    $('p').text('Escolha seu método de pagamento.');
-
-                    // Re-attach payment method selection events
-                    $('.payment-option').on('click', function() {
-                        $('.payment-option').removeClass('border-black bg-[var(--color-lab-bg)]');
-                        $('.payment-option').addClass('border-[var(--color-lab-border)]');
-                        $(this).removeClass('border-[var(--color-lab-border)]');
-                        $(this).addClass('border-black bg-[var(--color-lab-bg)]');
-                        $('#finalize-payment-btn').prop('disabled', false);
-                    });
-
-                    // Re-attach finalize payment event
-                    $('#finalize-payment-btn').on('click', function() {
-                        const selectedMethod = $('input[name="payment_method"]:checked').val();
-                        if (!selectedMethod) {
-                            alert('Por favor, selecione um método de pagamento.');
-                            return;
-                        }
-                        alert('Pagamento processado com sucesso!');
-                        window.location.href = '/pedidos/sucesso';
-                    });
+                    renderMercadoPagoCheckout(data.checkout);
                 } else {
                     // Show error
                     continueBtn.html('Erro - Tente Novamente');
@@ -506,6 +442,59 @@
             }
         });
     }
+
+    function renderMercadoPagoCheckout(checkout) {
+        const paymentContent = `
+            <div class="max-w-5xl mx-auto">
+                <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] gap-8">
+                    <div class="bg-white border border-[var(--color-lab-border)] p-8">
+                        <div class="flex items-start justify-between gap-6 mb-8">
+                            <div>
+                                <h2 class="text-2xl font-bold tracking-tight">Pagamento</h2>
+                                <p class="text-sm text-gray-500 font-mono mt-2">Pedido #${checkout.pedido_id}</p>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-xs font-mono uppercase tracking-widest text-gray-500">Total</div>
+                                <div class="text-2xl font-bold">R$ ${checkout.amount.toFixed(2).replace('.', ',')}</div>
+                            </div>
+                        </div>
+
+                        <div id="paymentBrick_container"></div>
+                        <div id="paymentBrick_feedback" class="hidden mt-6 border border-[var(--color-lab-border)] bg-[var(--color-lab-bg)] p-5"></div>
+                    </div>
+
+                    <aside class="bg-white border border-[var(--color-lab-border)] p-6 h-fit">
+                        <h3 class="font-mono text-xs uppercase tracking-widest text-gray-500 mb-4">Resumo</h3>
+                        <div class="space-y-3 text-sm">
+                            <div class="flex justify-between">
+                                <span>Subtotal</span>
+                                <span>R$ ${checkout.subtotal.toFixed(2).replace('.', ',')}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Frete ${checkout.frete.label}</span>
+                                <span>R$ ${checkout.frete.valor.toFixed(2).replace('.', ',')}</span>
+                            </div>
+                            <div class="flex justify-between border-t pt-3 font-bold">
+                                <span>Total</span>
+                                <span>R$ ${checkout.amount.toFixed(2).replace('.', ',')}</span>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-4">O pedido só será confirmado após retorno do gateway/webhook.</p>
+                    </aside>
+                </div>
+            </div>
+        `;
+
+        $('section.py-12 .max-w-7xl').html(paymentContent);
+        $('#checkout-title').text('FINALIZAR PAGAMENTO');
+        $('#checkout-subtitle').text('PAGUE COM O PAYMENT BRICK DO MERCADO PAGO');
+
+        if (window.checkoutMercadoPago) {
+            window.checkoutMercadoPago.mount(checkout);
+        }
+    }
     </script>
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
+    <script src="{{ asset('js/checkout-mercadopago.js') }}"></script>
 </body>
 </html>

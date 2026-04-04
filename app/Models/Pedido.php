@@ -13,11 +13,14 @@ class Pedido extends Model
         'user_id',
         'endereco_id',
         'status',
-        'valor_total'
+        'valor_total',
+        'frete_tipo',
+        'frete_valor',
     ];
 
     protected $casts = [
-        'valor_total' => 'decimal:2'
+        'valor_total' => 'decimal:2',
+        'frete_valor' => 'decimal:2',
     ];
 
     /**

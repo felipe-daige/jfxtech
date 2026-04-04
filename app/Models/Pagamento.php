@@ -10,14 +10,20 @@ class Pagamento extends Model
     protected $fillable = [
         'pedido_id',
         'metodo',
+        'gateway',
+        'gateway_payment_id',
+        'gateway_status_detail',
+        'external_reference',
         'status',
         'valor',
-        'data'
+        'data',
+        'payload',
     ];
 
     protected $casts = [
         'valor' => 'decimal:2',
-        'data' => 'datetime'
+        'data' => 'datetime',
+        'payload' => 'array',
     ];
 
     /**

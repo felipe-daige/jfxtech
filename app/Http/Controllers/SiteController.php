@@ -431,8 +431,9 @@ class SiteController extends Controller
 
         // Verificar se há itens no carrinho
         $carrinho = Pedido::where('user_id', Auth::id())
-            ->where('status', 'carrinho')
+            ->whereIn('status', ['carrinho', 'pendente', 'processando'])
             ->with(['itens.produto.imagens'])
+            ->latest('id')
             ->first();
 
         if (!$carrinho || $carrinho->itens->isEmpty()) {

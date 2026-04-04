@@ -6,6 +6,7 @@ use App\Http\Controllers\PedidosController;
 use App\Http\Controllers\FavoritosController;
 use App\Http\Controllers\CarrinhoController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\MercadoPagoCheckoutController;
 
 Route::get('/', [SiteController::class, 'index'])->name('site.index');
 Route::get('/produtos', [SiteController::class, 'produtos'])->name('site.produtos');
@@ -94,3 +95,11 @@ Route::get('/cep/{cep}', [App\Http\Controllers\CepController::class, 'buscarCep'
 // Rotas de frete
 Route::post('/frete/calcular', [App\Http\Controllers\FreteController::class, 'calcularFrete'])->name('frete.calcular');
 Route::post('/frete/carrinho', [App\Http\Controllers\FreteController::class, 'calcularFreteCarrinho'])->name('frete.carrinho');
+
+// Checkout Mercado Pago
+Route::post('/checkout/mercado-pago/preparar', [MercadoPagoCheckoutController::class, 'prepare'])->name('site.checkout.mercadopago.prepare');
+Route::post('/checkout/mercado-pago/pagar', [MercadoPagoCheckoutController::class, 'pay'])->name('site.checkout.mercadopago.pay');
+Route::get('/checkout/mercado-pago/status/{pedido}', [MercadoPagoCheckoutController::class, 'status'])->name('site.checkout.mercadopago.status');
+Route::post('/webhooks/mercado-pago', [MercadoPagoCheckoutController::class, 'webhook'])
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
+    ->name('site.checkout.mercadopago.webhook');
