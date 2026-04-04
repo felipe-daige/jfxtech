@@ -221,59 +221,15 @@
     </div>
 
     <!-- Paginacao -->
-    @if($produtos->hasPages())
-    <div class="mt-6 border border-[var(--color-lab-border)] bg-white p-4">
-        <!-- Informacoes de paginacao -->
-        <div class="text-center font-mono text-xs text-[var(--color-lab-muted)] uppercase tracking-widest mb-4">
-            Mostrando {{ $produtos->firstItem() ?? 0 }} a {{ $produtos->lastItem() ?? 0 }} de {{ $produtos->total() }} produtos
-            @if(request('pesquisa'))
-                para "{{ request('pesquisa') }}"
-            @endif
-            @if(request('categoria_id'))
-                @php $categoriaSelecionada = $categorias->firstWhere('id', request('categoria_id')); @endphp
-                @if($categoriaSelecionada)
-                    na categoria "{{ $categoriaSelecionada->nome }}"
-                @endif
-            @endif
-        </div>
-
-        <!-- Navegacao Centralizada -->
-        <div class="flex justify-center items-center space-x-2">
-            <!-- Botao Anterior -->
-            @if($produtos->onFirstPage())
-                <span class="px-4 py-2 font-mono text-xs uppercase tracking-widest text-gray-300 border border-[var(--color-lab-border)] cursor-not-allowed">
-                    Anterior
-                </span>
-            @else
-                <a href="{{ $produtos->previousPageUrl() }}" class="px-4 py-2 font-mono text-xs uppercase tracking-widest text-black border border-[var(--color-lab-border)] hover:border-black hover:bg-gray-50 transition-colors">
-                    Anterior
-                </a>
-            @endif
-
-            <!-- Numeros das paginas -->
-            <div class="flex items-center space-x-1">
-                @foreach($produtos->getUrlRange(1, $produtos->lastPage()) as $page => $url)
-                    @if($page == $produtos->currentPage())
-                        <span class="px-3 py-2 font-mono text-xs bg-black text-white">{{ $page }}</span>
-                    @else
-                        <a href="{{ $url }}" class="px-3 py-2 font-mono text-xs text-black border border-[var(--color-lab-border)] hover:border-black hover:bg-gray-50 transition-colors">{{ $page }}</a>
-                    @endif
-                @endforeach
-            </div>
-
-            <!-- Botao Proximo -->
-            @if($produtos->hasMorePages())
-                <a href="{{ $produtos->nextPageUrl() }}" class="px-4 py-2 font-mono text-xs uppercase tracking-widest text-black border border-[var(--color-lab-border)] hover:border-black hover:bg-gray-50 transition-colors">
-                    Proximo
-                </a>
-            @else
-                <span class="px-4 py-2 font-mono text-xs uppercase tracking-widest text-gray-300 border border-[var(--color-lab-border)] cursor-not-allowed">
-                    Proximo
-                </span>
-            @endif
-        </div>
+    <div id="paginacaoContainer">
+        @include('admin.includes.paginacao', [
+            'produtos'    => $produtos,
+            'perPage'     => $perPage,
+            'pesquisa'    => request('pesquisa'),
+            'categoriaId' => request('categoria_id'),
+            'categorias'  => $categorias,
+        ])
     </div>
-    @endif
 </div>
 
 <!-- Modal de Produto -->
@@ -314,6 +270,12 @@
                                 class="produto-tab-btn px-4 py-2 text-sm font-mono uppercase tracking-widest border-b-2 -mb-px transition-colors border-transparent text-gray-400 hover:text-black"
                                 data-tab="variantes">
                             VARIANTES
+                        </button>
+                        <button type="button"
+                                onclick="switchProdutoTab('specs')"
+                                class="produto-tab-btn px-4 py-2 text-sm font-mono uppercase tracking-widest border-b-2 -mb-px transition-colors border-transparent text-gray-400 hover:text-black"
+                                data-tab="specs">
+                            SPECS
                         </button>
                     </div>
                 </div>
@@ -473,6 +435,58 @@
                     </div>
                 </div>
                 </div>{{-- end #tab-variantes --}}
+
+                <div id="tab-specs" class="produto-tab-panel hidden">
+                <div class="px-6 pb-6 space-y-5">
+                    <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Especificações técnicas — deixe em branco os campos não aplicáveis</p>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div>
+                            <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Sensor</label>
+                            <input type="text" name="specs[sensor]" id="spec_sensor" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black" placeholder="ex: Pulsar XS-1 Optical">
+                        </div>
+                        <div>
+                            <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">DPI Máximo</label>
+                            <input type="text" name="specs[dpi_maximo]" id="spec_dpi_maximo" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black" placeholder="ex: 32.000 DPI">
+                        </div>
+                        <div>
+                            <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Switches</label>
+                            <input type="text" name="specs[switches]" id="spec_switches" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black" placeholder="ex: Óptico Pulsar (100M cliques)">
+                        </div>
+                        <div>
+                            <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Peso</label>
+                            <input type="text" name="specs[peso]" id="spec_peso" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black" placeholder="ex: 43 g">
+                        </div>
+                        <div>
+                            <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Conexão</label>
+                            <input type="text" name="specs[conexao]" id="spec_conexao" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black" placeholder="ex: 2,4 GHz Wireless + USB-C">
+                        </div>
+                        <div>
+                            <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Polling Rate</label>
+                            <input type="text" name="specs[polling_rate]" id="spec_polling_rate" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black" placeholder="ex: 1.000 Hz">
+                        </div>
+                        <div>
+                            <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Dimensões</label>
+                            <input type="text" name="specs[dimensoes]" id="spec_dimensoes" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black" placeholder="ex: 119,6 × 67,1 × 41 mm">
+                        </div>
+                        <div>
+                            <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Cabo</label>
+                            <input type="text" name="specs[cabo]" id="spec_cabo" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black" placeholder="ex: USB-C 1,8 m paracord">
+                        </div>
+                        <div>
+                            <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Iluminação</label>
+                            <input type="text" name="specs[iluminacao]" id="spec_iluminacao" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black" placeholder="ex: RGB / Sem RGB">
+                        </div>
+                        <div>
+                            <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Garantia</label>
+                            <input type="text" name="specs[garantia]" id="spec_garantia" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black" placeholder="ex: 1 ano">
+                        </div>
+                        <div>
+                            <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Layout</label>
+                            <input type="text" name="specs[layout]" id="spec_layout" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black" placeholder="ex: TKL, 60%, 65%, 75%">
+                        </div>
+                    </div>
+                </div>
+                </div>{{-- end #tab-specs --}}
 
                 <div class="p-6 border-t border-[var(--color-lab-border)] flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
                     <button type="button" onclick="fecharModalProduto()" class="w-full sm:w-auto px-5 py-2.5 text-xs font-bold tracking-widest uppercase border border-[var(--color-lab-border)] text-black hover:bg-gray-50 transition-colors">
@@ -656,6 +670,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Atualizar o container com os novos produtos
             produtosContainer.innerHTML = data.html;
+
+            // Atualizar paginacao
+            const paginacaoContainer = document.getElementById('paginacaoContainer');
+            if (paginacaoContainer) {
+                paginacaoContainer.innerHTML = data.paginacao_html;
+            }
 
             // Limpar seleção após refresh da lista
             if (typeof limparSelecao === 'function') limparSelecao();

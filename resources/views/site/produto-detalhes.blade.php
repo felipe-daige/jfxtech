@@ -22,7 +22,7 @@
     <meta name="twitter:image" content="{{ $produto->imagemCapa ? url('storage/' . $produto->imagemCapa->caminho) : url('storage/images/jfxtech-link-preiew-opt.jpg') }}">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <link rel="stylesheet" href="{{ asset('css/site-styles.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/site-styles.css') }}?v={{ filemtime(public_path('css/site-styles.css')) }}">
 </head>
 <body class="min-h-screen flex flex-col bg-[var(--color-lab-bg)] text-[var(--color-lab-ink)] antialiased">
     @include('includes.header')
@@ -48,9 +48,9 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-16">
                 {{-- Image Gallery --}}
                 <div class="space-y-4">
-                    <div class="aspect-square bg-white border border-[var(--color-lab-border)] overflow-hidden flex items-center justify-center p-8 relative">
+                    <div id="main-image-frame" class="product-image-frame aspect-square bg-white border border-[var(--color-lab-border)] overflow-hidden flex items-center justify-center p-8 relative">
                         @if($produto->primeira_imagem)
-                            <img id="main-image" src="{{ asset('storage/' . $produto->primeira_imagem) }}" alt="{{ $produto->nome }}" class="w-full h-full object-contain mix-blend-multiply">
+                            <img id="main-image" src="{{ asset('storage/' . $produto->primeira_imagem) }}" alt="{{ $produto->nome }}" class="product-main-image w-full h-full object-contain mix-blend-multiply">
                         @else
                             <div class="w-full h-full flex items-center justify-center">
                                 <svg class="w-20 h-20 text-gray-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
@@ -68,7 +68,8 @@
                     <div class="grid grid-cols-4 gap-3">
                         @foreach($produto->imagens as $index => $imagem)
                         <button class="thumbnail-btn aspect-square bg-white border overflow-hidden p-2 transition-colors {{ $index === 0 ? 'border-black' : 'border-[var(--color-lab-border)] hover:border-black' }}"
-                                data-image="{{ asset('storage/' . $imagem->caminho) }}">
+                                data-image="{{ asset('storage/' . $imagem->caminho) }}"
+                                data-imagem-id="{{ $imagem->id }}">
                             <img src="{{ asset('storage/' . $imagem->caminho) }}" alt="{{ $produto->nome }} - {{ $index + 1 }}" class="w-full h-full object-contain mix-blend-multiply">
                         </button>
                         @endforeach
@@ -208,13 +209,7 @@
             </div>
         </section>
 
-        {{-- Description Section --}}
-        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div class="bg-white border border-[var(--color-lab-border)] p-8">
-                <h3 class="font-mono text-xs font-bold uppercase tracking-widest mb-6 text-gray-500">DESCRIÇÃO DO PRODUTO</h3>
-                <div class="text-gray-700 leading-relaxed text-lg prose max-w-none">{!! $produto->descricao !!}</div>
-            </div>
-        </section>
+        <x-product-description :description="$produto->descricao" />
 
         {{-- Specs / Anatomy Section --}}
         <section class="bg-black text-white py-24 relative overflow-hidden">
@@ -228,82 +223,26 @@
                 @php
                     $specs_raw     = $produto->specs ?? [];
                     $specs_validas = array_filter($specs_raw, fn($v) => $v !== null && $v !== '');
-                    $chaves        = array_keys($specs_validas);
-                    $mid           = (int) ceil(count($chaves) / 2);
-                    $esquerda      = array_slice($chaves, 0, $mid);
-                    $direita       = array_slice($chaves, $mid);
                     $labels = [
                         'sensor'       => 'Sensor',      'dpi_maximo'   => 'DPI Máximo',
                         'switches'     => 'Switches',    'peso'         => 'Peso',
                         'conexao'      => 'Conexão',     'polling_rate' => 'Polling Rate',
                         'dimensoes'    => 'Dimensões',   'cabo'         => 'Cabo',
                         'iluminacao'   => 'Iluminação',  'garantia'     => 'Garantia',
+                        'layout'       => 'Layout',
                     ];
                 @endphp
 
                 @if(count($specs_validas) > 0)
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-12 items-center">
-                    {{-- Esquerda --}}
-                    <div class="space-y-6">
-                        @foreach($esquerda as $chave)
-                        <div class="flex flex-col items-end text-right">
-                            <p class="text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1">
-                                {{ $labels[$chave] ?? str_replace('_', ' ', $chave) }}
-                            </p>
-                            <h3 class="font-bold text-base">{{ $specs_validas[$chave] }}</h3>
-                        </div>
-                        @endforeach
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border-t border-l border-white/10">
+                    @foreach($specs_validas as $chave => $valor)
+                    <div class="p-6 flex flex-col border-b border-r border-white/10 hover:bg-white/5 transition-colors">
+                        <p class="text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-2">
+                            {{ $labels[$chave] ?? str_replace('_', ' ', $chave) }}
+                        </p>
+                        <span class="font-bold text-white text-lg leading-tight">{{ $valor }}</span>
                     </div>
-                    {{-- Centro — imagem --}}
-                    <div class="relative aspect-square flex items-center justify-center">
-                        <div class="absolute inset-0 bg-gradient-to-b from-transparent via-gray-900/50 to-transparent rounded-full blur-3xl"></div>
-                        @if($produto->primeira_imagem)
-                            <img src="{{ asset('storage/' . $produto->primeira_imagem) }}"
-                                 alt="{{ $produto->nome }}"
-                                 class="relative z-10 w-3/4 object-contain opacity-80 mix-blend-screen" loading="lazy">
-                        @endif
-                    </div>
-                    {{-- Direita --}}
-                    <div class="space-y-6">
-                        @foreach($direita as $chave)
-                        <div class="flex flex-col items-start text-left">
-                            <p class="text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1">
-                                {{ $labels[$chave] ?? str_replace('_', ' ', $chave) }}
-                            </p>
-                            <h3 class="font-bold text-base">{{ $specs_validas[$chave] }}</h3>
-                        </div>
-                        @endforeach
-                    </div>
-                </div>
-                @else
-                {{-- fallback: 4 bullets genéricos originais --}}
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-12 items-center">
-                    <div class="space-y-12">
-                        <div class="flex flex-col items-end text-right">
-                            <h3 class="font-bold text-lg mb-2">QUALIDADE PREMIUM</h3>
-                            <p class="text-sm text-gray-400">Materiais de primeira linha selecionados para durabilidade máxima.</p>
-                        </div>
-                        <div class="flex flex-col items-end text-right">
-                            <h3 class="font-bold text-lg mb-2">PRECISÃO ABSOLUTA</h3>
-                            <p class="text-sm text-gray-400">Cada componente calibrado para desempenho de alto nível.</p>
-                        </div>
-                    </div>
-                    <div class="relative aspect-square flex items-center justify-center">
-                        <div class="absolute inset-0 bg-gradient-to-b from-transparent via-gray-900/50 to-transparent rounded-full blur-3xl"></div>
-                        @if($produto->primeira_imagem)
-                            <img src="{{ asset('storage/' . $produto->primeira_imagem) }}" alt="{{ $produto->nome }}" class="relative z-10 w-3/4 object-contain opacity-80 mix-blend-screen" loading="lazy">
-                        @endif
-                    </div>
-                    <div class="space-y-12">
-                        <div class="flex flex-col items-start text-left">
-                            <h3 class="font-bold text-lg mb-2">ALTA PERFORMANCE</h3>
-                            <p class="text-sm text-gray-400">Projetado para entregar resultados superiores em todas as condições.</p>
-                        </div>
-                        <div class="flex flex-col items-start text-left">
-                            <h3 class="font-bold text-lg mb-2">GARANTIA ESTENDIDA</h3>
-                            <p class="text-sm text-gray-400">5 anos de garantia completa para sua total tranquilidade.</p>
-                        </div>
-                    </div>
+                    @endforeach
                 </div>
                 @endif
             </div>
@@ -327,6 +266,6 @@
 
     @include('includes.footer')
 
-    <script src="{{ asset('js/produto-detalhes.js') }}"></script>
+    <script src="{{ asset('js/produto-detalhes.js') }}?v={{ filemtime(public_path('js/produto-detalhes.js')) }}"></script>
 </body>
 </html>

@@ -331,7 +331,17 @@
     "categoria": "Teclados",
     "preco": 0.0,
     "estoque": 10,
-    "specs": {},
+    "specs": {
+      "layout": "TKL (Tenkeyless)",
+      "switches": "OmniPoint 2.0 HE Ajustável (Hall Effect Magnético, 0,1–4,0 mm)",
+      "polling_rate": "8.000 Hz",
+      "conexao": "USB-C com fio",
+      "cabo": "USB-C trançado removível, 2 m",
+      "iluminacao": "RGB por tecla (OmniRGB)",
+      "peso": "876 g (sem cabo)",
+      "dimensoes": "360 × 132 × 40 mm",
+      "garantia": "1 ano"
+    },
     "ativo": true,
     "imagens": []
   },
@@ -343,7 +353,17 @@
     "categoria": "Teclados",
     "preco": 0.0,
     "estoque": 10,
-    "specs": {},
+    "specs": {
+      "layout": "60%",
+      "switches": "OmniPoint 2.0 HE Ajustável (Hall Effect Magnético, 0,1–4,0 mm)",
+      "polling_rate": "8.000 Hz",
+      "conexao": "USB-C com fio",
+      "cabo": "USB-C trançado removível",
+      "iluminacao": "RGB por tecla",
+      "peso": "700 g",
+      "dimensoes": "295 × 105 × 40 mm",
+      "garantia": "1 ano"
+    },
     "ativo": true,
     "imagens": []
   },
@@ -355,7 +375,17 @@
     "categoria": "Teclados",
     "preco": 0.0,
     "estoque": 10,
-    "specs": {},
+    "specs": {
+      "layout": "60% (Edição Bruce Lee 85º Aniversário)",
+      "switches": "Pulsar HE (Hall Effect Magnético)",
+      "polling_rate": "8.000 Hz",
+      "conexao": "USB-C com fio",
+      "cabo": "USB-C Type-C",
+      "iluminacao": "RGB por tecla",
+      "peso": "550 g",
+      "dimensoes": "295 × 105 × 38 mm",
+      "garantia": "1 ano"
+    },
     "ativo": true,
     "imagens": [
       {
@@ -388,7 +418,17 @@
     "categoria": "Teclados",
     "preco": 0.0,
     "estoque": 10,
-    "specs": {},
+    "specs": {
+      "layout": "65% (68 teclas)",
+      "switches": "Hall Effect Magnético",
+      "polling_rate": "8.000 Hz",
+      "conexao": "USB-C com fio",
+      "cabo": "USB-C Type-C",
+      "iluminacao": "RGB por tecla",
+      "peso": "600 g",
+      "dimensoes": "315 × 105 × 38 mm",
+      "garantia": "1 ano"
+    },
     "ativo": true,
     "imagens": [
       {
@@ -421,7 +461,17 @@
     "categoria": "Teclados",
     "preco": 0.0,
     "estoque": 10,
-    "specs": {},
+    "specs": {
+      "layout": "60%",
+      "switches": "Pulsar HE (Hall Effect Magnético)",
+      "polling_rate": "8.000 Hz",
+      "conexao": "USB-C com fio",
+      "cabo": "USB-C Type-C",
+      "iluminacao": "RGB por tecla",
+      "peso": "550 g",
+      "dimensoes": "295 × 105 × 38 mm",
+      "garantia": "1 ano"
+    },
     "ativo": true,
     "imagens": [
       {

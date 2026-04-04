@@ -82,6 +82,10 @@ function abrirModalProduto() {
     });
 
 
+    // Limpar campos de specs
+    ['sensor','dpi_maximo','switches','peso','conexao','polling_rate','dimensoes','cabo','iluminacao','garantia','layout']
+        .forEach(key => { const el = document.getElementById('spec_' + key); if (el) el.value = ''; });
+
     // Clear current product id for variant tab (new product has no id yet)
     window.currentProdutoId = null;
 
@@ -136,6 +140,11 @@ function editarProduto(id) {
                 allowZero: true,
                 allowNegative: false
             });
+
+            // Preencher specs
+            const specs = data.specs || {};
+            ['sensor','dpi_maximo','switches','peso','conexao','polling_rate','dimensoes','cabo','iluminacao','garantia','layout']
+                .forEach(key => { const el = document.getElementById('spec_' + key); if (el) el.value = specs[key] || ''; });
 
             // Mostrar imagens existentes com seleção de capa
             mostrarImagensExistentes(data.imagens);
@@ -892,25 +901,33 @@ function mostrarPreviewSubstituir(imagemId, input) {
 
 // Tooltip singleton — bypassa overflow de qualquer ancestral
 (function () {
-    var tip = document.createElement('div');
-    tip.id = 'admin-tooltip';
-    document.body.appendChild(tip);
+    function initTooltip() {
+        var tip = document.createElement('div');
+        tip.id = 'admin-tooltip';
+        document.body.appendChild(tip);
 
-    document.addEventListener('mouseover', function (e) {
-        var el = e.target.closest('[data-tooltip]');
-        if (!el) return;
-        var r = el.getBoundingClientRect();
-        tip.textContent = el.dataset.tooltip;
-        tip.style.left = (r.left + r.width / 2) + 'px';
-        tip.style.top = (r.top - 3) + 'px';
-        tip.style.opacity = '1';
-    });
+        document.addEventListener('mouseover', function (e) {
+            var el = e.target.closest('[data-tooltip]');
+            if (!el) return;
+            var r = el.getBoundingClientRect();
+            tip.textContent = el.dataset.tooltip;
+            tip.style.left = (r.left + r.width / 2) + 'px';
+            tip.style.top = (r.top - 3) + 'px';
+            tip.style.opacity = '1';
+        });
 
-    document.addEventListener('mouseout', function (e) {
-        var el = e.target.closest('[data-tooltip]');
-        if (!el) return;
-        if (!el.contains(e.relatedTarget)) tip.style.opacity = '0';
-    });
+        document.addEventListener('mouseout', function (e) {
+            var el = e.target.closest('[data-tooltip]');
+            if (!el) return;
+            if (!el.contains(e.relatedTarget)) tip.style.opacity = '0';
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initTooltip);
+    } else {
+        initTooltip();
+    }
 })();
 
 // ===== ADMIN NOTIFICATION HELPER =====
@@ -988,7 +1005,7 @@ function loadVariantes(produtoId) {
         // Discard if a different product was opened while this fetch was in flight
         if (window.currentProdutoId !== requestId) return;
         renderGrupos(data.grupos || []);
-        renderVariantesTabela(data.variantes || []);
+        renderVariantesTabela(data.variantes || [], data.imagens || []);
         var cb = document.getElementById('estoque-compartilhado');
         if (cb) cb.checked = data.estoque_compartilhado;
         if (loading) loading.classList.add('hidden');
@@ -1034,7 +1051,7 @@ function buildGrupoHTML(grupo, idx) {
         '</div>';
 }
 
-function renderVariantesTabela(variantes) {
+function renderVariantesTabela(variantes, imagens) {
     var container = document.getElementById('variantes-tabela');
     var wrapper = document.getElementById('variantes-tabela-container');
     if (!container) return;
@@ -1044,6 +1061,20 @@ function renderVariantesTabela(variantes) {
     }
     if (wrapper) wrapper.classList.remove('hidden');
     container.innerHTML = variantes.map(function(v) {
+        var fotosHtml = '';
+        if (imagens && imagens.length > 0) {
+            var checks = imagens.map(function(img) {
+                var isChecked = (v.imagem_ids || []).indexOf(img.id) !== -1;
+                return '<label class="relative cursor-pointer group" title="' + escapeHtml(img.url.split('/').pop()) + '">' +
+                    '<input type="checkbox" class="variante-imagem-check sr-only" value="' + img.id + '"' + (isChecked ? ' checked' : '') + '>' +
+                    '<img src="' + img.url + '" class="variante-foto-thumb w-12 h-12 object-cover border-2 ' + (isChecked ? 'border-black' : 'border-gray-200') + ' group-hover:border-gray-400 transition-colors">' +
+                    '</label>';
+            }).join('');
+            fotosHtml = '<div class="w-full mt-2 pt-2 border-t border-gray-200">' +
+                '<span class="text-[10px] font-mono uppercase tracking-widest text-gray-400 block mb-1">FOTOS DA VARIANTE</span>' +
+                '<div class="variante-imagens-checks flex flex-wrap gap-1">' + checks + '</div>' +
+                '</div>';
+        }
         return '<div class="variante-row" data-variante-id="' + v.id + '" data-valores=\'' + JSON.stringify(v.valores) + '\'>' +
             '<div class="flex items-center gap-3 border border-gray-100 p-3">' +
             '<span class="flex-1 text-sm font-mono">' + escapeHtml(v.label) + '</span>' +
@@ -1055,9 +1086,21 @@ function renderVariantesTabela(variantes) {
             '<label class="flex items-center gap-1 text-xs font-mono"><input type="checkbox" class="variante-ativo" ' + (v.ativo ? 'checked' : '') + '> ATIVO</label>' +
             '<button type="button" onclick="toggleVarianteEdit(this)" class="text-xs font-mono uppercase tracking-widest bg-black text-white px-3 py-1 hover:bg-gray-800 transition-colors ml-auto">✔ OK</button>' +
             '<button type="button" onclick="toggleVarianteEdit(this)" class="text-xs font-mono uppercase tracking-widest border border-gray-300 px-2 py-1 hover:border-black transition-colors">✖</button>' +
+            fotosHtml +
             '</div>' +
             '</div>';
     }).join('');
+
+    // Toggle visual border on photo checkboxes
+    container.querySelectorAll('.variante-imagem-check').forEach(function(cb) {
+        cb.addEventListener('change', function() {
+            var img = this.closest('label').querySelector('.variante-foto-thumb');
+            if (img) {
+                img.classList.toggle('border-black', this.checked);
+                img.classList.toggle('border-gray-200', !this.checked);
+            }
+        });
+    });
 }
 
 function toggleVarianteEdit(btn) {
@@ -1173,11 +1216,16 @@ function salvarTudo(produtoId) {
         var preco = row.querySelector('.variante-preco').value;
         var estoque = row.querySelector('.variante-estoque').value;
         var ativo = row.querySelector('.variante-ativo').checked;
+        var imagem_ids = [];
+        row.querySelectorAll('.variante-imagem-check:checked').forEach(function(cb) {
+            imagem_ids.push(parseInt(cb.value));
+        });
         variantesData.push({
             id: id,
             preco: preco !== '' ? parseFloat(preco) : null,
             estoque: estoque !== '' ? parseInt(estoque) : null,
             ativo: ativo,
+            imagem_ids: imagem_ids,
         });
     });
 
