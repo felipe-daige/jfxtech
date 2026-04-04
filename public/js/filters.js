@@ -18,13 +18,24 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Mobile filter toggle
-    var mobileToggle = document.getElementById('mobileFilterToggle');
+    var mobileToggle  = document.getElementById('mobileFilterToggle');
+    var mobileClose   = document.getElementById('mobileFilterClose');
     var filterSidebar = document.querySelector('.filter-sidebar');
-    if (mobileToggle && filterSidebar) {
-        mobileToggle.addEventListener('click', function () {
-            filterSidebar.classList.toggle('open');
-        });
+    var filterOverlay = document.getElementById('filter-overlay');
+
+    function openFilterDrawer() {
+        filterSidebar.classList.add('open');
+        if (filterOverlay) filterOverlay.classList.add('active');
     }
+
+    function closeFilterDrawer() {
+        filterSidebar.classList.remove('open');
+        if (filterOverlay) filterOverlay.classList.remove('active');
+    }
+
+    if (mobileToggle && filterSidebar) mobileToggle.addEventListener('click', openFilterDrawer);
+    if (mobileClose  && filterSidebar) mobileClose.addEventListener('click', closeFilterDrawer);
+    if (filterOverlay)                 filterOverlay.addEventListener('click', closeFilterDrawer);
 
     // Auto-submit filters on change
     var form = document.getElementById('filtros-form');

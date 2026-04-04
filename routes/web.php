@@ -11,6 +11,7 @@ Route::get('/', [SiteController::class, 'index'])->name('site.index');
 Route::get('/produtos', [SiteController::class, 'produtos'])->name('site.produtos');
 Route::get('/produto/{slug}', [SiteController::class, 'produto_detalhes'])->name('site.produto.detalhes');
 Route::get('/contato', [SiteController::class, 'contato'])->name('site.contato');
+Route::get('/busca-rapida', [SiteController::class, 'buscaRapida'])->name('site.busca_rapida');
 
 // Rotas de autenticação
 Route::get('/login', [SiteController::class, 'login_view'])->name('site.login');

@@ -35,7 +35,12 @@
                     <div class="sticky top-24">
                         <div class="flex items-center justify-between mb-6">
                             <h3 class="font-mono text-xs font-bold uppercase tracking-widest">FILTROS</h3>
-                            <a href="{{ route('site.produtos') }}" class="text-xs font-mono text-gray-500 hover:text-black transition-colors uppercase tracking-wider" id="limpar-filtros">LIMPAR</a>
+                            <div class="flex items-center gap-3">
+                                <a href="{{ route('site.produtos') }}" class="text-xs font-mono text-gray-500 hover:text-black transition-colors uppercase tracking-wider" id="limpar-filtros">LIMPAR</a>
+                                <button id="mobileFilterClose" class="lg:hidden p-1 text-gray-500 hover:text-black transition-colors" aria-label="Fechar filtros">
+                                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                                </button>
+                            </div>
                         </div>
 
                         <form id="filtros-form" method="GET">
@@ -135,6 +140,8 @@
                         </form>
                     </div>
                 </aside>
+
+                <div id="filter-overlay" class="fixed inset-0 bg-black/50 z-40 invisible opacity-0 transition-all duration-300 lg:hidden"></div>
 
                 {{-- Product Grid Area --}}
                 <div class="flex-1">

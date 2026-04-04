@@ -1,0 +1,79 @@
+<h2>Qual layout para o preview do catálogo?</h2>
+<p class="subtitle">Seção inserida acima de "Suporte que Acompanha Você" — tema Sober Tech P&B</p>
+
+<div class="cards">
+
+  <!-- OPÇÃO A -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f5f5f5;padding:16px;font-family:monospace;">
+      <div style="background:#111;color:#fff;padding:6px 12px;font-size:10px;font-weight:900;letter-spacing:3px;margin-bottom:12px;">NAVEGUE POR CATEGORIA</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div style="border:1px solid #ddd;padding:14px 10px;text-align:center;font-size:9px;font-weight:700;letter-spacing:1px;">⌨ TECLADOS</div>
+        <div style="border:1px solid #ddd;padding:14px 10px;text-align:center;font-size:9px;font-weight:700;letter-spacing:1px;">🖱 MOUSES</div>
+        <div style="border:1px solid #ddd;padding:14px 10px;text-align:center;font-size:9px;font-weight:700;letter-spacing:1px;">🖥 MONITORES</div>
+        <div style="border:1px solid #ddd;padding:14px 10px;text-align:center;font-size:9px;font-weight:700;letter-spacing:1px;">🎧 HEADSETS</div>
+      </div>
+      <div style="margin-top:10px;text-align:center;font-size:9px;letter-spacing:2px;border-top:1px solid #ddd;padding-top:8px;">VER CATÁLOGO COMPLETO →</div>
+    </div>
+    <div class="card-body">
+      <h3>A — Grade de Categorias</h3>
+      <p>4–6 tiles com ícone + label, cada um link direto para a categoria filtrada. Navegação direta e clara. Sem mostrar produtos individuais — convida o usuário a explorar.</p>
+    </div>
+  </div>
+
+  <!-- OPÇÃO B -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f5f5f5;padding:16px;font-family:monospace;">
+      <div style="background:#111;color:#fff;padding:6px 12px;font-size:10px;font-weight:900;letter-spacing:3px;margin-bottom:10px;">CATÁLOGO</div>
+      <div style="display:flex;gap:6px;margin-bottom:10px;overflow:hidden;">
+        <div style="background:#111;color:#fff;padding:3px 10px;font-size:8px;font-weight:700;letter-spacing:1px;white-space:nowrap;">TODOS</div>
+        <div style="border:1px solid #ccc;padding:3px 10px;font-size:8px;letter-spacing:1px;white-space:nowrap;">TECLADOS</div>
+        <div style="border:1px solid #ccc;padding:3px 10px;font-size:8px;letter-spacing:1px;white-space:nowrap;">MOUSES</div>
+        <div style="border:1px solid #ccc;padding:3px 10px;font-size:8px;letter-spacing:1px;white-space:nowrap;">MONITORES</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+        <div style="border:1px solid #ddd;aspect-ratio:1;background:#eee;"></div>
+        <div style="border:1px solid #ddd;aspect-ratio:1;background:#eee;"></div>
+        <div style="border:1px solid #ddd;aspect-ratio:1;background:#eee;"></div>
+      </div>
+      <div style="margin-top:8px;display:flex;justify-content:flex-end;font-size:8px;letter-spacing:2px;">VER TODOS →</div>
+    </div>
+    <div class="card-body">
+      <h3>B — Tabs + Grid de Produtos</h3>
+      <p>Pills de categoria filtram um grid de 3–4 produtos em tempo real (JS). O usuário já vê produtos reais antes de entrar no catálogo. Mais interativo, mas requer JS para filtro dinâmico.</p>
+    </div>
+  </div>
+
+  <!-- OPÇÃO C -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f5f5f5;padding:16px;font-family:monospace;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+        <div style="border:2px solid #111;padding:12px;position:relative;">
+          <div style="font-size:8px;font-weight:900;letter-spacing:2px;margin-bottom:6px;">TECLADOS</div>
+          <div style="background:#ddd;height:40px;margin-bottom:4px;"></div>
+          <div style="font-size:7px;color:#666;">12 produtos</div>
+        </div>
+        <div style="border:1px solid #ddd;padding:12px;">
+          <div style="font-size:8px;font-weight:900;letter-spacing:2px;margin-bottom:6px;">MOUSES</div>
+          <div style="background:#ddd;height:40px;margin-bottom:4px;"></div>
+          <div style="font-size:7px;color:#666;">8 produtos</div>
+        </div>
+        <div style="border:1px solid #ddd;padding:12px;">
+          <div style="font-size:8px;font-weight:900;letter-spacing:2px;margin-bottom:6px;">MONITORES</div>
+          <div style="background:#ddd;height:40px;margin-bottom:4px;"></div>
+          <div style="font-size:7px;color:#666;">5 produtos</div>
+        </div>
+        <div style="border:1px solid #ddd;padding:12px;display:flex;align-items:center;justify-content:center;background:#111;color:#fff;">
+          <div style="font-size:8px;font-weight:900;letter-spacing:2px;text-align:center;">VER TODO O CATÁLOGO →</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Cards de Categoria com Destaque</h3>
+      <p>Cada categoria vira um card grande com imagem representativa + contagem de produtos. O quarto "card" é o CTA para o catálogo completo. Visual editorial, sem listar produtos individuais.</p>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:16px;">Clique para selecionar — ou responda no terminal</p>

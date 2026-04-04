@@ -143,12 +143,22 @@ class AdminController extends Controller
         $partial = $viewMode === 'lista' ? 'admin.includes.produtos-lista-linhas' : 'admin.includes.produtos-lista';
         $html = view($partial, compact('produtos'))->render();
 
+        $categorias = \App\Models\Categoria::all();
+        $paginacaoHtml = view('admin.includes.paginacao', [
+            'produtos'    => $produtos,
+            'perPage'     => $perPage,
+            'pesquisa'    => $request->get('pesquisa'),
+            'categoriaId' => $request->get('categoria_id'),
+            'categorias'  => $categorias,
+        ])->render();
+
         return response()->json([
-            'html'         => $html,
-            'total'        => $produtos->total(),
-            'current_page' => $produtos->currentPage(),
-            'last_page'    => $produtos->lastPage(),
-            'view_mode'    => $viewMode,
+            'html'           => $html,
+            'paginacao_html' => $paginacaoHtml,
+            'total'          => $produtos->total(),
+            'current_page'   => $produtos->currentPage(),
+            'last_page'      => $produtos->lastPage(),
+            'view_mode'      => $viewMode,
         ]);
     }
 
@@ -172,6 +182,7 @@ class AdminController extends Controller
             'estoque' => $produto->estoque,
             'categoria_id' => $produto->categoria_id,
             'ativo' => $produto->ativo,
+            'specs' => $produto->specs ?? [],
             'imagens' => $produto->imagens()->orderBy('ordem')->orderBy('id')->get()->map(function($imagem) {
                 return [
                     'id' => $imagem->id,
@@ -231,6 +242,8 @@ class AdminController extends Controller
             }
         }
 
+        $specs = array_filter($request->input('specs', []), fn($v) => $v !== null && $v !== '');
+
         $produto = Produto::create([
             'nome' => $request->nome,
             'descricao' => $request->descricao,
@@ -243,6 +256,7 @@ class AdminController extends Controller
             'tags' => $request->input('tags', []),
             'estoque' => $request->estoque,
             'categoria_id' => $request->categoria_id,
+            'specs' => !empty($specs) ? $specs : null,
             'ativo' => true // Produtos são ativos por padrão
         ]);
 
@@ -314,6 +328,8 @@ class AdminController extends Controller
             }
         }
 
+        $specs = array_filter($request->input('specs', []), fn($v) => $v !== null && $v !== '');
+
         $produto->update([
             'nome' => $request->nome,
             'descricao' => $request->descricao,
@@ -325,7 +341,8 @@ class AdminController extends Controller
             'destaque' => $destaque,
             'tags' => $request->input('tags', []),
             'estoque' => $request->estoque,
-            'categoria_id' => $request->categoria_id
+            'categoria_id' => $request->categoria_id,
+            'specs' => !empty($specs) ? $specs : null,
         ]);
 
         // Upload de novas imagens
@@ -702,7 +719,7 @@ class AdminController extends Controller
             return response()->json(['error' => 'Não autorizado'], 401);
         }
 
-        $produto = Produto::with(['opcaoGrupos.valores', 'variantes'])->findOrFail($id);
+        $produto = Produto::with(['opcaoGrupos.valores', 'variantes.imagens', 'imagens'])->findOrFail($id);
 
         // Build a valor map for label resolution
         $valorMap = [];
@@ -724,12 +741,13 @@ class AdminController extends Controller
             ->map(function ($v) use ($valorMap) {
                 $label = collect($v->valores)->map(fn($vid) => $valorMap[$vid]['valor'] ?? '?')->join(' / ');
                 return [
-                    'id'      => $v->id,
-                    'valores' => $v->valores,
-                    'preco'   => $v->preco,
-                    'estoque' => $v->estoque,
-                    'ativo'   => $v->ativo,
-                    'label'   => $label,
+                    'id'         => $v->id,
+                    'valores'    => $v->valores,
+                    'preco'      => $v->preco,
+                    'estoque'    => $v->estoque,
+                    'ativo'      => $v->ativo,
+                    'label'      => $label,
+                    'imagem_ids' => $v->imagens->pluck('id')->all(),
                 ];
             });
 
@@ -746,6 +764,10 @@ class AdminController extends Controller
             ]),
             'variantes'             => $variantes,
             'estoque_compartilhado' => $produto->estoque_compartilhado,
+            'imagens'               => $produto->imagens->map(fn($img) => [
+                'id'  => $img->id,
+                'url' => asset('storage/' . $img->caminho),
+            ]),
         ]);
     }
 
@@ -910,12 +932,14 @@ class AdminController extends Controller
         $produto = Produto::findOrFail($id);
 
         $request->validate([
-            'estoque_compartilhado'    => 'nullable|boolean',
-            'variantes'                => 'nullable|array',
-            'variantes.*.id'           => 'required|integer',
-            'variantes.*.preco'        => 'nullable|numeric|min:0',
-            'variantes.*.estoque'      => 'nullable|integer|min:0',
-            'variantes.*.ativo'        => 'nullable|boolean',
+            'estoque_compartilhado'      => 'nullable|boolean',
+            'variantes'                  => 'nullable|array',
+            'variantes.*.id'             => 'required|integer',
+            'variantes.*.preco'          => 'nullable|numeric|min:0',
+            'variantes.*.estoque'        => 'nullable|integer|min:0',
+            'variantes.*.ativo'          => 'nullable|boolean',
+            'variantes.*.imagem_ids'     => 'nullable|array',
+            'variantes.*.imagem_ids.*'   => 'integer',
         ]);
 
         \DB::transaction(function () use ($request, $produto) {
@@ -935,6 +959,11 @@ class AdminController extends Controller
                 if (array_key_exists('ativo', $varData))   $update['ativo']   = $varData['ativo'];
 
                 if (!empty($update)) $variante->update($update);
+
+                if (array_key_exists('imagem_ids', $varData)) {
+                    $imagem_ids = array_filter((array)($varData['imagem_ids'] ?? []), 'is_numeric');
+                    $variante->imagens()->sync($imagem_ids);
+                }
             }
         });
 

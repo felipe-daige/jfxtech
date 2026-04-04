@@ -11,7 +11,7 @@
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="JFXTECH">
     <meta property="og:title" content="JFXTECH - Hardware Gamer de Alta Performance">
-    <meta property="og:description" content="Equipamentos de alta performance para motocross e hardware gamer. Entrega 24h, 100% original, suporte 24/7.">
+    <meta property="og:description" content="Hardware gamer premium para quem exige alta performance em monitores, teclados e mouses. Produtos originais, garantia estendida e envio rápido.">
     <meta property="og:url" content="{{ url('/') }}">
     <meta property="og:image" content="{{ url('storage/images/jfxtech-link-preiew-opt.jpg') }}">
     <meta property="og:image:width" content="1200">
@@ -20,7 +20,7 @@
     {{-- Twitter Card --}}
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="JFXTECH - Hardware Gamer de Alta Performance">
-    <meta name="twitter:description" content="Equipamentos de alta performance para motocross e hardware gamer. Entrega 24h, 100% original, suporte 24/7.">
+    <meta name="twitter:description" content="Hardware gamer premium para quem exige alta performance em monitores, teclados e mouses. Produtos originais, garantia estendida e envio rápido.">
     <meta name="twitter:image" content="{{ url('storage/images/jfxtech-link-preiew-opt.jpg') }}">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -262,6 +262,97 @@
             </div>
         </section>
 
+        {{-- ===== SEARCH BAR ===== --}}
+        <section class="bg-black py-10 sm:py-14">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <p class="text-xs font-mono text-gray-500 tracking-widest uppercase mb-4 text-center">Buscar Produto</p>
+                <form action="{{ route('site.produtos') }}" method="GET" class="relative" id="home-search-form">
+                    <input
+                        id="home-search-input"
+                        type="search"
+                        name="busca"
+                        placeholder="Monitor, mouse, teclado..."
+                        autocomplete="off"
+                        autocorrect="off"
+                        autocapitalize="off"
+                        spellcheck="false"
+                        inputmode="search"
+                        enterkeyhint="search"
+                        style="font-size:16px"
+                        class="w-full bg-white text-black font-mono px-4 sm:px-6 py-4 sm:py-5 pr-14 sm:pr-16 focus:outline-none placeholder-gray-400 tracking-wide"
+                    >
+                    <button type="submit" class="absolute right-0 top-0 h-full px-4 sm:px-6 bg-white hover:bg-gray-100 active:bg-gray-200 transition-colors flex items-center justify-center border-l border-gray-200 min-w-[52px]">
+                        <svg class="w-5 h-5 text-black" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    </button>
+                    <div id="home-search-dropdown"
+                         class="absolute left-0 right-0 top-full bg-white border border-t-0 border-gray-200 z-50 hidden max-h-72 overflow-y-auto overscroll-contain">
+                    </div>
+                </form>
+
+                @if($categorias_preview->isNotEmpty())
+                <div class="flex flex-wrap gap-2 mt-5 justify-center">
+                    @foreach($categorias_preview as $cat)
+                    <a href="{{ route('site.produtos', ['categorias[]' => $cat->id]) }}"
+                       class="text-xs font-mono tracking-widest uppercase px-4 py-3 min-h-[44px] flex items-center border border-gray-700 text-gray-400 hover:border-white hover:text-white active:text-white active:border-white transition-colors">
+                        {{ $cat->nome }}
+                    </a>
+                    @endforeach
+                </div>
+                @endif
+            </div>
+        </section>
+
+        <script>
+        (function () {
+            const input    = document.getElementById('home-search-input');
+            const dropdown = document.getElementById('home-search-dropdown');
+            const baseUrl  = '{{ route('site.busca_rapida') }}';
+            const detailBase = '{{ url('/produto') }}';
+            let timer;
+
+            function render(items) {
+                if (!items.length) { dropdown.classList.add('hidden'); return; }
+                dropdown.innerHTML = items.map(p => {
+                    const img = p.imagem
+                        ? `<img src="/storage/${p.imagem}" alt="${p.nome}" class="w-12 h-12 object-cover shrink-0 grayscale">`
+                        : `<div class="w-12 h-12 bg-gray-100 shrink-0"></div>`;
+                    return `<a href="${detailBase}/${p.slug}"
+                               class="flex items-center gap-4 px-4 sm:px-5 py-4 hover:bg-gray-50 active:bg-gray-100 border-b border-gray-100 last:border-0 min-h-[56px]">
+                        ${img}
+                        <span class="flex-1 font-mono text-sm text-black uppercase tracking-wide truncate">${p.nome}</span>
+                        <span class="font-mono text-xs text-gray-500 shrink-0 ml-2">${p.preco}</span>
+                    </a>`;
+                }).join('');
+                dropdown.classList.remove('hidden');
+            }
+
+            function close() { dropdown.classList.add('hidden'); }
+
+            input.addEventListener('input', function () {
+                clearTimeout(timer);
+                const q = this.value.trim();
+                if (q.length < 2) { close(); return; }
+                timer = setTimeout(() => {
+                    fetch(`${baseUrl}?q=${encodeURIComponent(q)}`)
+                        .then(r => r.json())
+                        .then(render)
+                        .catch(close);
+                }, 280);
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!input.contains(e.target) && !dropdown.contains(e.target)) close();
+            });
+            document.addEventListener('touchstart', function (e) {
+                if (!input.contains(e.target) && !dropdown.contains(e.target)) close();
+            }, { passive: true });
+
+            input.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') close();
+            });
+        })();
+        </script>
+
         {{-- ===== CATALOG PREVIEW ===== --}}
         <section class="bg-[var(--color-lab-bg)] py-24">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -312,8 +403,7 @@
 
                         {{-- Faixa preta sólida — sempre legível --}}
                         <div class="bg-black px-4 py-3 shrink-0">
-                            <p class="text-white font-black tracking-widest uppercase text-xs leading-none mb-1">{{ $categoria->nome }}</p>
-                            <p class="text-white/50 font-mono text-xs">{{ $categoria->produtos_count }} {{ Str::plural('produto', $categoria->produtos_count) }}</p>
+                            <p class="text-white font-black tracking-widest uppercase text-xs leading-none">{{ $categoria->nome }}</p>
                         </div>
                     </a>
                     @endforeach

@@ -45,6 +45,29 @@ class SiteController extends Controller
         return view('site.index', compact('produtos_destaque', 'categorias_preview'));
     }
 
+    public function buscaRapida(Request $request)
+    {
+        $q = trim($request->get('q', ''));
+        if (strlen($q) < 2) {
+            return response()->json([]);
+        }
+
+        $produtos = Produto::where('ativo', true)
+            ->where('nome', 'ilike', '%' . $q . '%')
+            ->with(['imagens' => fn($q) => $q->where('capa', true)->limit(1)])
+            ->orderBy('destaque', 'desc')
+            ->limit(6)
+            ->get()
+            ->map(fn($p) => [
+                'nome'   => $p->nome,
+                'slug'   => $p->slug,
+                'preco'  => 'R$ ' . number_format($p->preco_com_desconto, 2, ',', '.'),
+                'imagem' => $p->imagens->first()?->caminho,
+            ]);
+
+        return response()->json($produtos);
+    }
+
     /**
      * Página de produtos
      */
@@ -140,7 +163,7 @@ class SiteController extends Controller
     {
         $produto = Produto::where('slug', $slug)
             ->where('ativo', true)
-            ->with(['imagens', 'categoria', 'imagemCapa', 'opcaoGrupos.valores', 'variantesAtivas.produto'])
+            ->with(['imagens', 'categoria', 'imagemCapa', 'opcaoGrupos.valores', 'variantesAtivas.produto', 'variantesAtivas.imagens'])
             ->firstOrFail();
 
         // Buscar produtos relacionados (mesma categoria, excluindo o atual)
@@ -183,6 +206,7 @@ class SiteController extends Controller
             'preco_efetivo'   => $v->preco_efetivo,
             'estoque_efetivo' => $v->estoque_efetivo,
             'ativo'           => $v->ativo,
+            'imagem_ids'      => $v->imagens->pluck('id')->all(),
         ])->values()->toArray();
 
         return view('site.produto-detalhes', compact('produto', 'produtos_relacionados', 'favoritado', 'produto_no_carrinho', 'quantidade_no_carrinho', 'variantesData'));

@@ -6,18 +6,61 @@ document.addEventListener('DOMContentLoaded', function() {
     if (window.updateCartCounter) window.updateCartCounter();
 
     var mainImage = document.getElementById('main-image');
+    var mainImageFrame = document.getElementById('main-image-frame');
     var thumbnailBtns = document.querySelectorAll('.thumbnail-btn');
     var quantityInput = document.getElementById('quantity');
     var decreaseBtn = document.getElementById('decrease-qty');
     var increaseBtn = document.getElementById('increase-qty');
     var toggleFavoriteBtn = document.getElementById('toggle-favorite');
+    var canHoverZoom = !window.matchMedia || window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    var defaultMainImageSrc = mainImage ? mainImage.src : null;
+
+    function resetMainImageZoom() {
+        if (!mainImage || !mainImageFrame) return;
+        mainImageFrame.style.setProperty('--product-zoom-scale', '1');
+        mainImageFrame.style.setProperty('--product-zoom-x', '50%');
+        mainImageFrame.style.setProperty('--product-zoom-y', '50%');
+        mainImageFrame.classList.remove('is-zoomed');
+    }
+
+    function updateMainImage(imageSrc) {
+        if (!mainImage || !imageSrc) return;
+        mainImage.src = imageSrc;
+        resetMainImageZoom();
+    }
+
+    document.querySelectorAll('.js-product-description').forEach(function(section) {
+        var toggle = section.querySelector('[data-description-toggle]');
+        var fullContent = section.querySelector('[data-description-full]');
+        var summary = section.querySelector('[data-description-summary]');
+
+        if (!toggle || !fullContent || !summary) return;
+
+        var label = toggle.querySelector('[data-expand-label]');
+        var icon = toggle.querySelector('[data-expand-icon]');
+
+        toggle.addEventListener('click', function() {
+            var expanded = toggle.getAttribute('aria-expanded') === 'true';
+            toggle.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+            fullContent.classList.toggle('hidden', expanded);
+            summary.classList.toggle('hidden', !expanded);
+
+            if (label) {
+                label.textContent = expanded ? 'Ler descrição completa' : 'Mostrar menos';
+            }
+
+            if (icon) {
+                icon.classList.toggle('rotate-180', !expanded);
+            }
+        });
+    });
 
     // Thumbnail image switching
     if (thumbnailBtns.length > 0) {
         thumbnailBtns.forEach(function(btn) {
             btn.addEventListener('click', function() {
                 var imageSrc = this.getAttribute('data-image');
-                if (mainImage) mainImage.src = imageSrc;
+                updateMainImage(imageSrc);
                 thumbnailBtns.forEach(function(b) {
                     b.classList.remove('border-black');
                     b.classList.add('border-[var(--color-lab-border)]');
@@ -176,6 +219,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         addToCartBtn.textContent = 'SELECIONE AS OPÇÕES';
                     }
                     thumbnailBtns.forEach(function(b) { b.style.display = ''; });
+                    updateMainImage(defaultMainImageSrc);
                     if (quantityInput) {
                         quantityInput.setAttribute('max', 0);
                         quantityInput.value = 1;
@@ -276,7 +320,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     });
                     if (primeiroBtn && mainImage) {
-                        mainImage.src = primeiroBtn.getAttribute('data-image');
+                        updateMainImage(primeiroBtn.getAttribute('data-image'));
                         thumbnailBtns.forEach(function(b) {
                             b.classList.remove('border-black');
                             b.classList.add('border-[var(--color-lab-border)]');
@@ -294,8 +338,36 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Image zoom
     if (mainImage) {
-        mainImage.style.cursor = 'pointer';
+        if (canHoverZoom && mainImageFrame) {
+            function applyHoverZoom(event) {
+                var rect = mainImageFrame.getBoundingClientRect();
+                var x = (event.clientX - rect.left) / rect.width;
+                var y = (event.clientY - rect.top) / rect.height;
+                var clampedX = Math.max(0, Math.min(1, x));
+                var clampedY = Math.max(0, Math.min(1, y));
+
+                mainImageFrame.classList.add('is-zoomed');
+                mainImageFrame.style.setProperty('--product-zoom-scale', '2.6');
+                mainImageFrame.style.setProperty('--product-zoom-x', (clampedX * 100) + '%');
+                mainImageFrame.style.setProperty('--product-zoom-y', (clampedY * 100) + '%');
+            }
+
+            mainImageFrame.addEventListener('mouseenter', function(event) {
+                applyHoverZoom(event);
+            });
+
+            mainImageFrame.addEventListener('mousemove', function(event) {
+                applyHoverZoom(event);
+            });
+
+            mainImageFrame.addEventListener('mouseleave', function() {
+                resetMainImageZoom();
+            });
+        }
+
         mainImage.addEventListener('click', function() {
+            if (canHoverZoom) return;
+
             var modal = document.createElement('div');
             modal.className = 'fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4';
             modal.innerHTML = '<div class="relative max-w-4xl max-h-full">' +

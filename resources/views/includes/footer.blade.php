@@ -8,6 +8,10 @@
                 <span class="font-bold tracking-tight">JFXTECH</span>
             </div>
             <p class="text-sm text-gray-500 font-mono leading-relaxed">Hardware gamer com engenharia de precisão para a elite competitiva.</p>
+            <a href="https://www.instagram.com/jfxtech/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 mt-4 text-xs font-mono text-gray-500 hover:text-black transition-colors group">
+                <svg class="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                @jfxtech
+            </a>
         </div>
 
         {{-- Products / Categories --}}

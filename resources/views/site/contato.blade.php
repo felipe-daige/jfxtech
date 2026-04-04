@@ -194,7 +194,7 @@
                                 <a href="#" class="border border-[var(--color-lab-border)] w-10 h-10 flex items-center justify-center text-[var(--color-lab-muted)] hover:bg-black hover:text-white hover:border-black transition-colors">
                                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
                                 </a>
-                                <a href="#" class="border border-[var(--color-lab-border)] w-10 h-10 flex items-center justify-center text-[var(--color-lab-muted)] hover:bg-black hover:text-white hover:border-black transition-colors">
+                                <a href="https://www.instagram.com/jfxtech/" target="_blank" rel="noopener noreferrer" class="border border-[var(--color-lab-border)] w-10 h-10 flex items-center justify-center text-[var(--color-lab-muted)] hover:bg-black hover:text-white hover:border-black transition-colors">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
                                 </a>
                                 <a href="#" class="border border-[var(--color-lab-border)] w-10 h-10 flex items-center justify-center text-[var(--color-lab-muted)] hover:bg-black hover:text-white hover:border-black transition-colors">

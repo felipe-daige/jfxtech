@@ -4,6 +4,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class ProdutoVariante extends Model
 {
@@ -23,6 +24,16 @@ class ProdutoVariante extends Model
     public function produto(): BelongsTo
     {
         return $this->belongsTo(Produto::class);
+    }
+
+    public function imagens(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            ProdutoImagem::class,
+            'produto_variante_imagens',
+            'variante_id',
+            'imagem_id'
+        );
     }
 
     /**
