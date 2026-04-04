@@ -492,6 +492,22 @@
                             <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Base</label>
                             <input type="text" name="specs[base]" id="spec_base" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black" placeholder="ex: Borracha antiderrapante">
                         </div>
+                        <div>
+                            <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Drivers</label>
+                            <input type="text" name="specs[drivers]" id="spec_drivers" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black" placeholder="ex: 40mm Neodymium">
+                        </div>
+                        <div>
+                            <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Frequência</label>
+                            <input type="text" name="specs[frequencia]" id="spec_frequencia" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black" placeholder="ex: 20 Hz – 20.000 Hz">
+                        </div>
+                        <div>
+                            <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Microfone</label>
+                            <input type="text" name="specs[microfone]" id="spec_microfone" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black" placeholder="ex: Retrátil bidirecional">
+                        </div>
+                        <div>
+                            <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Bateria</label>
+                            <input type="text" name="specs[bateria]" id="spec_bateria" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black" placeholder="ex: 22 horas">
+                        </div>
                     </div>
                 </div>
                 </div>{{-- end #tab-specs --}}

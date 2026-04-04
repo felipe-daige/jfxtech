@@ -232,6 +232,10 @@
                         'layout'       => 'Layout',
                         'superficie'   => 'Superfície',
                         'base'         => 'Base',
+                        'drivers'      => 'Drivers',
+                        'frequencia'   => 'Frequência',
+                        'microfone'    => 'Microfone',
+                        'bateria'      => 'Bateria',
                     ];
                 @endphp
 

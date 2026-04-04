@@ -83,7 +83,7 @@ function abrirModalProduto() {
 
 
     // Limpar campos de specs
-    ['sensor','dpi_maximo','switches','peso','conexao','polling_rate','dimensoes','cabo','iluminacao','garantia','layout','superficie','base']
+    ['sensor','dpi_maximo','switches','peso','conexao','polling_rate','dimensoes','cabo','iluminacao','garantia','layout','superficie','base','drivers','frequencia','microfone','bateria']
         .forEach(key => { const el = document.getElementById('spec_' + key); if (el) el.value = ''; });
 
     // Clear current product id for variant tab (new product has no id yet)
@@ -143,7 +143,7 @@ function editarProduto(id) {
 
             // Preencher specs
             const specs = data.specs || {};
-            ['sensor','dpi_maximo','switches','peso','conexao','polling_rate','dimensoes','cabo','iluminacao','garantia','layout','superficie','base']
+            ['sensor','dpi_maximo','switches','peso','conexao','polling_rate','dimensoes','cabo','iluminacao','garantia','layout','superficie','base','drivers','frequencia','microfone','bateria']
                 .forEach(key => { const el = document.getElementById('spec_' + key); if (el) el.value = specs[key] || ''; });
 
             // Mostrar imagens existentes com seleção de capa
