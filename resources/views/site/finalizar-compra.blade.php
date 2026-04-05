@@ -170,6 +170,37 @@
 
                         <!-- Order Summary -->
                         <div class="space-y-2">
+                            <div class="mb-4">
+                                <label for="payer-document" class="block text-[10px] font-mono font-bold uppercase tracking-widest text-gray-500 mb-2">CPF do pagador</label>
+                                <input
+                                    type="text"
+                                    id="payer-document"
+                                    name="payer_document"
+                                    placeholder="000.000.000-00"
+                                    aria-describedby="payer-document-error"
+                                    aria-invalid="false"
+                                    class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black transition-colors"
+                                >
+                                <div
+                                    id="payer-document-error"
+                                    class="hidden mt-3 border border-red-200 bg-white px-4 py-3"
+                                    role="alert"
+                                >
+                                    <div class="flex items-start gap-3">
+                                        <svg class="w-4 h-4 mt-0.5 text-red-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <circle cx="12" cy="12" r="9"></circle>
+                                            <path d="M12 8v5"></path>
+                                            <path d="M12 16h.01"></path>
+                                        </svg>
+                                        <div>
+                                            <p class="text-[10px] font-mono font-bold uppercase tracking-widest text-red-500">CPF obrigatório</p>
+                                            <p class="mt-1 text-sm text-gray-700">Informe um CPF válido do pagador para continuar com o checkout.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-2">Usado para concluir o pagamento com Pix no Mercado Pago.</p>
+                            </div>
+
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-600">Subtotal:</span>
                                 <span class="font-semibold">R$ {{ number_format($subtotalProdutos, 2, ',', '.') }}</span>
@@ -229,10 +260,15 @@
     @include('includes.footer')
 
     <script>
+    const savedFreteType = @json($carrinho->frete_tipo);
+    const savedFreteValue = {{ $carrinho->frete_valor !== null ? (float) $carrinho->frete_valor : 'null' }};
+    let checkoutPayerDocument = '';
+
     $(document).ready(function() {
         // CEP mask
         $('#cep').mask('00000-000');
         $('#numero').mask('0000000000');
+        $('#payer-document').mask('000.000.000-00');
 
         // Buscar CEP
         $('#cep').on('blur', function() {
@@ -265,6 +301,14 @@
         // Continue button
         $('#continue-btn').on('click', function() {
             createOrder();
+        });
+
+        $('#payer-document').on('input blur', function() {
+            const isValid = ($(this).val() || '').replace(/\D/g, '').length === 11;
+
+            if (isValid) {
+                setPayerDocumentError(false);
+            }
         });
 
     });
@@ -303,7 +347,6 @@
     // Calcular frete
     function calcularFrete(cep) {
         $('#frete-valor').text('Calculando...');
-        $('#opcoes-frete').addClass('hidden');
 
         $.ajax({
             url: '/frete/carrinho',
@@ -322,15 +365,20 @@
                     $('#sedex-valor').text('R$ ' + data.opcoes.sedex.valor.toFixed(2).replace('.', ','));
                     $('#opcoes-frete').removeClass('hidden');
 
-                    // Selecionar PAC por padrão
-                    $('input[name="frete"][value="pac"]').prop('checked', true);
-                    atualizarFreteSelecionado(data.opcoes.pac.valor);
+                    const freteTipoInicial = savedFreteType && data.opcoes[savedFreteType]
+                        ? savedFreteType
+                        : 'pac';
+
+                    $('input[name="frete"][value="' + freteTipoInicial + '"]').prop('checked', true);
+                    atualizarFreteSelecionado(data.opcoes[freteTipoInicial].valor);
                 } else {
-                    $('#frete-valor').text('Erro ao calcular');
+                    $('#opcoes-frete').removeClass('hidden');
+                    $('#frete-valor').text(savedFreteValue !== null ? 'R$ ' + savedFreteValue.toFixed(2).replace('.', ',') : 'Erro ao calcular');
                 }
             },
             error: function() {
-                $('#frete-valor').text('Erro ao calcular');
+                $('#opcoes-frete').removeClass('hidden');
+                $('#frete-valor').text(savedFreteValue !== null ? 'R$ ' + savedFreteValue.toFixed(2).replace('.', ',') : 'Erro ao calcular');
             }
         });
     }
@@ -345,15 +393,42 @@
         $('#total-valor').text('R$ ' + total.toFixed(2).replace('.', ','));
     }
 
+    function setPayerDocumentError(show) {
+        const payerDocumentInput = $('#payer-document');
+        const payerDocumentError = $('#payer-document-error');
+
+        payerDocumentInput.toggleClass('border-red-500', show);
+        payerDocumentInput.attr('aria-invalid', show ? 'true' : 'false');
+        payerDocumentError.toggleClass('hidden', !show);
+
+        if (show) {
+            payerDocumentInput.trigger('focus');
+
+            const inputElement = payerDocumentInput.get(0);
+            if (inputElement && typeof inputElement.scrollIntoView === 'function') {
+                inputElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    }
+
     // Create order
     function createOrder() {
         let dadosEndereco;
         const freteTipo = $('input[name="frete"]:checked').val();
+        const payerDocument = ($('#payer-document').val() || '').trim();
 
         if (!freteTipo) {
             alert('Selecione uma opção de frete antes de continuar.');
             return;
         }
+
+        if (payerDocument.replace(/\D/g, '').length !== 11) {
+            setPayerDocumentError(true);
+            return;
+        }
+
+        setPayerDocumentError(false);
+        checkoutPayerDocument = payerDocument;
 
         @if($enderecos->count() > 0)
         // Usar endereço salvo
@@ -444,6 +519,12 @@
     }
 
     function renderMercadoPagoCheckout(checkout) {
+        checkout.payer = checkout.payer || {};
+        checkout.payer.identification = {
+            type: 'CPF',
+            number: checkoutPayerDocument.replace(/\D/g, '')
+        };
+
         const paymentContent = `
             <div class="max-w-5xl mx-auto">
                 <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] gap-8">
@@ -451,10 +532,10 @@
                         <div class="flex items-start justify-between gap-6 mb-8">
                             <div>
                                 <h2 class="text-2xl font-bold tracking-tight">Pagamento</h2>
-                                <p class="text-sm text-gray-500 font-mono mt-2">Pedido #${checkout.pedido_id}</p>
+                                <p class="text-sm text-gray-500 mt-2">Conclua o pagamento com segurança pelo Mercado Pago.</p>
                             </div>
                             <div class="text-right">
-                                <div class="text-xs font-mono uppercase tracking-widest text-gray-500">Total</div>
+                                <div class="text-[10px] font-mono uppercase tracking-[0.2em] text-gray-500">Total</div>
                                 <div class="text-2xl font-bold">R$ ${checkout.amount.toFixed(2).replace('.', ',')}</div>
                             </div>
                         </div>
@@ -464,7 +545,7 @@
                     </div>
 
                     <aside class="bg-white border border-[var(--color-lab-border)] p-6 h-fit">
-                        <h3 class="font-mono text-xs uppercase tracking-widest text-gray-500 mb-4">Resumo</h3>
+                        <h3 class="font-mono text-[10px] uppercase tracking-[0.2em] text-gray-500 mb-4">Resumo</h3>
                         <div class="space-y-3 text-sm">
                             <div class="flex justify-between">
                                 <span>Subtotal</span>
@@ -495,6 +576,6 @@
     }
     </script>
     <script src="https://sdk.mercadopago.com/js/v2"></script>
-    <script src="{{ asset('js/checkout-mercadopago.js') }}"></script>
+    <script src="{{ asset('js/checkout-mercadopago.js') }}?v={{ filemtime(public_path('js/checkout-mercadopago.js')) }}"></script>
 </body>
 </html>
