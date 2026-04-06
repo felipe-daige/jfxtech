@@ -232,4 +232,64 @@ class AdminAfiliadoControllerTest extends TestCase
             'status' => 'rejeitado',
         ]);
     }
+
+    public function test_store_creates_affiliate_with_custom_code(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($this->admin)
+             ->post(route('admin.afiliados.store'), [
+                 'user_id' => $user->id,
+                 'codigo'  => 'JOAO2026',
+                 'status'  => 'ativo',
+             ])
+             ->assertRedirect();
+
+        $this->assertDatabaseHas('affiliates', [
+            'user_id' => $user->id,
+            'codigo'  => 'JOAO2026',
+            'status'  => 'ativo',
+        ]);
+        $this->assertNotNull(Affiliate::where('user_id', $user->id)->first()->approved_at);
+    }
+
+    public function test_store_creates_affiliate_with_generated_code_when_empty(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($this->admin)
+             ->post(route('admin.afiliados.store'), [
+                 'user_id' => $user->id,
+                 'status'  => 'ativo',
+             ])
+             ->assertRedirect();
+
+        $affiliate = Affiliate::where('user_id', $user->id)->first();
+        $this->assertNotNull($affiliate);
+        $this->assertNotEmpty($affiliate->codigo);
+    }
+
+    public function test_store_rejects_duplicate_user_affiliate(): void
+    {
+        $user = User::factory()->create();
+        Affiliate::factory()->create(['user_id' => $user->id, 'status' => 'ativo']);
+
+        $this->actingAs($this->admin)
+             ->post(route('admin.afiliados.store'), [
+                 'user_id' => $user->id,
+                 'status'  => 'ativo',
+             ])
+             ->assertSessionHasErrors('user_id');
+    }
+
+    public function test_buscar_usuarios_returns_json(): void
+    {
+        $user = User::factory()->create(['name' => 'Joao Testador', 'email' => 'joao@test.com']);
+
+        $response = $this->actingAs($this->admin)
+             ->getJson(route('admin.afiliados.buscarUsuarios', ['q' => 'Joao']))
+             ->assertOk();
+
+        $response->assertJsonFragment(['name' => 'Joao Testador']);
+    }
 }

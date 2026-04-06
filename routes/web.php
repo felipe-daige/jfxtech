@@ -131,6 +131,8 @@ Route::prefix('admin/afiliados')->name('admin.afiliados.')->group(function () {
     Route::post('/comissoes/bulk', [AdminAfiliadoController::class, 'bulkComissoes'])->name('comissoes.bulk');
     Route::get('/configuracoes',   [AdminAfiliadoController::class, 'configuracoes'])->name('configuracoes');
     Route::post('/configuracoes',  [AdminAfiliadoController::class, 'salvarConfiguracoes'])->name('configuracoes.salvar');
+    Route::get('/buscar-usuarios',  [AdminAfiliadoController::class, 'buscarUsuarios'])->name('buscarUsuarios');
+    Route::post('/',                [AdminAfiliadoController::class, 'store'])->name('store');
     Route::get('/{id}',            [AdminAfiliadoController::class, 'show'])->name('show');
     Route::post('/{id}/aprovar',   [AdminAfiliadoController::class, 'aprovar'])->name('aprovar');
     Route::post('/{id}/suspender', [AdminAfiliadoController::class, 'suspender'])->name('suspender');

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 use App\Models\Affiliate;
 use App\Models\AffiliateCommission;
 use App\Models\AffiliateSetting;
+use App\Models\User;
+use App\Services\AffiliateService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -208,5 +210,68 @@ class AdminAfiliadoController extends Controller
 
         return redirect()->route('admin.afiliados.configuracoes')
             ->with('success', 'Configurações salvas.');
+    }
+
+    public function buscarUsuarios(Request $request)
+    {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Não autorizado'], 401);
+        }
+
+        $q = $request->get('q', '');
+        if (strlen($q) < 2) {
+            return response()->json([]);
+        }
+
+        $existingUserIds = Affiliate::whereIn('status', ['ativo', 'pendente'])->pluck('user_id');
+
+        $users = User::where(function ($query) use ($q) {
+                $query->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($q) . '%'])
+                      ->orWhereRaw('LOWER(email) LIKE ?', ['%' . strtolower($q) . '%']);
+            })
+            ->whereNotIn('id', $existingUserIds)
+            ->select('id', 'name', 'email')
+            ->limit(10)
+            ->get();
+
+        return response()->json($users);
+    }
+
+    public function store(Request $request)
+    {
+        if ($r = $this->checkAuth()) return $r;
+
+        $request->validate([
+            'user_id'          => 'required|integer|exists:users,id',
+            'codigo'           => 'nullable|string|max:20|regex:/^[A-Z0-9]+$/|unique:affiliates,codigo',
+            'commission_type'  => 'nullable|in:percent,fixed',
+            'commission_value' => 'nullable|numeric|min:0',
+            'pix_key'          => 'nullable|string|max:255',
+            'status'           => 'nullable|in:pendente,ativo',
+        ]);
+
+        if (Affiliate::where('user_id', $request->user_id)
+            ->whereIn('status', ['ativo', 'pendente'])->exists()) {
+            return back()->withErrors(['user_id' => 'Este usuário já é afiliado.']);
+        }
+
+        $codigo = $request->codigo
+            ?: app(AffiliateService::class)->generateUniqueCode();
+
+        $status = $request->status ?? 'ativo';
+        $approvedAt = $status === 'ativo' ? now() : null;
+
+        Affiliate::create([
+            'user_id'          => $request->user_id,
+            'codigo'           => $codigo,
+            'commission_type'  => $request->commission_type ?? 'percent',
+            'commission_value' => $request->commission_value ?: null,
+            'pix_key'          => $request->pix_key ?: null,
+            'status'           => $status,
+            'approved_at'      => $approvedAt,
+        ]);
+
+        return redirect()->route('admin.afiliados.index')
+            ->with('success', 'Afiliado criado com sucesso.');
     }
 }
