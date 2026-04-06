@@ -198,4 +198,38 @@ class AdminAfiliadoControllerTest extends TestCase
         $this->assertDatabaseHas('affiliate_settings', ['key' => 'cookie_days', 'value' => '60']);
         $this->assertDatabaseHas('affiliate_settings', ['key' => 'grace_period_days', 'value' => '15']);
     }
+
+    public function test_bulk_comissoes_rejeitar_changes_status(): void
+    {
+        $affiliateUser = User::factory()->create();
+        $affiliate = Affiliate::factory()->create(['user_id' => $affiliateUser->id]);
+        $buyer = User::factory()->create();
+        $referral = AffiliateReferral::create([
+            'affiliate_id' => $affiliate->id, 'referred_user_id' => $buyer->id, 'status' => 'convertido',
+        ]);
+        $pedido = Pedido::create([
+            'user_id' => $buyer->id, 'status' => 'pago', 'valor_total' => 100.00,
+            'frete_tipo' => 'pac', 'frete_valor' => 0,
+        ]);
+        $commission = AffiliateCommission::create([
+            'affiliate_id' => $affiliate->id,
+            'referral_id'  => $referral->id,
+            'pedido_id'    => $pedido->id,
+            'valor'        => 5.00,
+            'status'       => 'pendente',
+            'eligible_at'  => now()->subDay(),
+        ]);
+
+        $this->actingAs($this->admin)
+             ->post(route('admin.afiliados.comissoes.bulk'), [
+                 'ids'    => [$commission->id],
+                 'action' => 'rejeitar',
+             ])
+             ->assertRedirect();
+
+        $this->assertDatabaseHas('affiliate_commissions', [
+            'id'     => $commission->id,
+            'status' => 'rejeitado',
+        ]);
+    }
 }
