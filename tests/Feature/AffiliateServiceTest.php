@@ -2,6 +2,7 @@
 namespace Tests\Feature;
 
 use App\Models\Affiliate;
+use App\Models\AffiliateReferral;
 use App\Models\AffiliateSetting;
 use App\Services\AffiliateService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -102,5 +103,61 @@ class AffiliateServiceTest extends TestCase
         $valor = $this->service->calculateCommission($affiliate, $pedido);
 
         $this->assertEquals(5.00, $valor); // 5% of 100
+    }
+
+    public function test_record_referral_creates_pending_referral(): void
+    {
+        $affiliateUser = \App\Models\User::factory()->create();
+        $affiliate = Affiliate::factory()->create(['user_id' => $affiliateUser->id, 'status' => 'ativo']);
+        $newUser = \App\Models\User::factory()->create();
+
+        $request = \Illuminate\Http\Request::create('/');
+        $request->cookies->set(AffiliateService::COOKIE_NAME, $affiliate->codigo);
+        app()->instance('request', $request);
+
+        $this->service->recordReferralOnRegister($newUser);
+
+        $this->assertDatabaseHas('affiliate_referrals', [
+            'affiliate_id'     => $affiliate->id,
+            'referred_user_id' => $newUser->id,
+            'status'           => 'pendente',
+        ]);
+    }
+
+    public function test_record_referral_ignores_empty_cookie(): void
+    {
+        $newUser = \App\Models\User::factory()->create();
+        $request = \Illuminate\Http\Request::create('/');
+        app()->instance('request', $request);
+
+        $this->service->recordReferralOnRegister($newUser);
+
+        $this->assertDatabaseCount('affiliate_referrals', 0);
+    }
+
+    public function test_record_referral_ignores_self_referral(): void
+    {
+        $user = \App\Models\User::factory()->create();
+        $affiliate = Affiliate::factory()->create(['user_id' => $user->id, 'status' => 'ativo']);
+
+        $request = \Illuminate\Http\Request::create('/');
+        $request->cookies->set(AffiliateService::COOKIE_NAME, $affiliate->codigo);
+        app()->instance('request', $request);
+
+        $this->service->recordReferralOnRegister($user);
+
+        $this->assertDatabaseCount('affiliate_referrals', 0);
+    }
+
+    public function test_record_referral_ignores_invalid_code(): void
+    {
+        $newUser = \App\Models\User::factory()->create();
+        $request = \Illuminate\Http\Request::create('/');
+        $request->cookies->set(AffiliateService::COOKIE_NAME, 'INVALID1');
+        app()->instance('request', $request);
+
+        $this->service->recordReferralOnRegister($newUser);
+
+        $this->assertDatabaseCount('affiliate_referrals', 0);
     }
 }

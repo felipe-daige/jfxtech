@@ -40,4 +40,36 @@ class AffiliateService
             ? $value
             : round((float) $pedido->valor_total * $value / 100, 2);
     }
+
+    public function recordReferralOnRegister(User $user): void
+    {
+        $codigo = request()->cookie(self::COOKIE_NAME);
+        if (!$codigo) {
+            return;
+        }
+
+        $affiliate = Affiliate::where('codigo', $codigo)
+            ->where('status', 'ativo')
+            ->first();
+
+        if (!$affiliate) {
+            return;
+        }
+
+        // Anti-self-referral
+        if ($affiliate->user_id === $user->id) {
+            return;
+        }
+
+        // Skip if user already has a referral (UNIQUE constraint guard)
+        if (AffiliateReferral::where('referred_user_id', $user->id)->exists()) {
+            return;
+        }
+
+        AffiliateReferral::create([
+            'affiliate_id'     => $affiliate->id,
+            'referred_user_id' => $user->id,
+            'status'           => 'pendente',
+        ]);
+    }
 }
