@@ -2,11 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Pedido;
+use App\Services\CheckoutOrderService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 
 class FreteController extends Controller
 {
+    public function __construct(
+        protected CheckoutOrderService $checkoutOrderService
+    ) {
+    }
+
     /**
      * Tabela de frete manual baseada em região e peso
      */
@@ -118,6 +124,12 @@ class FreteController extends Controller
                 'descricao' => 'Entrega em até 3 dias úteis',
                 'valor' => $this->tabelaFrete['sedex'][$regiao][$faixaPeso],
                 'prazo' => '2-3 dias úteis'
+            ],
+            'retirada' => [
+                'nome' => 'Retirada na Loja',
+                'descricao' => 'Retire seu pedido em nossa loja em Londrina, PR',
+                'valor' => 0.00,
+                'prazo' => 'Combinado'
             ]
         ];
 
@@ -137,25 +149,23 @@ class FreteController extends Controller
      */
     private function determinarRegiao($cep)
     {
-        // Primeiros dígitos do CEP para determinar região
-        $prefixo = substr($cep, 0, 2);
-        
-        // PR (Londrina) - CEPs 86xxx-xxx
-        if ($prefixo == '86') {
+        $prefixo = (int) substr($cep, 0, 2);
+
+        // PR — CEPs 80000-87999 (todo o estado do Paraná)
+        if ($prefixo >= 80 && $prefixo <= 87) {
             return 'pr_londrina';
         }
-        
-        // SP - CEPs 01xxx-xxx a 05xxx-xxx
-        if (in_array($prefixo, ['01', '02', '03', '04', '05'])) {
+
+        // SP — CEPs 01000-19999 (capital + interior de SP)
+        if ($prefixo >= 1 && $prefixo <= 19) {
             return 'sp';
         }
-        
-        // RJ - CEPs 20xxx-xxx a 28xxx-xxx
-        if (in_array($prefixo, ['20', '21', '22', '23', '24', '25', '26', '27', '28'])) {
+
+        // RJ — CEPs 20000-28999
+        if ($prefixo >= 20 && $prefixo <= 28) {
             return 'rj';
         }
-        
-        // Outras regiões
+
         return 'outras_regioes';
     }
 
@@ -188,11 +198,7 @@ class FreteController extends Controller
             'cep_destino' => 'required|string|size:8'
         ]);
 
-        // Buscar itens do carrinho
-        $carrinho = \App\Models\Pedido::where('user_id', auth()->id())
-            ->where('status', 'carrinho')
-            ->with('itens.produto')
-            ->first();
+        $carrinho = $this->resolvePedidoAtivo();
 
         if (!$carrinho || $carrinho->itens->isEmpty()) {
             return response()->json([
@@ -214,6 +220,27 @@ class FreteController extends Controller
             'peso_total' => $pesoTotal
         ]));
 
+        // Frete grátis por valor mínimo de pedido
+        $minimoFrete = (float) config('services.frete_gratis_minimo', 0);
+        if ($minimoFrete > 0) {
+            $subtotal = $carrinho->itens->sum(fn($item) => $item->preco_unitario * $item->quantidade);
+            if ($subtotal >= $minimoFrete) {
+                $data = $resultado->getData(true);
+                $data['opcoes']['gratis'] = [
+                    'nome' => 'Frete Grátis',
+                    'descricao' => 'Parabéns! Seu pedido ganhou frete grátis.',
+                    'valor' => 0.00,
+                    'prazo' => '5-7 dias úteis',
+                ];
+                return response()->json($data);
+            }
+        }
+
         return $resultado;
+    }
+
+    private function resolvePedidoAtivo(): ?Pedido
+    {
+        return $this->checkoutOrderService->resolveActiveOrder(request(), ['itens.produto']);
     }
 }

@@ -40,7 +40,7 @@ class MercadoPagoCheckoutController extends Controller
             'cidade' => 'required|string|max:100',
             'estado' => 'required|string|size:2',
             'pais' => 'nullable|string|size:2',
-            'frete_tipo' => 'required|in:pac,sedex,retirada',
+            'frete_tipo' => 'required|in:pac,sedex,retirada,gratis',
         ]);
 
         $pedido = $this->checkoutOrderService->resolveActiveOrder($request, ['itens.produto', 'endereco'], ['carrinho', 'pendente']);
@@ -406,6 +406,22 @@ class MercadoPagoCheckoutController extends Controller
 
     protected function resolveFrete(Pedido $pedido, string $cep, string $tipo): ?array
     {
+        if ($tipo === 'gratis') {
+            $minimoFrete = (float) config('services.frete_gratis_minimo', 0);
+            $subtotal = $pedido->itens->sum(fn($item) => $item->preco_unitario * $item->quantidade);
+
+            if ($minimoFrete <= 0 || $subtotal < $minimoFrete) {
+                return null;
+            }
+
+            return [
+                'tipo' => 'gratis',
+                'label' => 'FRETE GRÁTIS',
+                'valor' => 0.00,
+                'prazo' => '5-7 dias úteis',
+            ];
+        }
+
         $pesoTotal = $pedido->itens->sum(function ($item) {
             $pesoProduto = $item->produto->peso ?? 0.5;
 
