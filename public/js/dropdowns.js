@@ -41,28 +41,26 @@ document.addEventListener('DOMContentLoaded', function() {
         mobileMenuToggle.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            
-            // Fechar outros dropdowns primeiro
-            closeAllDropdowns();
-            
-            // Toggle do menu mobile (sem delay para ser mais fluido)
+
+            // Capturar estado antes de fechar (closeAllDropdowns também fecha este menu)
             const isVisible = !mobileMenu.classList.contains('opacity-0');
-            
-            if (isVisible) {
-                mobileMenu.classList.add('opacity-0', 'invisible');
-            } else {
+
+            // closeAllDropdowns() fecha também este menu; se estava aberto, agora está fechado
+            closeAllDropdowns();
+
+            // Toggle do menu mobile (sem delay para ser mais fluido)
+            if (!isVisible) {
                 mobileMenu.classList.remove('opacity-0', 'invisible');
             }
+            // Sem branch de fechar: closeAllDropdowns() acima já fecha o menu quando estava aberto
         });
     }
 
-    // Fechar dropdowns ao clicar fora
+    // Fechar dropdowns ao clicar fora (ou dentro do menu mobile)
     document.addEventListener('click', function(e) {
-        // Verificar se o clique foi fora dos dropdowns
-        const isInsideDropdown = e.target.closest('.user-dropdown') || 
-                                e.target.closest('#mobile-menu-toggle') ||
-                                e.target.closest('#mobile-menu');
-        
+        const isInsideDropdown = e.target.closest('.user-dropdown') ||
+                                e.target.closest('#mobile-menu-toggle');
+
         if (!isInsideDropdown) {
             closeAllDropdowns();
         }
@@ -75,11 +73,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Prevenir fechamento ao clicar dentro dos dropdowns
-    const dropdownMenus = document.querySelectorAll('.user-dropdown-menu, #mobile-menu');
-    dropdownMenus.forEach(menu => {
-        menu.addEventListener('click', function(e) {
+    // Prevenir fechamento ao clicar dentro do dropdown do usuário
+    const userDropdownMenuEl = document.querySelector('.user-dropdown-menu');
+    if (userDropdownMenuEl) {
+        userDropdownMenuEl.addEventListener('click', function(e) {
             e.stopPropagation();
         });
-    });
+    }
 });
