@@ -2,8 +2,10 @@
 namespace Tests\Feature;
 
 use App\Models\Affiliate;
+use App\Models\AffiliateCommission;
 use App\Models\AffiliateReferral;
 use App\Models\AffiliateSetting;
+use App\Models\Pedido;
 use App\Services\AffiliateService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -159,5 +161,89 @@ class AffiliateServiceTest extends TestCase
         $this->service->recordReferralOnRegister($newUser);
 
         $this->assertDatabaseCount('affiliate_referrals', 0);
+    }
+
+    private function makePaidOrder(\App\Models\User $user, float $total = 100.00): Pedido
+    {
+        return Pedido::create([
+            'user_id'     => $user->id,
+            'status'      => 'pago',
+            'valor_total' => $total,
+            'frete_tipo'  => 'pac',
+            'frete_valor' => 0,
+        ]);
+    }
+
+    public function test_handle_order_paid_creates_commission(): void
+    {
+        AffiliateSetting::create(['key' => 'commission_percent_default', 'value' => '5.00']);
+        AffiliateSetting::create(['key' => 'grace_period_days', 'value' => '30']);
+
+        $affiliateUser = \App\Models\User::factory()->create();
+        $affiliate = Affiliate::factory()->create(['user_id' => $affiliateUser->id]);
+        $buyer = \App\Models\User::factory()->create();
+        AffiliateReferral::create([
+            'affiliate_id' => $affiliate->id, 'referred_user_id' => $buyer->id, 'status' => 'pendente',
+        ]);
+        $pedido = $this->makePaidOrder($buyer, 200.00);
+
+        $this->service->handleOrderPaid($pedido);
+
+        $this->assertDatabaseHas('affiliate_commissions', [
+            'affiliate_id' => $affiliate->id,
+            'pedido_id'    => $pedido->id,
+            'valor'        => 10.00, // 5% of 200
+            'status'       => 'pendente',
+        ]);
+        $this->assertDatabaseHas('affiliate_referrals', [
+            'id'     => AffiliateReferral::first()->id,
+            'status' => 'convertido',
+        ]);
+    }
+
+    public function test_handle_order_paid_skips_guest_orders(): void
+    {
+        $pedido = Pedido::create([
+            'user_id' => null, 'status' => 'pago',
+            'valor_total' => 100.00, 'frete_tipo' => 'pac', 'frete_valor' => 0,
+            'checkout_mode' => 'guest',
+        ]);
+
+        $this->service->handleOrderPaid($pedido);
+
+        $this->assertDatabaseCount('affiliate_commissions', 0);
+    }
+
+    public function test_handle_order_paid_skips_non_first_purchase(): void
+    {
+        AffiliateSetting::create(['key' => 'commission_percent_default', 'value' => '5.00']);
+        AffiliateSetting::create(['key' => 'grace_period_days', 'value' => '30']);
+
+        $affiliateUser = \App\Models\User::factory()->create();
+        $affiliate = Affiliate::factory()->create(['user_id' => $affiliateUser->id]);
+        $buyer = \App\Models\User::factory()->create();
+        AffiliateReferral::create([
+            'affiliate_id' => $affiliate->id, 'referred_user_id' => $buyer->id, 'status' => 'pendente',
+        ]);
+
+        // First paid order already exists
+        Pedido::create(['user_id' => $buyer->id, 'status' => 'pago', 'valor_total' => 50.00, 'frete_tipo' => 'pac', 'frete_valor' => 0]);
+
+        // Second paid order — should NOT generate commission
+        $secondPedido = $this->makePaidOrder($buyer, 100.00);
+
+        $this->service->handleOrderPaid($secondPedido);
+
+        $this->assertDatabaseCount('affiliate_commissions', 0);
+    }
+
+    public function test_handle_order_paid_skips_user_without_referral(): void
+    {
+        $buyer = \App\Models\User::factory()->create();
+        $pedido = $this->makePaidOrder($buyer);
+
+        $this->service->handleOrderPaid($pedido);
+
+        $this->assertDatabaseCount('affiliate_commissions', 0);
     }
 }

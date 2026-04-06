@@ -72,4 +72,46 @@ class AffiliateService
             'status'           => 'pendente',
         ]);
     }
+
+    public function handleOrderPaid(Pedido $pedido): void
+    {
+        if ($pedido->user_id === null) {
+            return;
+        }
+
+        $referral = AffiliateReferral::where('referred_user_id', $pedido->user_id)
+            ->where('status', 'pendente')
+            ->first();
+
+        if (!$referral) {
+            return;
+        }
+
+        // Only commission on the very first paid order
+        $paidCount = Pedido::where('user_id', $pedido->user_id)
+            ->where('status', 'pago')
+            ->count();
+
+        if ($paidCount !== 1) {
+            return;
+        }
+
+        $affiliate = $referral->affiliate;
+        $valor = $this->calculateCommission($affiliate, $pedido);
+        $graceDays = (int) $this->getSetting('grace_period_days', '30');
+
+        AffiliateCommission::create([
+            'affiliate_id' => $affiliate->id,
+            'referral_id'  => $referral->id,
+            'pedido_id'    => $pedido->id,
+            'valor'        => $valor,
+            'status'       => 'pendente',
+            'eligible_at'  => now()->addDays($graceDays),
+        ]);
+
+        $referral->update([
+            'status'       => 'convertido',
+            'converted_at' => now(),
+        ]);
+    }
 }
