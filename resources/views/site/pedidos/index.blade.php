@@ -33,7 +33,7 @@
                 @if($pedidos->count() > 0)
                     <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                         @foreach($pedidos as $pedido)
-                        <div class="bg-white border border-[var(--color-lab-border)] p-6 hover:border-black transition-colors">
+                        <div class="bg-white border {{ $pedido->pago ? 'border-green-400 bg-green-50' : 'border-[var(--color-lab-border)] hover:border-black' }} transition-colors p-6">
                             <!-- Header do Pedido -->
                             <div class="flex items-center justify-between mb-4">
                                 <div>
@@ -41,7 +41,8 @@
                                     <p class="text-sm text-gray-600">{{ $pedido->created_at->format('d/m/Y H:i') }}</p>
                                 </div>
                                 <span class="px-2 py-1 text-[10px] font-mono font-bold uppercase tracking-widest
-                                    @if($pedido->status == 'pendente') bg-yellow-100 text-yellow-800
+                                    @if($pedido->status == 'pago') bg-green-100 text-green-800
+                                    @elseif($pedido->status == 'pendente') bg-yellow-100 text-yellow-800
                                     @elseif($pedido->status == 'processando') bg-blue-100 text-blue-800
                                     @elseif($pedido->status == 'enviado') bg-purple-100 text-purple-800
                                     @elseif($pedido->status == 'entregue') bg-green-100 text-green-800
@@ -81,6 +82,19 @@
                                     <span class="text-xl font-mono font-bold">R$ {{ number_format($pedido->valor_total, 2, ',', '.') }}</span>
                                 </div>
                             </div>
+
+                            <!-- Rastreio -->
+                            @if($pedido->codigo_rastreio)
+                            <div class="border-t pt-3 mt-3">
+                                <p class="text-[10px] font-mono font-bold uppercase tracking-widest text-gray-500 mb-1">Rastreamento</p>
+                                <p class="font-mono text-sm text-gray-900">{{ $pedido->codigo_rastreio }}</p>
+                                <a href="https://rastreamento.correios.com.br/app/index.php?objetos={{ $pedido->codigo_rastreio }}"
+                                   target="_blank"
+                                   class="inline-flex items-center font-mono text-xs text-black underline hover:no-underline mt-1">
+                                    Rastrear nos Correios &#8599;
+                                </a>
+                            </div>
+                            @endif
 
                             <!-- Botão Ver Detalhes -->
                             <div class="mt-4">

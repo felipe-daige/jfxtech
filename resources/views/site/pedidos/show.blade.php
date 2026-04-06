@@ -10,6 +10,9 @@
     <link rel="stylesheet" href="{{ asset('css/site-styles.css') }}">
 </head>
 <body class="min-h-screen flex flex-col bg-[var(--color-lab-bg)] text-[var(--color-lab-ink)] antialiased">
+    @php
+        $isGuestOrder = $pedido->user_id === null;
+    @endphp
     @include('includes.header')
 
     <main class="flex-grow">
@@ -19,8 +22,10 @@
             <nav class="flex text-xs font-mono text-gray-500 uppercase tracking-widest mb-6">
                 <a href="{{ route('site.index') }}" class="hover:text-black transition-colors">HOME</a>
                 <svg class="w-4 h-4 mx-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                @if(!$isGuestOrder)
                 <a href="{{ route('site.pedidos.index') }}" class="hover:text-black transition-colors">MEUS PEDIDOS</a>
                 <svg class="w-4 h-4 mx-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                @endif
                 <span class="text-black">PEDIDO #{{ $pedido->id }}</span>
             </nav>
             <h1 class="text-4xl font-bold tracking-tight mb-2">DETALHES DO PEDIDO #{{ $pedido->id }}</h1>
@@ -32,15 +37,28 @@
     <section class="py-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="max-w-4xl mx-auto">
+                @if(session('success'))
+                <div class="bg-white border border-black p-4 mb-6 text-sm font-mono uppercase tracking-widest">
+                    {{ session('success') }}
+                </div>
+                @endif
+
+                @if(session('error'))
+                <div class="bg-white border border-red-300 p-4 mb-6 text-sm font-mono uppercase tracking-widest text-red-700">
+                    {{ session('error') }}
+                </div>
+                @endif
+
                 <!-- Status do Pedido -->
-                <div class="bg-white border border-[var(--color-lab-border)] p-6 mb-6">
+                <div class="bg-white border {{ $pedido->pago ? 'border-green-400 bg-green-50' : 'border-[var(--color-lab-border)]' }} p-6 mb-6">
                     <div class="flex items-center justify-between">
                         <div>
                             <h2 class="text-2xl font-bold text-gray-900 mb-2">Status do Pedido</h2>
                             <p class="text-gray-600">Pedido realizado em {{ $pedido->created_at->format('d/m/Y H:i') }}</p>
                         </div>
                         <span class="px-2 py-1 text-[10px] font-mono font-bold uppercase tracking-widest
-                            @if($pedido->status == 'pendente') bg-yellow-100 text-yellow-800
+                            @if($pedido->status == 'pago') bg-green-100 text-green-800
+                            @elseif($pedido->status == 'pendente') bg-yellow-100 text-yellow-800
                             @elseif($pedido->status == 'processando') bg-blue-100 text-blue-800
                             @elseif($pedido->status == 'enviado') bg-purple-100 text-purple-800
                             @elseif($pedido->status == 'entregue') bg-green-100 text-green-800
@@ -51,6 +69,41 @@
                     </div>
                 </div>
 
+                @if($isGuestOrder && $pedido->status === 'pago')
+                <div class="bg-white border border-[var(--color-lab-border)] p-6 mb-6">
+                    <div class="max-w-2xl">
+                        <p class="font-mono text-[10px] uppercase tracking-[0.2em] text-gray-500 mb-3">Sua compra foi concluída</p>
+                        <h2 class="text-2xl font-bold tracking-tight">Crie sua senha para acompanhar pedidos mais rápido</h2>
+                        <p class="text-sm text-gray-600 mt-3">Sua compra já está confirmada. Se quiser, defina uma senha agora para transformar este pedido em uma conta e acessar seus próximos pedidos sem preencher tudo novamente.</p>
+                    </div>
+
+                    <form method="POST" action="{{ route('site.pedidos.create-account', $pedido) }}" class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        @csrf
+                        <input type="hidden" name="guest_token" value="{{ $pedido->guest_token }}">
+                        <div class="md:col-span-2">
+                            <label class="block text-[10px] font-mono font-bold uppercase tracking-widest text-gray-500 mb-2">E-mail da compra</label>
+                            <input type="email" value="{{ $pedido->customer_email }}" readonly class="w-full px-4 py-3 border border-[var(--color-lab-border)] bg-[var(--color-lab-bg)] text-sm font-mono">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-mono font-bold uppercase tracking-widest text-gray-500 mb-2">Crie sua senha</label>
+                            <input type="password" name="password" required class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black transition-colors">
+                            @error('password')
+                                <p class="mt-2 text-xs text-red-600 font-mono">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-mono font-bold uppercase tracking-widest text-gray-500 mb-2">Confirme a senha</label>
+                            <input type="password" name="password_confirmation" required class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black transition-colors">
+                        </div>
+                        <div class="md:col-span-2">
+                            <button type="submit" class="inline-flex items-center justify-center bg-black text-white px-5 py-3 text-[10px] font-mono uppercase tracking-widest hover:bg-gray-900 transition-colors">
+                                Criar conta com esta compra
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                @endif
+
                 <!-- Dados do Cliente e Endereço -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                     <!-- Dados do Cliente -->
@@ -59,10 +112,10 @@
                             <svg class="w-5 h-5 mr-2 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>DADOS DO CLIENTE
                         </h3>
                         <div class="space-y-2">
-                            <p class="text-gray-700"><span class="font-mono text-xs font-bold uppercase tracking-widest text-gray-500">Nome:</span> {{ $pedido->user->name }}</p>
-                            <p class="text-gray-700"><span class="font-mono text-xs font-bold uppercase tracking-widest text-gray-500">E-mail:</span> {{ $pedido->user->email }}</p>
-                            @if($pedido->user->telefone)
-                                <p class="text-gray-700"><span class="font-mono text-xs font-bold uppercase tracking-widest text-gray-500">Telefone:</span> {{ $pedido->user->telefone }}</p>
+                            <p class="text-gray-700"><span class="font-mono text-xs font-bold uppercase tracking-widest text-gray-500">Nome:</span> {{ $pedido->user->name ?? $pedido->customer_name }}</p>
+                            <p class="text-gray-700"><span class="font-mono text-xs font-bold uppercase tracking-widest text-gray-500">E-mail:</span> {{ $pedido->user->email ?? $pedido->customer_email }}</p>
+                            @if($pedido->user?->phone || $pedido->customer_phone)
+                                <p class="text-gray-700"><span class="font-mono text-xs font-bold uppercase tracking-widest text-gray-500">Telefone:</span> {{ $pedido->user->phone ?? $pedido->customer_phone }}</p>
                             @endif
                         </div>
                     </div>
@@ -143,7 +196,7 @@
                     <div class="space-y-2">
                         @foreach($pedido->pagamentos as $pagamento)
                         <div class="flex justify-between items-center p-3 bg-[var(--color-lab-bg)]">
-                            <span class="font-mono text-xs font-bold uppercase tracking-widest text-gray-500">{{ ucfirst($pagamento->metodo ?? 'Desconhecido') }}</span>
+                            <span class="font-mono text-xs font-bold uppercase tracking-widest text-gray-500">{{ ['pix' => 'Pix', 'cartao' => 'Cartão', 'boleto' => 'Boleto'][$pagamento->metodo] ?? ucfirst($pagamento->metodo ?? 'Desconhecido') }}</span>
                             <span class="px-2 py-1 text-[10px] font-mono font-bold uppercase tracking-widest
                                 @if($pagamento->status == 'aprovado') bg-green-100 text-green-800
                                 @elseif($pagamento->status == 'pendente') bg-yellow-100 text-yellow-800
@@ -157,12 +210,34 @@
                 </div>
                 @endif
 
+                <!-- Rastreamento -->
+                @if($pedido->codigo_rastreio)
+                <div class="bg-white border border-[var(--color-lab-border)] p-6 mb-6">
+                    <h3 class="text-sm font-mono font-bold uppercase tracking-widest mb-4">
+                        <svg class="w-5 h-5 mr-2 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>RASTREAMENTO DO PEDIDO
+                    </h3>
+                    <div class="space-y-2">
+                        <p class="text-gray-700">
+                            <span class="font-mono text-xs font-bold uppercase tracking-widest text-gray-500">Código:</span>
+                            <span class="font-mono font-bold">{{ $pedido->codigo_rastreio }}</span>
+                        </p>
+                        <a href="https://rastreamento.correios.com.br/app/index.php?objetos={{ $pedido->codigo_rastreio }}"
+                           target="_blank"
+                           class="inline-flex items-center bg-black text-white py-2 px-4 font-mono text-[10px] uppercase tracking-widest hover:bg-gray-900 transition-colors">
+                            Rastrear nos Correios &#8599;
+                        </a>
+                    </div>
+                </div>
+                @endif
+
                 <!-- Botões de Ação -->
                 <div class="flex flex-col sm:flex-row gap-4">
+                    @if(!$isGuestOrder)
                     <a href="{{ route('site.pedidos.index') }}"
                        class="flex-1 bg-white text-black py-3 px-6 font-bold tracking-widest uppercase text-sm border border-[var(--color-lab-border)] hover:border-black transition-colors text-center">
                         <svg class="w-4 h-4 mr-2 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>Voltar aos Pedidos
                     </a>
+                    @endif
                     <a href="{{ route('site.produtos') }}"
                        class="flex-1 bg-black text-white py-3 px-6 font-bold tracking-widest uppercase text-sm hover:bg-gray-900 transition-colors text-center">
                         <svg class="w-4 h-4 mr-2 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>Continuar Comprando
