@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 
 class AdminAfiliadoController extends Controller
 {
-    private function checkAuth(): ?object
+    private function checkAuth(): \Illuminate\Http\RedirectResponse|null
     {
         if (!Auth::check()) {
             return redirect()->route('site.login');
@@ -76,8 +76,8 @@ class AdminAfiliadoController extends Controller
 
         return response()->json([
             'id'               => $affiliate->id,
-            'nome'             => $affiliate->user->name,
-            'email'            => $affiliate->user->email,
+            'nome'             => $affiliate->user?->name ?? '',
+            'email'            => $affiliate->user?->email ?? '',
             'codigo'           => $affiliate->codigo,
             'commission_type'  => $affiliate->commission_type,
             'commission_value' => $affiliate->commission_value,
@@ -92,22 +92,24 @@ class AdminAfiliadoController extends Controller
     {
         if ($r = $this->checkAuth()) return $r;
 
-        $affiliate = Affiliate::findOrFail($id);
+        $affiliate = Affiliate::with('user')->findOrFail($id);
         $affiliate->update(['status' => 'ativo', 'approved_at' => now()]);
 
+        $name = $affiliate->user?->name ?? "#" . $affiliate->id;
         return redirect()->route('admin.afiliados.index')
-            ->with('success', "Afiliado {$affiliate->user->name} aprovado.");
+            ->with('success', "Afiliado {$name} aprovado.");
     }
 
     public function suspender(int $id)
     {
         if ($r = $this->checkAuth()) return $r;
 
-        $affiliate = Affiliate::findOrFail($id);
+        $affiliate = Affiliate::with('user')->findOrFail($id);
         $affiliate->update(['status' => 'inativo']);
 
+        $name = $affiliate->user?->name ?? "#" . $affiliate->id;
         return redirect()->route('admin.afiliados.index')
-            ->with('success', "Afiliado {$affiliate->user->name} suspenso.");
+            ->with('success', "Afiliado {$name} suspenso.");
     }
 
     public function editarComissao(Request $request, int $id)
