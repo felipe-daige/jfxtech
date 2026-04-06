@@ -47,4 +47,60 @@ class AffiliateServiceTest extends TestCase
             $this->assertNotEquals('AAAAAAAA', $code);
         }
     }
+
+    public function test_calculate_commission_percent_type(): void
+    {
+        AffiliateSetting::create(['key' => 'commission_percent_default', 'value' => '5.00']);
+        $user = \App\Models\User::factory()->create();
+        $affiliate = Affiliate::factory()->create([
+            'user_id'          => $user->id,
+            'commission_type'  => 'percent',
+            'commission_value' => 10.00,
+        ]);
+        $pedido = \App\Models\Pedido::create([
+            'user_id' => $user->id, 'status' => 'pago',
+            'valor_total' => 200.00, 'frete_tipo' => 'pac', 'frete_valor' => 0,
+        ]);
+
+        $valor = $this->service->calculateCommission($affiliate, $pedido);
+
+        $this->assertEquals(20.00, $valor); // 10% of 200
+    }
+
+    public function test_calculate_commission_fixed_type(): void
+    {
+        $user = \App\Models\User::factory()->create();
+        $affiliate = Affiliate::factory()->create([
+            'user_id'          => $user->id,
+            'commission_type'  => 'fixed',
+            'commission_value' => 15.00,
+        ]);
+        $pedido = \App\Models\Pedido::create([
+            'user_id' => $user->id, 'status' => 'pago',
+            'valor_total' => 200.00, 'frete_tipo' => 'pac', 'frete_valor' => 0,
+        ]);
+
+        $valor = $this->service->calculateCommission($affiliate, $pedido);
+
+        $this->assertEquals(15.00, $valor); // flat R$ 15
+    }
+
+    public function test_calculate_commission_uses_global_when_value_null(): void
+    {
+        AffiliateSetting::create(['key' => 'commission_percent_default', 'value' => '5.00']);
+        $user = \App\Models\User::factory()->create();
+        $affiliate = Affiliate::factory()->create([
+            'user_id'          => $user->id,
+            'commission_type'  => 'percent',
+            'commission_value' => null,
+        ]);
+        $pedido = \App\Models\Pedido::create([
+            'user_id' => $user->id, 'status' => 'pago',
+            'valor_total' => 100.00, 'frete_tipo' => 'pac', 'frete_valor' => 0,
+        ]);
+
+        $valor = $this->service->calculateCommission($affiliate, $pedido);
+
+        $this->assertEquals(5.00, $valor); // 5% of 100
+    }
 }
