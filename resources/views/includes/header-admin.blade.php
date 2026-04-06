@@ -53,12 +53,13 @@
             adminPedidosStatus: '{{ route("admin.pedidos.status", ":id") }}',
             adminPedidosDetalhes: '{{ route("admin.pedidos.detalhes", ":id") }}',
             adminPedidosQuickStatus: '{{ route("admin.pedidos.quick-status", ":id") }}',
+            adminPedidosRastreio: '{{ route("admin.pedidos.rastreio", ":id") }}',
         };
     </script>
 </head>
 <body class="bg-[var(--color-lab-bg)]">
     <!-- Header -->
-    <header class="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-[var(--color-lab-border)]">
+    <header class="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-[var(--color-lab-border)]">
         <div class="container mx-auto px-4 py-3 sm:py-4">
             <div class="flex justify-between items-center">
                 <div class="flex items-center space-x-3 sm:space-x-4 min-w-0">
@@ -97,7 +98,7 @@
         <div id="sidebarOverlay" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 lg:hidden hidden"></div>
 
         <!-- Sidebar -->
-        <aside id="sidebar" class="fixed lg:sticky lg:top-[73px] inset-y-0 left-0 z-50 w-[82vw] max-w-60 lg:w-56 xl:w-60 bg-white border-r border-[var(--color-lab-border)] min-h-screen lg:h-[calc(100vh-73px)] transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out lg:block overflow-y-auto admin-mobile-scroll">
+        <aside id="sidebar" class="fixed lg:sticky lg:top-[73px] top-0 bottom-0 left-0 z-40 w-[82vw] max-w-60 lg:w-56 xl:w-60 bg-white border-r border-[var(--color-lab-border)] lg:h-[calc(100vh-73px)] transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out lg:block overflow-y-auto admin-mobile-scroll">
             <div class="flex items-center justify-between p-4 border-b border-[var(--color-lab-border)] lg:hidden">
                 <span class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Navigation</span>
                 <button id="closeSidebar" class="text-black hover:text-gray-600">

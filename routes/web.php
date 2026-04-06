@@ -91,7 +91,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/pedidos/{id}', [AdminController::class, 'detalhesPedido'])->name('pedidos.detalhes');
     Route::post('/pedidos/{id}/status', [AdminController::class, 'atualizarStatusPedido'])->name('pedidos.status');
     Route::post('/pedidos/{id}/quick-status', [AdminController::class, 'quickStatusPedido'])->name('pedidos.quick-status');
-    
+    Route::patch('/pedidos/{pedido}/rastreio', [AdminController::class, 'atualizarRastreio'])->name('pedidos.rastreio');
+
     // Categorias
     Route::get('/categorias', [AdminController::class, 'categorias'])->name('categorias');
     Route::post('/categorias', [AdminController::class, 'criarCategoria'])->name('categorias.criar');
