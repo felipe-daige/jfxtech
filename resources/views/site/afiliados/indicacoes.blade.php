@@ -32,7 +32,7 @@
             <tbody>
                 @foreach($indicacoes as $ref)
                 <tr class="border-b border-gray-100 hover:bg-gray-50">
-                    <td class="py-2">{{ substr($ref->referredUser->name, 0, 3) }}***</td>
+                    <td class="py-2">{{ substr($ref->referredUser?->name ?? 'Usuário', 0, 3) }}***</td>
                     <td class="py-2">{{ $ref->created_at->format('d/m/Y') }}</td>
                     <td class="py-2 uppercase text-xs tracking-widest">{{ $ref->status }}</td>
                     <td class="py-2">{{ $ref->converted_at?->format('d/m/Y') ?? '—' }}</td>

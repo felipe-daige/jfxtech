@@ -63,7 +63,7 @@
                 </div>
                 @forelse($ultimasIndicacoes as $ref)
                 <div class="border-b border-gray-100 py-2 flex justify-between items-center text-sm">
-                    <span class="text-gray-700">{{ substr($ref->referredUser->name, 0, 3) }}***</span>
+                    <span class="text-gray-700">{{ substr($ref->referredUser?->name ?? 'Usuário', 0, 3) }}***</span>
                     <span class="text-xs uppercase tracking-widest {{ $ref->status === 'convertido' ? 'text-black' : 'text-gray-400' }}">
                         {{ $ref->status }}
                     </span>
