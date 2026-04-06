@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Pedido extends Model
 {
+    use HasFactory;
     protected $fillable = [
         'user_id',
         'endereco_id',
@@ -16,6 +18,12 @@ class Pedido extends Model
         'valor_total',
         'frete_tipo',
         'frete_valor',
+        'customer_name',
+        'customer_email',
+        'customer_phone',
+        'guest_token',
+        'checkout_mode',
+        'codigo_rastreio',
     ];
 
     protected $casts = [
