@@ -1345,11 +1345,13 @@ class AdminController extends Controller
         ]);
     }
 
-    public function atualizarRastreio(Request $request, Pedido $pedido): \Illuminate\Http\JsonResponse
+    public function atualizarRastreio(Request $request, int $id): \Illuminate\Http\JsonResponse
     {
         if (!Auth::check()) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
+
+        $pedido = Pedido::findOrFail($id);
 
         $validated = $request->validate([
             'codigo_rastreio' => 'nullable|string|max:50',
