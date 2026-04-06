@@ -6,45 +6,85 @@
 <div class="space-y-4 lg:space-y-6">
 
     {{-- Header --}}
-    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
-        <div>
-            <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-1">Overview</p>
-            <h1 class="text-2xl sm:text-3xl font-bold text-black tracking-tight">Dashboard</h1>
-        </div>
-        <div class="font-mono text-xs text-[var(--color-lab-muted)] uppercase tracking-widest">
-            {{ now()->format('d/m/Y H:i') }}
-        </div>
-    </div>
+    <div class="border border-[var(--color-lab-border)] bg-white overflow-hidden">
+        <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] gap-0">
+            <div class="px-5 py-6 sm:px-6 sm:py-7 border-b xl:border-b-0 xl:border-r border-[var(--color-lab-border)] bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_100%)]">
+                <p class="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--color-lab-muted)] mb-2">Admin Overview</p>
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                        <h1 class="text-3xl sm:text-4xl font-bold text-black tracking-tight">Dashboard</h1>
+                        <p class="mt-2 max-w-2xl text-sm text-[var(--color-lab-muted)]">
+                            Monitore vendas, alertas operacionais e exporte os analytics do painel em poucos cliques.
+                        </p>
+                    </div>
+                    <div class="inline-flex w-fit flex-col border border-[var(--color-lab-border)] bg-white px-4 py-3">
+                        <span class="font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--color-lab-muted)]">Atualizado em</span>
+                        <span class="mt-1 font-mono text-sm font-bold text-black">{{ now()->format('d/m/Y H:i') }}</span>
+                    </div>
+                </div>
+            </div>
 
-    {{-- ACTION BAR --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2">
-        <button onclick="abrirModalProduto()"
-                class="inline-flex items-center justify-center gap-2 px-4 py-3 bg-black text-white font-mono text-[10px] uppercase tracking-widest hover:bg-gray-800 transition-colors text-center">
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-            Novo Produto
-        </button>
-        <a href="{{ route('admin.pedidos') }}"
-           class="inline-flex items-center justify-center gap-2 px-4 py-3 border font-mono text-[10px] uppercase tracking-widest hover:border-black transition-colors text-center {{ $pedidos_pendentes > 0 ? 'border-yellow-400 text-yellow-700' : 'border-[var(--color-lab-border)] text-black' }}">
-            Pendentes: {{ $pedidos_pendentes }}
-        </a>
-        <a href="{{ route('admin.pedidos') }}"
-           class="inline-flex items-center justify-center gap-2 px-4 py-3 border border-[var(--color-lab-border)] font-mono text-[10px] uppercase tracking-widest text-black hover:border-black transition-colors text-center">
-            Processando: {{ $pedidos_processando }}
-        </a>
-        <a href="{{ route('admin.pedidos') }}"
-           class="inline-flex items-center justify-center gap-2 px-4 py-3 border border-[var(--color-lab-border)] font-mono text-[10px] uppercase tracking-widest text-black hover:border-black transition-colors text-center">
-            Ver Pedidos
-        </a>
-        <a href="{{ route('admin.dashboard.exportar.csv') }}"
-           class="inline-flex items-center justify-center gap-2 px-4 py-3 border border-[var(--color-lab-border)] font-mono text-[10px] uppercase tracking-widest text-black hover:border-black transition-colors text-center">
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-            Exportar Analytics CSV
-        </a>
-        <a href="{{ route('admin.dashboard.exportar.pdf') }}"
-           class="inline-flex items-center justify-center gap-2 px-4 py-3 border border-[var(--color-lab-border)] font-mono text-[10px] uppercase tracking-widest text-black hover:border-black transition-colors text-center sm:col-span-2 xl:col-span-1">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-            Exportar Analytics PDF
-        </a>
+            <div class="px-5 py-6 sm:px-6 sm:py-7 bg-[var(--color-lab-bg)]">
+                <div class="flex items-center justify-between gap-3 mb-4">
+                    <p class="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--color-lab-muted)]">Ações rápidas</p>
+                    <span class="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--color-lab-muted)]">Mobile ready</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 gap-2.5">
+                    <button onclick="abrirModalProduto()"
+                            class="inline-flex min-h-12 items-center justify-center gap-2 px-4 py-3 bg-black text-white font-mono text-[10px] uppercase tracking-widest hover:bg-gray-800 transition-colors text-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                        Novo Produto
+                    </button>
+
+                    <div class="relative sm:col-span-1" data-export-menu>
+                        <button type="button"
+                                id="export-menu-button"
+                                aria-haspopup="true"
+                                aria-expanded="false"
+                                aria-controls="export-menu-panel"
+                                class="inline-flex min-h-12 w-full items-center justify-center gap-2 px-4 py-3 border border-[var(--color-lab-border)] bg-white font-mono text-[10px] uppercase tracking-widest text-black hover:border-black transition-colors text-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                            Baixar Analytics
+                            <span id="export-menu-chevron" class="text-xs transition-transform duration-200">&#9662;</span>
+                        </button>
+
+                        <div id="export-menu-panel"
+                             class="hidden absolute left-0 right-0 top-[calc(100%+0.5rem)] z-20 border border-[var(--color-lab-border)] bg-white shadow-xl">
+                            <a href="{{ route('admin.dashboard.exportar.pdf') }}"
+                               class="flex items-center justify-between gap-3 px-4 py-3 font-mono text-[10px] uppercase tracking-widest text-black hover:bg-gray-50 border-b border-[var(--color-lab-border)]">
+                                <span>Exportar PDF</span>
+                                <span class="text-[var(--color-lab-muted)]">.pdf</span>
+                            </a>
+                            <a href="{{ route('admin.dashboard.exportar.csv') }}"
+                               class="flex items-center justify-between gap-3 px-4 py-3 font-mono text-[10px] uppercase tracking-widest text-black hover:bg-gray-50">
+                                <span>Exportar CSV</span>
+                                <span class="text-[var(--color-lab-muted)]">.csv</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <a href="{{ route('admin.pedidos') }}"
+                       class="inline-flex min-h-12 items-center justify-center gap-2 px-4 py-3 border font-mono text-[10px] uppercase tracking-widest hover:border-black transition-colors text-center {{ $pedidos_nao_finalizados > 0 ? 'border-yellow-400 bg-yellow-50 text-yellow-700' : 'border-[var(--color-lab-border)] bg-white text-black' }}">
+                        Não finalizados: {{ $pedidos_nao_finalizados }}
+                    </a>
+
+                    <a href="{{ route('admin.pedidos') }}"
+                       class="inline-flex min-h-12 items-center justify-center gap-2 px-4 py-3 border font-mono text-[10px] uppercase tracking-widest hover:border-black transition-colors text-center {{ $pedidos_pagos > 0 ? 'border-green-300 bg-green-50 text-green-700' : 'border-[var(--color-lab-border)] bg-white text-black' }}">
+                        Pagos: {{ $pedidos_pagos }}
+                    </a>
+
+                    <a href="{{ route('admin.pedidos') }}"
+                       class="inline-flex min-h-12 items-center justify-center gap-2 px-4 py-3 border border-[var(--color-lab-border)] bg-white font-mono text-[10px] uppercase tracking-widest text-black hover:border-black transition-colors text-center">
+                        Processando: {{ $pedidos_processando }}
+                    </a>
+
+                    <a href="{{ route('admin.pedidos') }}"
+                       class="inline-flex min-h-12 items-center justify-center gap-2 px-4 py-3 border border-[var(--color-lab-border)] bg-white font-mono text-[10px] uppercase tracking-widest text-black hover:border-black transition-colors text-center sm:col-span-2">
+                        Ver Pedidos
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 
     {{-- KPI CARDS --}}
@@ -52,7 +92,7 @@
         <div class="border border-[var(--color-lab-border)] bg-white p-5 sm:p-6">
             <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-2">Receita Total</p>
             <p class="text-lg sm:text-2xl font-bold text-black font-mono">R$&nbsp;{{ number_format($receita_total, 2, ',', '.') }}</p>
-            <p class="font-mono text-[10px] text-[var(--color-lab-muted)] mt-1">pedidos entregues</p>
+            <p class="font-mono text-[10px] text-[var(--color-lab-muted)] mt-1">vendas confirmadas e em andamento</p>
         </div>
         <div class="border border-[var(--color-lab-border)] bg-white p-5 sm:p-6">
             <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-2">Lucro Bruto</p>
@@ -65,9 +105,9 @@
             <p class="font-mono text-[10px] text-[var(--color-lab-muted)] mt-1">sobre receita</p>
         </div>
         <div class="border border-[var(--color-lab-border)] bg-white p-5 sm:p-6">
-            <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-2">Pendentes</p>
-            <p class="text-2xl sm:text-3xl font-bold text-black font-mono">{{ $pedidos_pendentes }}</p>
-            <p class="font-mono text-[10px] text-[var(--color-lab-muted)] mt-1">aguardando</p>
+            <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-2">Pedidos Pagos</p>
+            <p class="text-2xl sm:text-3xl font-bold text-black font-mono">{{ $pedidos_pagos }}</p>
+            <p class="font-mono text-[10px] text-[var(--color-lab-muted)] mt-1">confirmados no checkout</p>
         </div>
     </div>
 
@@ -88,7 +128,7 @@
                         $temCritico  = $alertas['margem_negativa'] > 0 || $alertas['margem_zero'] > 0;
                         $temAtencao  = $alertas['margem_baixa'] > 0 || $alertas['estoque_zerado'] > 0;
                         $temSemCusto = $alertas['sem_custo'] > 0;
-                        $temInfo     = $alertas['sem_imagem'] > 0 || $alertas['inativos'] > 0;
+                        $temInfo     = $alertas['inativos'] > 0;
                     @endphp
 
                     @if(!$temCritico && !$temAtencao && !$temSemCusto)
@@ -234,12 +274,6 @@
 
                         @if($temInfo)
                         <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mt-3 mb-1">Informa&ccedil;&atilde;o</p>
-                        @if($alertas['sem_imagem'] > 0)
-                        <div class="flex items-center justify-between py-1.5 border-l-2 border-gray-300 pl-3">
-                            <span class="font-mono text-xs text-black">Sem imagem (ativo)</span>
-                            <span class="font-mono text-xs font-bold text-gray-500">{{ $alertas['sem_imagem'] }}</span>
-                        </div>
-                        @endif
                         @if($alertas['inativos'] > 0)
                         <div class="flex items-center justify-between py-1.5 border-l-2 border-gray-300 pl-3">
                             <span class="font-mono text-xs text-black">Produtos inativos</span>
@@ -255,6 +289,8 @@
                     <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-4">Status dos Pedidos</p>
                     <div class="space-y-3">
                         @foreach([
+                            ['label'=>'Não finalizados', 'val'=>$pedidos_nao_finalizados, 'color'=>'bg-yellow-300'],
+                            ['label'=>'Pagos',        'val'=>$pedidos_pagos,        'color'=>'bg-green-500'],
                             ['label'=>'Pendentes',   'val'=>$pedidos_pendentes,   'color'=>'bg-gray-400'],
                             ['label'=>'Processando', 'val'=>$pedidos_processando, 'color'=>'bg-gray-600'],
                             ['label'=>'Enviados',    'val'=>$pedidos_enviados,    'color'=>'bg-gray-800'],
@@ -309,7 +345,61 @@
         </div>
     </div>
 
-    {{-- SECTION: PEDIDOS QUE PRECISAM DE ACAO --}}
+    {{-- SECTION: PIPELINE DE FULFILLMENT --}}
+    {{-- SLA ALERTS --}}
+    @if($sla_pago_sem_processar > 0 || $sla_processando_sem_enviar > 0 || $sla_enviado_sem_entregar > 0)
+    <div class="border border-yellow-400 bg-yellow-50 px-4 sm:px-6 py-4 space-y-1">
+        <p class="font-mono text-[10px] uppercase tracking-widest text-yellow-700 font-bold mb-2">Alertas de Prazo</p>
+        @if($sla_pago_sem_processar > 0)
+        <p class="font-mono text-xs text-yellow-800">&#9888; {{ $sla_pago_sem_processar }} {{ $sla_pago_sem_processar === 1 ? 'pedido pago há mais de 24h sem processar' : 'pedidos pagos há mais de 24h sem processar' }}</p>
+        @endif
+        @if($sla_processando_sem_enviar > 0)
+        <p class="font-mono text-xs text-yellow-800">&#9888; {{ $sla_processando_sem_enviar }} {{ $sla_processando_sem_enviar === 1 ? 'pedido em processamento há mais de 3 dias sem enviar' : 'pedidos em processamento há mais de 3 dias sem enviar' }}</p>
+        @endif
+        @if($sla_enviado_sem_entregar > 0)
+        <p class="font-mono text-xs text-yellow-800">&#9888; {{ $sla_enviado_sem_entregar }} {{ $sla_enviado_sem_entregar === 1 ? 'pedido enviado há mais de 15 dias sem confirmação de entrega' : 'pedidos enviados há mais de 15 dias sem confirmação de entrega' }}</p>
+        @endif
+    </div>
+    @endif
+
+    {{-- PIPELINE VISUAL --}}
+    <div class="border border-[var(--color-lab-border)] bg-white">
+        <div class="flex items-center justify-between gap-3 px-4 sm:px-6 py-4 border-b border-[var(--color-lab-border)]">
+            <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Pipeline de Fulfillment</p>
+        </div>
+        <div class="grid grid-cols-4 divide-x divide-[var(--color-lab-border)]">
+            <a href="{{ route('admin.pedidos') }}?status=pago" class="flex flex-col items-center py-4 px-2 hover:bg-gray-50 transition-colors text-center">
+                <span class="font-mono text-2xl font-bold text-green-700">{{ $pedidos_pagos }}</span>
+                <span class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mt-1">Pago</span>
+                @if($pedidos_pagos > 0)
+                <span class="mt-2 font-mono text-[9px] uppercase tracking-widest text-green-700 border border-green-400 px-1.5 py-0.5">&#9889; ação</span>
+                @else
+                <span class="mt-2 font-mono text-[9px] uppercase tracking-widest text-gray-400">&#10003; ok</span>
+                @endif
+            </a>
+            <a href="{{ route('admin.pedidos') }}?status=processando" class="flex flex-col items-center py-4 px-2 hover:bg-gray-50 transition-colors text-center">
+                <span class="font-mono text-2xl font-bold text-blue-700">{{ $pedidos_processando }}</span>
+                <span class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mt-1">Processando</span>
+                @if($pedidos_processando > 0)
+                <span class="mt-2 font-mono text-[9px] uppercase tracking-widest text-blue-700 border border-blue-400 px-1.5 py-0.5">&#9889; ação</span>
+                @else
+                <span class="mt-2 font-mono text-[9px] uppercase tracking-widest text-gray-400">&#10003; ok</span>
+                @endif
+            </a>
+            <a href="{{ route('admin.pedidos') }}?status=enviado" class="flex flex-col items-center py-4 px-2 hover:bg-gray-50 transition-colors text-center">
+                <span class="font-mono text-2xl font-bold text-purple-700">{{ $pedidos_enviados }}</span>
+                <span class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mt-1">Enviado</span>
+                <span class="mt-2 font-mono text-[9px] uppercase tracking-widest text-gray-400">aguardando</span>
+            </a>
+            <a href="{{ route('admin.pedidos') }}?status=entregue" class="flex flex-col items-center py-4 px-2 hover:bg-gray-50 transition-colors text-center">
+                <span class="font-mono text-2xl font-bold text-black">{{ $pedidos_entregues }}</span>
+                <span class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mt-1">Entregue</span>
+                <span class="mt-2 font-mono text-[9px] uppercase tracking-widest text-gray-400">&#10003; concluído</span>
+            </a>
+        </div>
+    </div>
+
+    {{-- ACTION LIST: pago + processando orders --}}
     @if($pedidos_acao->isNotEmpty())
     <div data-section="pedidos-acao" data-default-open="true" class="border border-[var(--color-lab-border)] bg-white">
         <div data-section-toggle class="flex items-center justify-between gap-3 px-4 sm:px-6 py-4 cursor-pointer hover:bg-gray-50 border-b border-[var(--color-lab-border)] select-none">
@@ -325,15 +415,25 @@
                     <div class="flex flex-wrap items-center gap-2 sm:gap-3 mb-0.5">
                         <span class="font-mono text-sm font-bold text-black">#{{ $pedido->id }}</span>
                         <span class="font-mono text-[10px] text-[var(--color-lab-muted)]">{{ $pedido->created_at->format('d/m H:i') }}</span>
-                        <span data-status-badge class="inline-block px-2 py-0.5 font-mono text-[10px] border {{ $pedido->status === 'pendente' ? 'border-gray-400 text-gray-600' : 'border-gray-600 text-gray-700' }}">
+                        @php
+                            $badgeColors = [
+                                'pago'        => 'border-green-500 text-green-700',
+                                'pendente'    => 'border-yellow-500 text-yellow-700',
+                                'processando' => 'border-blue-500 text-blue-700',
+                                'enviado'     => 'border-purple-500 text-purple-700',
+                                'entregue'    => 'border-green-700 text-green-900',
+                                'cancelado'   => 'border-red-400 text-red-600',
+                            ];
+                        @endphp
+                        <span data-status-badge class="inline-block px-2 py-0.5 font-mono text-[10px] border {{ $badgeColors[$pedido->status] ?? 'border-gray-400 text-gray-600' }}">
                             {{ ucfirst($pedido->status) }}
                         </span>
                     </div>
-                    <div class="font-mono text-sm text-black">{{ $pedido->user->name }}</div>
+                    <div class="font-mono text-sm text-black">{{ $pedido->user->name ?? $pedido->customer_name ?? 'Guest' }}</div>
                     <div class="font-mono text-xs text-[var(--color-lab-muted)]">R$&nbsp;{{ number_format($pedido->valor_total, 2, ',', '.') }}</div>
                 </div>
                 <div class="sm:mt-0">
-                    @if($pedido->status === 'pendente')
+                    @if($pedido->status === 'pago')
                     <button onclick="avancarStatusPedido(this, {{ $pedido->id }}, 'processando')"
                             class="w-full sm:w-auto font-mono text-[10px] uppercase tracking-widest px-3 py-2 border border-black text-black hover:bg-black hover:text-white transition-colors">
                         &rarr; Processando
@@ -399,12 +499,12 @@
                     <div>
                         <p class="font-mono text-[10px] text-[var(--color-lab-muted)] mb-1">Ticket M&eacute;dio</p>
                         <p class="font-mono text-xl font-bold text-black">R$&nbsp;{{ number_format($ticket_medio, 2, ',', '.') }}</p>
-                        <p class="font-mono text-[10px] text-[var(--color-lab-muted)]">por pedido entregue</p>
+                        <p class="font-mono text-[10px] text-[var(--color-lab-muted)]">por venda confirmada</p>
                     </div>
                     <div>
                         <p class="font-mono text-[10px] text-[var(--color-lab-muted)] mb-1">Unidades Vendidas</p>
                         <p class="font-mono text-xl font-bold text-black">{{ $total_unidades }}</p>
-                        <p class="font-mono text-[10px] text-[var(--color-lab-muted)]">pedidos entregues</p>
+                        <p class="font-mono text-[10px] text-[var(--color-lab-muted)]">vendas confirmadas e em andamento</p>
                     </div>
                     <div>
                         <p class="font-mono text-[10px] text-[var(--color-lab-muted)] mb-1">Produtos Ativos</p>
@@ -631,6 +731,44 @@
 <script>
 (function () {
     var CSRF = document.querySelector('meta[name="csrf-token"]').content;
+    var exportMenuRoot = document.querySelector('[data-export-menu]');
+    var exportMenuButton = document.getElementById('export-menu-button');
+    var exportMenuPanel = document.getElementById('export-menu-panel');
+    var exportMenuChevron = document.getElementById('export-menu-chevron');
+
+    function setExportMenuState(open) {
+        if (!exportMenuRoot || !exportMenuButton || !exportMenuPanel) return;
+
+        exportMenuPanel.classList.toggle('hidden', !open);
+        exportMenuButton.setAttribute('aria-expanded', open ? 'true' : 'false');
+
+        if (exportMenuChevron) {
+            exportMenuChevron.classList.toggle('rotate-180', open);
+        }
+    }
+
+    function initExportMenu() {
+        if (!exportMenuRoot || !exportMenuButton || !exportMenuPanel) return;
+
+        exportMenuButton.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var isOpen = !exportMenuPanel.classList.contains('hidden');
+            setExportMenuState(!isOpen);
+        });
+
+        exportMenuPanel.querySelectorAll('a').forEach(function (link) {
+            link.addEventListener('click', function () {
+                setExportMenuState(false);
+            });
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!exportMenuRoot.contains(e.target)) {
+                setExportMenuState(false);
+            }
+        });
+    }
 
     function initCollapsibles() {
         document.querySelectorAll('[data-section]').forEach(function(section) {
@@ -781,7 +919,14 @@
                 setTimeout(function() { rowEl.remove(); }, 400);
             } else {
                 var badge = rowEl.querySelector('[data-status-badge]');
-                if (badge) { badge.textContent = 'Processando'; badge.className = badge.className.replace('border-gray-400 text-gray-600','border-gray-600 text-gray-700'); }
+                if (badge) {
+                    badge.textContent = 'Processando';
+                    badge.className = badge.className
+                        .replace('border-green-500 text-green-700', '')
+                        .replace('border-yellow-500 text-yellow-700', '')
+                        .replace('border-gray-400 text-gray-600', '')
+                        .trim() + ' border-blue-500 text-blue-700';
+                }
                 btn.textContent = '\u2192 Enviado';
                 btn.onclick     = function() { window.avancarStatusPedido(btn, pedidoId, 'enviado'); };
                 btn.disabled    = false;
@@ -858,8 +1003,10 @@
 
     initCollapsibles();
     initExpandableAlerts();
+    initExportMenu();
 
     document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') setExportMenuState(false);
         if (e.key === 'Escape') fecharQuickFix();
     });
 })();
