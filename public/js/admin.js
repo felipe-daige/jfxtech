@@ -214,7 +214,8 @@ function mostrarImagensExistentes(imagens) {
         container.className = 'mt-5';
         const tabImagens = document.getElementById('tab-imagens');
         if (tabImagens) {
-            tabImagens.querySelector('.px-6').appendChild(container);
+            const innerDiv = tabImagens.querySelector('div') || tabImagens;
+            innerDiv.appendChild(container);
         } else {
             document.getElementById('formProduto').appendChild(container);
         }
@@ -1348,6 +1349,44 @@ function collectGruposFromUI() {
     });
     return grupos;
 }
+
+window.salvarRastreio = async function(pedidoId) {
+    var input    = document.getElementById('rastreio-input-' + pedidoId);
+    var btn      = document.getElementById('rastreio-btn-' + pedidoId);
+    var feedback = document.getElementById('rastreio-feedback-' + pedidoId);
+    if (!input || !btn) return;
+
+    var originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '...';
+
+    try {
+        var url = (window.routes.adminPedidosRastreio || '').replace(':id', pedidoId);
+        var res = await fetch(url, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ codigo_rastreio: input.value.trim().toUpperCase() || null }),
+        });
+
+        var data = await res.json();
+        if (!data.success) throw new Error('Falha ao salvar');
+
+        if (feedback) {
+            feedback.classList.remove('hidden');
+            setTimeout(function() { feedback.classList.add('hidden'); }, 2000);
+        }
+        input.value = input.value.trim().toUpperCase();
+    } catch (err) {
+        alert('Erro ao salvar código de rastreio.');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+    }
+};
 
 function parseCurrencyBRL(value) {
     if (!value) return 0;
