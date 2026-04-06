@@ -1203,10 +1203,22 @@ class AdminController extends Controller
         $total_unidades = ItemPedido::whereHas('pedido', fn($q) => $q->whereIn('status', $performanceStatuses))->sum('quantidade');
         $total_ativos   = Produto::where('ativo', true)->count();
 
-        $pedidos_acao = Pedido::where('status', 'pendente')
+        $pedidos_acao = Pedido::whereIn('status', ['pago', 'processando'])
             ->with('user:id,name')
             ->orderBy('created_at')
             ->get();
+
+        $sla_pago_sem_processar = Pedido::where('status', 'pago')
+            ->where('updated_at', '<', now()->subHours(24))
+            ->count();
+
+        $sla_processando_sem_enviar = Pedido::where('status', 'processando')
+            ->where('updated_at', '<', now()->subDays(3))
+            ->count();
+
+        $sla_enviado_sem_entregar = Pedido::where('status', 'enviado')
+            ->where('updated_at', '<', now()->subDays(15))
+            ->count();
 
         $pedidos_recentes = Pedido::with('user')->orderBy('created_at', 'desc')->limit(5)->get();
         $categorias = Categoria::orderBy('nome')->get();
@@ -1235,7 +1247,10 @@ class AdminController extends Controller
             'total_unidades',
             'total_ativos',
             'pedidos_acao',
-            'categorias'
+            'categorias',
+            'sla_pago_sem_processar',
+            'sla_processando_sem_enviar',
+            'sla_enviado_sem_entregar'
         );
     }
 
