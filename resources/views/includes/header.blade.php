@@ -272,6 +272,6 @@
 <div id="cart-overlay" class="fixed inset-0 bg-black/50 z-40 opacity-0 invisible transition-all duration-300"></div>
 
 {{-- Scripts --}}
-<script src="{{ asset('js/dropdowns.js') }}"></script>
+<script src="{{ asset('js/dropdowns.js') }}?v={{ filemtime(public_path('js/dropdowns.js')) }}"></script>
 <script src="{{ asset('js/cart.js') }}?v={{ filemtime(public_path('js/cart.js')) }}"></script>
 <script src="{{ asset('js/topbar.js') }}?v=2"></script>
