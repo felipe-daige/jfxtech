@@ -5,30 +5,33 @@ namespace App\Http\Controllers;
 use App\Models\Endereco;
 use App\Models\Pagamento;
 use App\Models\Pedido;
+use App\Services\AffiliateService;
+use App\Services\CheckoutOrderService;
 use App\Services\MercadoPagoService;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 class MercadoPagoCheckoutController extends Controller
 {
     public function __construct(
-        protected MercadoPagoService $mercadoPagoService
+        protected MercadoPagoService $mercadoPagoService,
+        protected CheckoutOrderService $checkoutOrderService,
+        protected AffiliateService $affiliateService,
     ) {
     }
 
     public function prepare(Request $request)
     {
-        if (!Auth::check()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Você precisa estar logado para continuar.',
-            ], 401);
-        }
-
         $validated = $request->validate([
+            'customer_name' => 'required|string|max:255',
+            'customer_email' => 'required|email|max:255',
+            'customer_phone' => 'required|string|max:20',
             'cep' => 'required|string|max:9',
             'rua' => 'required|string|max:255',
             'numero' => 'required|string|max:10',
@@ -37,14 +40,10 @@ class MercadoPagoCheckoutController extends Controller
             'cidade' => 'required|string|max:100',
             'estado' => 'required|string|size:2',
             'pais' => 'nullable|string|size:2',
-            'frete_tipo' => 'required|in:pac,sedex',
+            'frete_tipo' => 'required|in:pac,sedex,retirada',
         ]);
 
-        $pedido = Pedido::where('user_id', Auth::id())
-            ->whereIn('status', ['carrinho', 'pendente'])
-            ->with(['itens.produto', 'endereco'])
-            ->latest('id')
-            ->first();
+        $pedido = $this->checkoutOrderService->resolveActiveOrder($request, ['itens.produto', 'endereco'], ['carrinho', 'pendente']);
 
         if (!$pedido || $pedido->itens->isEmpty()) {
             return response()->json([
@@ -54,6 +53,7 @@ class MercadoPagoCheckoutController extends Controller
         }
 
         $frete = $this->resolveFrete(
+            $pedido,
             preg_replace('/\D/', '', $validated['cep']),
             $validated['frete_tipo']
         );
@@ -68,22 +68,8 @@ class MercadoPagoCheckoutController extends Controller
         $subtotal = $pedido->itens->sum(fn ($item) => (float) $item->preco * (int) $item->quantidade);
         $valorTotal = round($subtotal + (float) $frete['valor'], 2);
 
-        DB::transaction(function () use ($validated, $pedido, $frete, $valorTotal): void {
-            $endereco = Endereco::firstOrCreate(
-                [
-                    'user_id' => Auth::id(),
-                    'cep' => $validated['cep'],
-                    'rua' => $validated['rua'],
-                    'numero' => $validated['numero'],
-                    'bairro' => $validated['bairro'],
-                    'cidade' => $validated['cidade'],
-                    'estado' => $validated['estado'],
-                ],
-                [
-                    'complemento' => $validated['complemento'] ?? null,
-                    'pais' => $validated['pais'] ?? 'BR',
-                ]
-            );
+        DB::transaction(function () use ($request, $validated, $pedido, $frete, $valorTotal): void {
+            $endereco = $this->persistEndereco($pedido, $validated);
 
             $pedido->update([
                 'endereco_id' => $endereco->id,
@@ -91,8 +77,18 @@ class MercadoPagoCheckoutController extends Controller
                 'valor_total' => $valorTotal,
                 'frete_tipo' => $frete['tipo'],
                 'frete_valor' => $frete['valor'],
+                'customer_name' => $validated['customer_name'],
+                'customer_email' => $validated['customer_email'],
+                'customer_phone' => $validated['customer_phone'],
+                'checkout_mode' => Auth::check() ? 'authenticated' : 'guest',
             ]);
+
+            $this->checkoutOrderService->rememberGuestOrder($request, $pedido);
         });
+
+        $customerName = $pedido->customer_name ?: $validated['customer_name'];
+        $customerEmail = $pedido->customer_email ?: $validated['customer_email'];
+        $customerPhone = $pedido->customer_phone ?: $validated['customer_phone'];
 
         return response()->json([
             'success' => true,
@@ -103,19 +99,20 @@ class MercadoPagoCheckoutController extends Controller
                 'subtotal' => round($subtotal, 2),
                 'frete' => $frete,
                 'payer' => [
-                    'email' => Auth::user()->email,
-                    'first_name' => $this->firstName(Auth::user()->name),
-                    'last_name' => $this->lastName(Auth::user()->name),
+                    'email' => $customerEmail,
+                    'first_name' => $this->firstName($customerName),
+                    'last_name' => $this->lastName($customerName),
+                    'entityType' => 'individual',
                 ],
                 'customer' => [
-                    'name' => Auth::user()->name,
-                    'email' => Auth::user()->email,
-                    'phone' => Auth::user()->phone,
+                    'name' => $customerName,
+                    'email' => $customerEmail,
+                    'phone' => $customerPhone,
                 ],
                 'urls' => [
                     'pay' => route('site.checkout.mercadopago.pay'),
                     'status' => route('site.checkout.mercadopago.status', $pedido),
-                    'orders' => route('site.pedidos.index'),
+                    'orders' => $this->checkoutOrderService->orderUrl($pedido),
                 ],
             ],
         ]);
@@ -123,12 +120,48 @@ class MercadoPagoCheckoutController extends Controller
 
     public function pay(Request $request)
     {
-        if (!Auth::check()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Você precisa estar logado para continuar.',
-            ], 401);
+        $normalizedPaymentMethodId = $this->normalizePaymentMethodId(
+            $request->input('payment_method_id')
+                ?? $request->input('paymentMethodId')
+                ?? $request->input('selectedPaymentMethod')
+                ?? $request->input('selected_payment_method')
+                ?? data_get($request->input('formData'), 'payment_method_id')
+                ?? data_get($request->input('formData'), 'paymentMethodId')
+                ?? data_get($request->input('formData'), 'selectedPaymentMethod')
+        );
+        $normalizedPayerEmail = $request->input('payer.email')
+            ?? data_get($request->input('formData'), 'payer.email')
+            ?? data_get($request->input('formData'), 'email')
+            ?? Auth::user()?->email;
+        $normalizedIdentificationType = $request->input('payer.identification.type')
+            ?? data_get($request->input('formData'), 'payer.identification.type');
+        $normalizedIdentificationNumber = $request->input('payer.identification.number')
+            ?? data_get($request->input('formData'), 'payer.identification.number');
+
+        if ($normalizedPaymentMethodId !== null || $normalizedPayerEmail !== null || $normalizedIdentificationType !== null || $normalizedIdentificationNumber !== null) {
+            $request->merge(array_filter([
+                'payment_method_id' => $normalizedPaymentMethodId,
+                'payer' => array_filter([
+                    ...((array) $request->input('payer', [])),
+                    'email' => $normalizedPayerEmail,
+                    'identification' => array_filter([
+                        ...((array) data_get($request->input('payer', []), 'identification', [])),
+                        'type' => $normalizedIdentificationType,
+                        'number' => $normalizedIdentificationNumber !== null ? preg_replace('/\D/', '', (string) $normalizedIdentificationNumber) : null,
+                    ], fn ($value) => $value !== null && $value !== ''),
+                ], fn ($value) => $value !== null && $value !== ''),
+            ], fn ($value) => $value !== null && $value !== []));
         }
+
+        Log::info('mercado_pago.pay.request', [
+            'user_id' => Auth::id(),
+            'content_type' => $request->header('Content-Type'),
+            'keys' => array_keys($request->all()),
+            'selected_payment_method' => $request->input('selectedPaymentMethod') ?? $request->input('selected_payment_method'),
+            'payment_method_id' => $request->input('payment_method_id'),
+            'payload' => $request->all(),
+            'raw_body' => $request->getContent(),
+        ]);
 
         $validated = $request->validate([
             'pedido_id' => 'required|integer',
@@ -137,16 +170,18 @@ class MercadoPagoCheckoutController extends Controller
             'installments' => 'nullable|integer|min:1',
             'token' => 'nullable|string',
             'issuer_id' => 'nullable',
-            'payer' => 'required|array',
-            'payer.email' => 'required|email',
+            'payer' => 'nullable|array',
+            'payer.email' => 'nullable|email',
+            'payer.identification' => 'nullable|array',
+            'payer.identification.type' => 'nullable|string|in:CPF',
+            'payer.identification.number' => 'nullable|string|size:11',
         ]);
 
         $pedido = Pedido::where('id', $validated['pedido_id'])
-            ->where('user_id', Auth::id())
             ->with('pagamentos')
             ->first();
 
-        if (!$pedido) {
+        if (!$pedido || !$this->checkoutOrderService->canAccessOrder($request, $pedido)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Pedido não encontrado.',
@@ -160,15 +195,40 @@ class MercadoPagoCheckoutController extends Controller
             ], 422);
         }
 
+        if (!$pedido->customer_email) {
+            $pedido->forceFill([
+                'customer_email' => data_get($validated, 'payer.email'),
+            ])->save();
+        }
+
+        if (($validated['payment_method_id'] ?? null) === 'pix' && empty(data_get($validated, 'payer.identification.number'))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Informe um CPF válido para concluir o pagamento via Pix.',
+                'errors' => [
+                    'payer.identification.number' => ['O CPF do pagador é obrigatório para Pix.'],
+                ],
+            ], 422);
+        }
+
+        $payer = array_filter([
+            ...($validated['payer'] ?? []),
+            'email' => data_get($validated, 'payer.email') ?: $pedido->customer_email ?: Auth::user()?->email,
+        ], fn ($value) => $value !== null && $value !== '');
+
         $payload = [
             'transaction_amount' => (float) $pedido->valor_total,
             'description' => 'Pedido #' . $pedido->id,
             'payment_method_id' => $validated['payment_method_id'],
             'installments' => (int) ($validated['installments'] ?? 1),
-            'payer' => $validated['payer'],
+            'payer' => $payer,
             'external_reference' => (string) $pedido->id,
-            'notification_url' => config('services.mercadopago.webhook_url') ?: route('site.checkout.mercadopago.webhook'),
         ];
+
+        $notificationUrl = $this->resolveNotificationUrl();
+        if ($notificationUrl !== null) {
+            $payload['notification_url'] = $notificationUrl;
+        }
 
         if (!empty($validated['token'])) {
             $payload['token'] = $validated['token'];
@@ -176,6 +236,24 @@ class MercadoPagoCheckoutController extends Controller
 
         if (!empty($validated['issuer_id'])) {
             $payload['issuer_id'] = $validated['issuer_id'];
+        }
+
+        Log::info('mercado_pago.pay.gateway_payload', [
+            'pedido_id' => $pedido->id,
+            'user_id' => Auth::id(),
+            'payment_method_id' => $payload['payment_method_id'] ?? null,
+            'notification_url' => $payload['notification_url'] ?? null,
+            'payload' => $payload,
+        ]);
+
+        try {
+            $this->cancelPendingPayments($pedido);
+        } catch (RequestException $exception) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Não foi possível cancelar o pagamento pendente anterior antes de gerar uma nova cobrança.',
+                'details' => $exception->response?->json(),
+            ], $exception->response?->status() ?? 500);
         }
 
         try {
@@ -198,14 +276,14 @@ class MercadoPagoCheckoutController extends Controller
                 'status' => $gatewayResponse['status'] ?? 'pending',
                 'status_detail' => $gatewayResponse['status_detail'] ?? null,
                 'instructions' => $this->extractInstructions($gatewayResponse),
-                'redirect_url' => route('site.pedidos.show', $pedido),
+                'redirect_url' => $this->checkoutOrderService->orderUrl($pedido),
             ],
         ]);
     }
 
-    public function status(Pedido $pedido)
+    public function status(Request $request, Pedido $pedido)
     {
-        if (!Auth::check() || $pedido->user_id !== Auth::id()) {
+        if (!$this->checkoutOrderService->canAccessOrder($request, $pedido)) {
             abort(403);
         }
 
@@ -224,13 +302,33 @@ class MercadoPagoCheckoutController extends Controller
                 'gateway_status_detail' => $pagamento->gateway_status_detail,
                 'instructions' => $this->extractInstructions($pagamento->payload ?? []),
             ] : null,
+            'redirect_url' => $this->checkoutOrderService->orderUrl($pedido),
         ]);
     }
 
     public function webhook(Request $request)
     {
-        $paymentId = (string) ($request->input('data.id') ?? $request->input('id'));
-        $topic = (string) ($request->input('type') ?? $request->input('topic'));
+        if (!$this->webhookSignatureIsValid($request)) {
+            Log::warning('mercado_pago.webhook.invalid_signature', [
+                'x_signature' => $request->header('x-signature'),
+                'x_request_id' => $request->header('x-request-id'),
+                'query' => $request->query(),
+                'payload' => $request->all(),
+            ]);
+
+            return response()->json([
+                'received' => false,
+                'message' => 'Assinatura do webhook inválida.',
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $paymentId = (string) (
+            $request->query('id')
+            ?? $request->input('data.id')
+            ?? $request->input('id')
+            ?? $request->input('resource')
+        );
+        $topic = (string) ($request->query('topic') ?? $request->input('type') ?? $request->input('topic'));
 
         if ($paymentId === '' || !in_array($topic, ['', 'payment'], true)) {
             return response()->json(['received' => true]);
@@ -275,17 +373,48 @@ class MercadoPagoCheckoutController extends Controller
             ]
         );
 
-        $pedido->update([
-            'status' => $this->mapOrderStatus($gatewayResponse['status'] ?? null),
-        ]);
+        $newStatus = $this->mapOrderStatus($gatewayResponse['status'] ?? null);
+        $pedido->update(['status' => $newStatus]);
+
+        if ($newStatus === 'pago') {
+            $this->affiliateService->handleOrderPaid($pedido);
+        }
 
         return $pagamento;
     }
 
-    protected function resolveFrete(string $cep, string $tipo): ?array
+    protected function cancelPendingPayments(Pedido $pedido): void
     {
-        $response = app(FreteController::class)->calcularFreteCarrinho(new Request([
+        $pendingPayments = $pedido->pagamentos()
+            ->where('gateway', 'mercado_pago')
+            ->where('status', 'pendente')
+            ->whereNotNull('gateway_payment_id')
+            ->orderByDesc('id')
+            ->get();
+
+        foreach ($pendingPayments as $pagamento) {
+            $gatewayPaymentId = (string) $pagamento->gateway_payment_id;
+
+            if ($gatewayPaymentId === '') {
+                continue;
+            }
+
+            $gatewayResponse = $this->mercadoPagoService->cancelPayment($gatewayPaymentId);
+            $this->persistPayment($pedido, $gatewayResponse);
+        }
+    }
+
+    protected function resolveFrete(Pedido $pedido, string $cep, string $tipo): ?array
+    {
+        $pesoTotal = $pedido->itens->sum(function ($item) {
+            $pesoProduto = $item->produto->peso ?? 0.5;
+
+            return $pesoProduto * $item->quantidade;
+        });
+
+        $response = app(FreteController::class)->calcularFrete(new Request([
             'cep_destino' => $cep,
+            'peso_total' => $pesoTotal,
         ]));
 
         $data = $response->getData(true);
@@ -300,6 +429,47 @@ class MercadoPagoCheckoutController extends Controller
             'valor' => (float) $data['opcoes'][$tipo]['valor'],
             'prazo' => $data['opcoes'][$tipo]['prazo'] ?? null,
         ];
+    }
+
+    protected function persistEndereco(Pedido $pedido, array $validated): Endereco
+    {
+        $payload = [
+            'user_id' => Auth::id(),
+            'cep' => $validated['cep'],
+            'rua' => $validated['rua'],
+            'numero' => $validated['numero'],
+            'complemento' => $validated['complemento'] ?? null,
+            'bairro' => $validated['bairro'],
+            'cidade' => $validated['cidade'],
+            'estado' => $validated['estado'],
+            'pais' => $validated['pais'] ?? 'BR',
+        ];
+
+        if (Auth::check()) {
+            return Endereco::firstOrCreate(
+                [
+                    'user_id' => Auth::id(),
+                    'cep' => $payload['cep'],
+                    'rua' => $payload['rua'],
+                    'numero' => $payload['numero'],
+                    'bairro' => $payload['bairro'],
+                    'cidade' => $payload['cidade'],
+                    'estado' => $payload['estado'],
+                ],
+                [
+                    'complemento' => $payload['complemento'],
+                    'pais' => $payload['pais'],
+                ]
+            );
+        }
+
+        if ($pedido->endereco) {
+            $pedido->endereco->update($payload);
+
+            return $pedido->endereco->fresh();
+        }
+
+        return Endereco::create($payload);
     }
 
     protected function extractInstructions(array $gatewayResponse): array
@@ -320,6 +490,120 @@ class MercadoPagoCheckoutController extends Controller
             'ticket', 'bolbradesco', 'pec' => 'boleto',
             default => 'cartao',
         };
+    }
+
+    protected function normalizePaymentMethodId(mixed $rawValue): ?string
+    {
+        if (is_array($rawValue)) {
+            $rawValue = $rawValue['type']
+                ?? $rawValue['id']
+                ?? $rawValue['payment_method_id']
+                ?? $rawValue['paymentMethodId']
+                ?? null;
+        }
+
+        if ($rawValue === null || $rawValue === '') {
+            return null;
+        }
+
+        $normalized = trim((string) $rawValue);
+
+        return match ($normalized) {
+            'bank_transfer', 'bankTransfer' => 'pix',
+            'ticket' => 'bolbradesco',
+            default => $normalized,
+        };
+    }
+
+    protected function resolveNotificationUrl(): ?string
+    {
+        $configuredWebhookUrl = config('services.mercadopago.webhook_url');
+
+        if ($this->isValidHttpsUrl($configuredWebhookUrl)) {
+            return $configuredWebhookUrl;
+        }
+
+        Log::warning('mercado_pago.notification_url.skipped', [
+            'candidate' => $configuredWebhookUrl,
+            'reason' => $configuredWebhookUrl ? 'not_https' : 'missing_or_invalid',
+        ]);
+
+        return null;
+    }
+
+    protected function isValidHttpsUrl(mixed $value): bool
+    {
+        if (!is_string($value) || $value === '') {
+            return false;
+        }
+
+        if (!filter_var($value, FILTER_VALIDATE_URL)) {
+            return false;
+        }
+
+        return Str::startsWith($value, 'https://');
+    }
+
+    protected function webhookSignatureIsValid(Request $request): bool
+    {
+        $secret = (string) config('services.mercadopago.webhook_secret');
+
+        if ($secret === '') {
+            return true;
+        }
+
+        $xSignature = (string) $request->header('x-signature', '');
+        $xRequestId = (string) $request->header('x-request-id', '');
+        $dataId = $this->webhookDataIdForSignature($request);
+        $signatureParts = $this->parseWebhookSignatureHeader($xSignature);
+        $timestamp = $signatureParts['ts'] ?? null;
+        $hash = $signatureParts['v1'] ?? null;
+
+        if ($dataId === null || $timestamp === null || $hash === null || $xRequestId === '') {
+            return false;
+        }
+
+        $manifest = sprintf('id:%s;request-id:%s;ts:%s;', $dataId, $xRequestId, $timestamp);
+        $expectedHash = hash_hmac('sha256', $manifest, $secret);
+
+        return hash_equals($expectedHash, $hash);
+    }
+
+    protected function webhookDataIdForSignature(Request $request): ?string
+    {
+        $dataId = $request->query('id')
+            ?? $request->query('data.id')
+            ?? data_get($request->query(), 'data.id')
+            ?? $request->input('data.id')
+            ?? $request->input('id')
+            ?? $request->input('resource');
+
+        if ($dataId === null || $dataId === '') {
+            return null;
+        }
+
+        return strtolower(trim((string) $dataId));
+    }
+
+    protected function parseWebhookSignatureHeader(?string $header): array
+    {
+        if (!is_string($header) || trim($header) === '') {
+            return [];
+        }
+
+        $parts = [];
+
+        foreach (explode(',', $header) as $segment) {
+            [$key, $value] = array_pad(explode('=', trim($segment), 2), 2, null);
+
+            if ($key === null || $value === null) {
+                continue;
+            }
+
+            $parts[trim($key)] = trim($value);
+        }
+
+        return $parts;
     }
 
     protected function mapPaymentStatus(?string $status): string

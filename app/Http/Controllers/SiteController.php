@@ -11,10 +11,19 @@ use App\Models\Categoria;
 use App\Models\Endereco;
 use App\Models\Pedido;
 use App\Models\ItemPedido;
+use App\Services\AffiliateService;
+use App\Services\CheckoutOrderService;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Http\JsonResponse;
 
 class SiteController extends Controller
 {
+    public function __construct(
+        protected CheckoutOrderService $checkoutOrderService,
+        protected AffiliateService $affiliateService,
+    ) {
+    }
+
     /**
      * Página inicial
      */
@@ -104,6 +113,11 @@ class SiteController extends Controller
         // Filtro: apenas em estoque
         if ($request->boolean('em_estoque')) {
             $query->where('estoque', '>', 0);
+        }
+
+        // Filtro: apenas em destaque
+        if ($request->boolean('em_destaque')) {
+            $query->where('destaque', true);
         }
 
         // Ordenação
@@ -298,6 +312,8 @@ class SiteController extends Controller
 
         Auth::login($user);
 
+        $this->affiliateService->recordReferralOnRegister($user);
+
         return redirect()->route('site.index')
             ->with('success', 'Conta criada com sucesso! Bem-vindo à MX Racing!');
     }
@@ -328,7 +344,12 @@ class SiteController extends Controller
         }
 
         $usuario = Auth::user();
-        return view('site.perfil', compact('usuario'));
+        $enderecos = Endereco::where('user_id', $usuario->id)
+            ->orderByDesc('updated_at')
+            ->orderByDesc('id')
+            ->get();
+
+        return view('site.perfil', compact('usuario', 'enderecos'));
     }
 
     /**
@@ -419,30 +440,145 @@ class SiteController extends Controller
         ]);
     }
 
+    public function endereco_store(Request $request): JsonResponse
+    {
+        if (!Auth::check()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Usuário não autenticado.'
+            ], 401);
+        }
+
+        $validated = $this->validateEndereco($request);
+
+        $endereco = Endereco::create([
+            ...$validated,
+            'user_id' => Auth::id(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Endereço salvo com sucesso.',
+            'endereco' => $this->formatEnderecoResponse($endereco->fresh()),
+        ]);
+    }
+
+    public function endereco_update(Request $request, Endereco $endereco): JsonResponse
+    {
+        if (!Auth::check()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Usuário não autenticado.'
+            ], 401);
+        }
+
+        if ((int) $endereco->user_id !== (int) Auth::id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Endereço não encontrado.'
+            ], 404);
+        }
+
+        $validated = $this->validateEndereco($request);
+        $endereco->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Endereço atualizado com sucesso.',
+            'endereco' => $this->formatEnderecoResponse($endereco->fresh()),
+        ]);
+    }
+
+    public function endereco_destroy(Endereco $endereco): JsonResponse
+    {
+        if (!Auth::check()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Usuário não autenticado.'
+            ], 401);
+        }
+
+        if ((int) $endereco->user_id !== (int) Auth::id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Endereço não encontrado.'
+            ], 404);
+        }
+
+        if ($endereco->pedidos()->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Este endereço já foi usado em pedido e não pode ser removido.'
+            ], 422);
+        }
+
+        $enderecoId = $endereco->id;
+        $endereco->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Endereço removido com sucesso.',
+            'deleted_id' => $enderecoId,
+        ]);
+    }
+
     /**
      * Exibe a página de finalizar compra
      */
     public function finalizar_compra()
     {
-        // Verificar se usuário está logado
-        if (!Auth::check()) {
-            return redirect()->route('site.login')->with('error', 'Você precisa estar logado para finalizar a compra.');
-        }
-
-        // Verificar se há itens no carrinho
-        $carrinho = Pedido::where('user_id', Auth::id())
-            ->whereIn('status', ['carrinho', 'pendente', 'processando'])
-            ->with(['itens.produto.imagens'])
-            ->latest('id')
-            ->first();
+        $carrinho = $this->checkoutOrderService->resolveActiveOrder(request(), ['itens.produto.imagens']);
 
         if (!$carrinho || $carrinho->itens->isEmpty()) {
             return redirect()->route('site.produtos')->with('error', 'Seu carrinho está vazio.');
         }
 
-        // Buscar endereços do usuário
-        $enderecos = Endereco::where('user_id', Auth::id())->get();
+        $enderecos = Auth::check()
+            ? Endereco::where('user_id', Auth::id())
+                ->orderByDesc('updated_at')
+                ->orderByDesc('id')
+                ->get()
+            : collect();
 
         return view('site.finalizar-compra', compact('carrinho', 'enderecos'));
+    }
+
+    private function validateEndereco(Request $request): array
+    {
+        return $request->validate([
+            'cep' => 'required|string|max:9',
+            'rua' => 'required|string|max:255',
+            'numero' => 'required|string|max:20',
+            'complemento' => 'nullable|string|max:255',
+            'bairro' => 'required|string|max:100',
+            'cidade' => 'required|string|max:100',
+            'estado' => 'required|string|size:2',
+            'pais' => 'nullable|string|size:2',
+        ], [
+            'cep.required' => 'Informe o CEP.',
+            'rua.required' => 'Informe a rua.',
+            'numero.required' => 'Informe o número.',
+            'bairro.required' => 'Informe o bairro.',
+            'cidade.required' => 'Informe a cidade.',
+            'estado.required' => 'Selecione o estado.',
+            'estado.size' => 'O estado deve ter 2 caracteres.',
+        ]);
+    }
+
+    private function formatEnderecoResponse(Endereco $endereco): array
+    {
+        return [
+            'id' => $endereco->id,
+            'cep' => $endereco->cep,
+            'cep_formatado' => $endereco->cep_formatado,
+            'rua' => $endereco->rua,
+            'numero' => $endereco->numero,
+            'complemento' => $endereco->complemento,
+            'bairro' => $endereco->bairro,
+            'cidade' => $endereco->cidade,
+            'estado' => $endereco->estado,
+            'pais' => $endereco->pais,
+            'endereco_completo' => $endereco->endereco_completo,
+        ];
     }
 }
