@@ -1,23 +1,3 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>
-        @if($pedido->status === 'entregue' && $pedido->updated_at->diffInDays(now()) > 7)
-            Garantia de Fábrica
-        @else
-            Solicitar Reembolso
-        @endif
-        — Pedido #{{ $pedido->id }} - JFXTECH
-    </title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <link rel="stylesheet" href="{{ asset('css/site-styles.css') }}">
-</head>
-<body class="min-h-screen flex flex-col bg-[var(--color-lab-bg)] text-[var(--color-lab-ink)] antialiased">
-
 @php
     $isGuestOrder = $pedido->user_id === null;
     $whatsapp = '5567999844366';
@@ -37,6 +17,18 @@
         $waMessage = "Olá, gostaria de solicitar o reembolso do pedido #{$pedido->id} (ainda não recebi o produto).";
     }
 @endphp
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>{{ $titulo }} — Pedido #{{ $pedido->id }} - JFXTECH</title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <link rel="stylesheet" href="{{ asset('css/site-styles.css') }}">
+</head>
+<body class="min-h-screen flex flex-col bg-[var(--color-lab-bg)] text-[var(--color-lab-ink)] antialiased">
 
 @include('includes.header')
 
