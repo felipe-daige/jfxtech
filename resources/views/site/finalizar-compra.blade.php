@@ -28,6 +28,15 @@
         </div>
     </div>
 
+    @if(config('services.frete_gratis_ativo'))
+    <div class="bg-black text-white py-3 px-4">
+        <div class="max-w-7xl mx-auto flex items-center justify-center gap-2">
+            <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <p class="font-mono text-xs font-bold uppercase tracking-widest">Frete Grátis por Tempo Limitado &mdash; Aproveite antes que acabe!</p>
+        </div>
+    </div>
+    @endif
+
     <section class="py-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -201,15 +210,62 @@
                                 <p class="text-xs text-gray-500 mt-2">Usado para concluir o pagamento com Pix no Mercado Pago.</p>
                             </div>
 
+                            <!-- Cupom de desconto -->
+                            <div class="border border-[var(--color-lab-border)] p-3 mb-1">
+                                <div id="cupom-form">
+                                    <div class="flex gap-2">
+                                        <input
+                                            type="text"
+                                            id="cupom-input"
+                                            placeholder="Código do cupom"
+                                            class="flex-1 border border-[var(--color-lab-border)] px-3 py-2 text-sm font-mono uppercase focus:outline-none focus:border-black"
+                                            maxlength="50"
+                                        >
+                                        <button
+                                            type="button"
+                                            id="cupom-btn"
+                                            class="bg-black text-white px-4 py-2 text-xs font-mono uppercase tracking-widest hover:bg-gray-900 transition-colors whitespace-nowrap"
+                                        >
+                                            Aplicar
+                                        </button>
+                                    </div>
+                                    <p id="cupom-erro" class="text-red-600 text-xs mt-1 hidden"></p>
+                                </div>
+                                <div id="cupom-aplicado" class="hidden">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm font-mono text-green-700" id="cupom-label"></span>
+                                        <button type="button" id="cupom-remover-btn" class="text-xs text-gray-500 underline hover:text-black ml-2">remover</button>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-600">Subtotal:</span>
                                 <span class="font-semibold">R$ {{ number_format($subtotalProdutos, 2, ',', '.') }}</span>
+                            </div>
+
+                            <div class="flex justify-between text-sm" id="desconto-resumo" style="display:none">
+                                <span class="text-gray-600">Desconto:</span>
+                                <span class="font-semibold text-green-700" id="desconto-valor">- R$ 0,00</span>
                             </div>
 
                             <!-- Opções de Frete -->
                             <div id="opcoes-frete" class="hidden">
                                 <h4 class="font-mono text-sm font-bold mb-3">Escolha o frete:</h4>
                                 <div class="space-y-3">
+                                    @if(config('services.frete_gratis_ativo'))
+                                    <label id="frete-gratis-option" class="hidden relative flex items-center p-3 border-2 border-green-500 cursor-pointer hover:bg-green-50 frete-option" data-tipo="gratis">
+                                        <span class="absolute -top-2.5 right-2 bg-black text-white text-[9px] font-mono font-bold uppercase tracking-widest px-2 py-0.5">Tempo Limitado</span>
+                                        <input type="radio" name="frete" value="gratis" class="mr-3 text-black focus:ring-black">
+                                        <div class="flex-1">
+                                            <div class="font-mono text-sm font-bold text-green-700">Frete Grátis</div>
+                                            <div class="text-sm text-gray-600">Promoção por tempo limitado &middot; 5&ndash;7 dias úteis</div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="font-mono font-bold text-green-700" id="gratis-valor">R$ 0,00</div>
+                                        </div>
+                                    </label>
+                                    @endif
                                     <label class="flex items-center p-3 border border-[var(--color-lab-border)] cursor-pointer hover:bg-gray-50 frete-option" data-tipo="pac">
                                         <input type="radio" name="frete" value="pac" class="mr-3 text-black focus:ring-black">
                                         <div class="flex-1">
@@ -262,6 +318,10 @@
     <script>
     const savedFreteType = @json($carrinho->frete_tipo);
     const savedFreteValue = {{ $carrinho->frete_valor !== null ? (float) $carrinho->frete_valor : 'null' }};
+    const cupomAplicado = {
+        codigo: @json($carrinho->cupom_codigo),
+        desconto: parseFloat('{{ $carrinho->valor_desconto ?? 0 }}'),
+    };
     let checkoutPayerDocument = '';
 
     $(document).ready(function() {
@@ -363,11 +423,19 @@
                     // Mostrar opções de frete
                     $('#pac-valor').text('R$ ' + data.opcoes.pac.valor.toFixed(2).replace('.', ','));
                     $('#sedex-valor').text('R$ ' + data.opcoes.sedex.valor.toFixed(2).replace('.', ','));
+
+                    // Frete grátis por tempo limitado
+                    if (data.opcoes.gratis) {
+                        $('#frete-gratis-option').removeClass('hidden');
+                    } else {
+                        $('#frete-gratis-option').addClass('hidden');
+                    }
+
                     $('#opcoes-frete').removeClass('hidden');
 
                     const freteTipoInicial = savedFreteType && data.opcoes[savedFreteType]
                         ? savedFreteType
-                        : 'pac';
+                        : (data.opcoes.gratis ? 'gratis' : 'pac');
 
                     $('input[name="frete"][value="' + freteTipoInicial + '"]').prop('checked', true);
                     atualizarFreteSelecionado(data.opcoes[freteTipoInicial].valor);
@@ -383,14 +451,96 @@
         });
     }
 
+    // --- Cupom de desconto ---
+    let descontoAtual = cupomAplicado.desconto || 0;
+    let freteAtual = (typeof savedFreteValue === 'number' && savedFreteValue > 0) ? savedFreteValue : 0;
+
+    function formatarBRL(valor) {
+        return 'R$ ' + valor.toFixed(2).replace('.', ',');
+    }
+
+    function atualizarTotalComDesconto(frete) {
+        const fv = (typeof frete === 'number') ? frete : freteAtual;
+        const subtotal = parseFloat('{{ $subtotalProdutos }}');
+        const total = Math.max(0, subtotal - descontoAtual + fv);
+        $('#total-valor').text(formatarBRL(total));
+    }
+
+    function mostrarCupomAplicado(codigo, desconto, mensagem) {
+        descontoAtual = desconto;
+        $('#cupom-form').addClass('hidden');
+        $('#cupom-aplicado').removeClass('hidden');
+        $('#cupom-label').text('✓ ' + mensagem);
+        $('#desconto-valor').text('- ' + formatarBRL(desconto));
+        $('#desconto-resumo').show();
+        atualizarTotalComDesconto();
+    }
+
+    function restaurarFormCupom() {
+        descontoAtual = 0;
+        $('#cupom-form').removeClass('hidden');
+        $('#cupom-aplicado').addClass('hidden');
+        $('#cupom-input').val('');
+        $('#cupom-erro').addClass('hidden').text('');
+        $('#desconto-resumo').hide();
+        atualizarTotalComDesconto();
+    }
+
+    $(document).ready(function () {
+        // Restaurar cupom se já estava aplicado (ex: usuário voltou à página)
+        if (cupomAplicado.codigo && cupomAplicado.desconto > 0) {
+            mostrarCupomAplicado(
+                cupomAplicado.codigo,
+                cupomAplicado.desconto,
+                cupomAplicado.codigo + ' aplicado'
+            );
+        }
+
+        $('#cupom-btn').on('click', function () {
+            const codigo = $('#cupom-input').val().trim();
+            if (!codigo) return;
+
+            $('#cupom-btn').prop('disabled', true).text('...');
+            $('#cupom-erro').addClass('hidden').text('');
+
+            $.ajax({
+                url: '{{ route("cupom.aplicar") }}',
+                method: 'POST',
+                data: { codigo: codigo, _token: $('meta[name="csrf-token"]').attr('content') },
+                success: function (res) {
+                    mostrarCupomAplicado(
+                        res.codigo,
+                        parseFloat(res.desconto.replace(',', '.')),
+                        res.mensagem
+                    );
+                },
+                error: function (xhr) {
+                    const msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Cupom inválido.';
+                    $('#cupom-erro').removeClass('hidden').text(msg);
+                },
+                complete: function () {
+                    $('#cupom-btn').prop('disabled', false).text('Aplicar');
+                },
+            });
+        });
+
+        $('#cupom-remover-btn').on('click', function () {
+            $.ajax({
+                url: '{{ route("cupom.remover") }}',
+                method: 'POST',
+                data: { _token: $('meta[name="csrf-token"]').attr('content') },
+                success: function () {
+                    restaurarFormCupom();
+                },
+            });
+        });
+    });
+
     // Atualizar frete selecionado
     function atualizarFreteSelecionado(valor) {
-        $('#frete-valor').text('R$ ' + valor.toFixed(2).replace('.', ','));
-
-        // Atualizar total
-        const subtotal = parseFloat('{{ $subtotalProdutos }}');
-        const total = subtotal + valor;
-        $('#total-valor').text('R$ ' + total.toFixed(2).replace('.', ','));
+        freteAtual = valor;
+        $('#frete-valor').text(formatarBRL(valor));
+        atualizarTotalComDesconto(valor);
     }
 
     function setPayerDocumentError(show) {

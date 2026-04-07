@@ -220,17 +220,19 @@ class FreteController extends Controller
             'peso_total' => $pesoTotal
         ]));
 
-        // Frete grátis por valor mínimo de pedido
-        $minimoFrete = (float) config('services.frete_gratis_minimo', 0);
-        if ($minimoFrete > 0) {
-            $subtotal = $carrinho->itens->sum(fn($item) => $item->preco_unitario * $item->quantidade);
+        // Frete grátis promocional (tempo limitado)
+        if (config('services.frete_gratis_ativo', false)) {
+            $minimoFrete = (float) config('services.frete_gratis_minimo', 0);
+            $subtotal = $carrinho->itens->sum(fn($item) => $item->preco * $item->quantidade);
+
             if ($subtotal >= $minimoFrete) {
                 $data = $resultado->getData(true);
                 $data['opcoes']['gratis'] = [
                     'nome' => 'Frete Grátis',
-                    'descricao' => 'Parabéns! Seu pedido ganhou frete grátis.',
+                    'descricao' => 'Promoção por tempo limitado!',
                     'valor' => 0.00,
                     'prazo' => '5-7 dias úteis',
+                    'tempo_limitado' => true,
                 ];
                 return response()->json($data);
             }
