@@ -205,8 +205,8 @@ class PedidoController extends Controller
             return redirect()->route('site.login')->with('error', 'Pedido não encontrado.');
         }
 
-        $statusesNaoAplicaveis = ['cancelado', 'pendente', 'carrinho'];
-        if (in_array($pedido->status, $statusesNaoAplicaveis)) {
+        $statusesNaoAplicaveis = [PedidoStatus::CANCELADO, PedidoStatus::PENDENTE, PedidoStatus::CARRINHO];
+        if (in_array($pedido->status, $statusesNaoAplicaveis, strict: true)) {
             return redirect()->route('site.pedidos.show', $pedido);
         }
 
