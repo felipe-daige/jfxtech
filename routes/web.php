@@ -51,12 +51,17 @@ Route::post('/carrinho/verificar', [CarrinhoController::class, 'verificar_produt
 // Rota do checkout
 Route::get('/finalizar-compra', [SiteController::class, 'finalizar_compra'])->name('site.finalizar-compra');
 
+// Cupons de desconto
+Route::post('/cupom/aplicar', [App\Http\Controllers\CupomController::class, 'aplicar'])->name('cupom.aplicar');
+Route::post('/cupom/remover', [App\Http\Controllers\CupomController::class, 'remover'])->name('cupom.remover');
+
 // Rotas de pedidos
 Route::post('/pedidos', [App\Http\Controllers\PedidoController::class, 'store'])->name('site.pedidos.store');
 // Rota removida - usando view unificada em finalizar-compra
 Route::get('/meus-pedidos', [App\Http\Controllers\PedidoController::class, 'index'])->name('site.pedidos.index');
 Route::post('/pedidos/{pedido}/criar-conta', [App\Http\Controllers\PedidoController::class, 'createAccount'])->name('site.pedidos.create-account');
 Route::get('/pedidos/{pedido}', [App\Http\Controllers\PedidoController::class, 'show'])->name('site.pedidos.show');
+Route::get('/pedidos/{pedido}/reembolso', [App\Http\Controllers\PedidoController::class, 'reembolso'])->name('site.pedidos.reembolso');
 
 // Rotas administrativas (apenas para admins)
 Route::prefix('admin')->name('admin.')->group(function () {
@@ -98,6 +103,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::post('/categorias', [AdminController::class, 'criarCategoria'])->name('categorias.criar');
     Route::post('/categorias/{id}/editar', [AdminController::class, 'editarCategoria'])->name('categorias.editar');
     Route::post('/categorias/{id}/excluir', [AdminController::class, 'excluirCategoria'])->name('categorias.excluir');
+
+    // Cupons
+    Route::get('/cupons',              [App\Http\Controllers\AdminCupomController::class, 'index'])->name('cupons.index');
+    Route::post('/cupons',             [App\Http\Controllers\AdminCupomController::class, 'store'])->name('cupons.store');
+    Route::put('/cupons/{id}',         [App\Http\Controllers\AdminCupomController::class, 'update'])->name('cupons.update');
+    Route::delete('/cupons/{id}',      [App\Http\Controllers\AdminCupomController::class, 'destroy'])->name('cupons.destroy');
+    Route::post('/cupons/{id}/toggle', [App\Http\Controllers\AdminCupomController::class, 'toggle'])->name('cupons.toggle');
 });
 
 // Rota para buscar CEP (pública)
