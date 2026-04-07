@@ -2,10 +2,12 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class BlogTest extends TestCase
 {
+    use RefreshDatabase;
     public function test_blog_index_returns_200(): void
     {
         $response = $this->get('/blog');

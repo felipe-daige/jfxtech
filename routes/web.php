@@ -16,6 +16,13 @@ Route::get('/produto/{slug}', [SiteController::class, 'produto_detalhes'])->name
 Route::get('/contato', [SiteController::class, 'contato'])->name('site.contato');
 Route::get('/busca-rapida', [SiteController::class, 'buscaRapida'])->name('site.busca_rapida');
 
+// Blog
+Route::get('/blog', [\App\Http\Controllers\BlogController::class, 'index'])->name('site.blog.index');
+Route::get('/blog/{slug}', [\App\Http\Controllers\BlogController::class, 'show'])->name('site.blog.show');
+
+// Sitemap
+Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
+
 // Rotas de autenticação
 Route::get('/login', [SiteController::class, 'login_view'])->name('site.login');
 Route::post('/login', [SiteController::class, 'login'])->name('site.login.post');
