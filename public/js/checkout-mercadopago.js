@@ -559,6 +559,17 @@
                     ticket: 'all',
                     bankTransfer: 'all',
                 },
+                visual: {
+                    style: {
+                        customVariables: {
+                            borderRadiusSmall: '0px',
+                            borderRadiusMedium: '0px',
+                            borderRadiusLarge: '0px',
+                            baseFontSize: '14px',
+                            formPadding: '8px',
+                        },
+                    },
+                },
             },
             callbacks: {
                 onReady: function () {
