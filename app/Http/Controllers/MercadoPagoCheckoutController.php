@@ -30,9 +30,9 @@ class MercadoPagoCheckoutController extends Controller
     public function prepare(Request $request)
     {
         $validated = $request->validate([
-            'customer_name' => 'required|string|max:255',
-            'customer_email' => 'required|email|max:255',
-            'customer_phone' => 'required|string|max:20',
+            'customer_name' => 'nullable|string|max:255',
+            'customer_email' => 'nullable|email|max:255',
+            'customer_phone' => 'nullable|string|max:20',
             'cep' => 'required|string|max:9',
             'rua' => 'required|string|max:255',
             'numero' => 'required|string|max:10',
@@ -66,11 +66,17 @@ class MercadoPagoCheckoutController extends Controller
             ], 422);
         }
 
+        // Resolve customer info: request → pedido → authenticated user
+        $user = Auth::user();
+        $customerName = $validated['customer_name'] ?? $pedido->customer_name ?? $user?->name ?? '';
+        $customerEmail = $validated['customer_email'] ?? $pedido->customer_email ?? $user?->email ?? '';
+        $customerPhone = $validated['customer_phone'] ?? $pedido->customer_phone ?? $user?->phone ?? '';
+
         $subtotal = $pedido->itens->sum(fn ($item) => (float) $item->preco * (int) $item->quantidade);
         $desconto = (float) ($pedido->valor_desconto ?? 0);
         $valorTotal = round(max(0, $subtotal - $desconto) + (float) $frete['valor'], 2);
 
-        DB::transaction(function () use ($request, $validated, $pedido, $frete, $valorTotal): void {
+        DB::transaction(function () use ($request, $validated, $pedido, $frete, $valorTotal, $customerName, $customerEmail, $customerPhone): void {
             $endereco = $this->persistEndereco($pedido, $validated);
 
             $pedido->update([
@@ -79,18 +85,14 @@ class MercadoPagoCheckoutController extends Controller
                 'valor_total' => $valorTotal,
                 'frete_tipo' => $frete['tipo'],
                 'frete_valor' => $frete['valor'],
-                'customer_name' => $validated['customer_name'],
-                'customer_email' => $validated['customer_email'],
-                'customer_phone' => $validated['customer_phone'],
+                'customer_name' => $customerName,
+                'customer_email' => $customerEmail,
+                'customer_phone' => $customerPhone,
                 'checkout_mode' => Auth::check() ? 'authenticated' : 'guest',
             ]);
 
             $this->checkoutOrderService->rememberGuestOrder($request, $pedido);
         });
-
-        $customerName = $pedido->customer_name ?: $validated['customer_name'];
-        $customerEmail = $pedido->customer_email ?: $validated['customer_email'];
-        $customerPhone = $pedido->customer_phone ?: $validated['customer_phone'];
 
         return response()->json([
             'success' => true,
