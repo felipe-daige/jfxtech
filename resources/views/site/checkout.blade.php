@@ -728,6 +728,15 @@
         $('#checkout-title').text('FINALIZAR PAGAMENTO');
         $('#checkout-subtitle').text('PAGUE COM O PAYMENT BRICK DO MERCADO PAGO');
 
+        if (window.innerWidth < 1024) {
+            setTimeout(function () {
+                var el = document.getElementById('paymentBrick_container');
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 150);
+        }
+
         if (window.checkoutMercadoPago) {
             window.checkoutMercadoPago.mount(checkout);
         }
