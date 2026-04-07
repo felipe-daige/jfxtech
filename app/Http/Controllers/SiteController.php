@@ -540,7 +540,7 @@ class SiteController extends Controller
                 ->get()
             : collect();
 
-        return view('site.finalizar-compra', compact('carrinho', 'enderecos'));
+        return view('site.checkout', compact('carrinho', 'enderecos'));
     }
 
     private function validateEndereco(Request $request): array
