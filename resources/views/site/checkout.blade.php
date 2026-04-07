@@ -149,11 +149,13 @@
                                 <h4 class="font-mono text-sm font-bold mb-3">Escolha o frete:</h4>
                                 <div class="space-y-3">
                                     @if(config('services.frete_gratis_ativo'))
-                                    <label id="frete-gratis-option" class="hidden relative flex items-center gap-3 p-4 border-2 border-black bg-black text-white cursor-pointer frete-option" data-tipo="gratis">
-                                        <span class="absolute -top-2.5 left-3 bg-white text-black text-[9px] font-mono font-black uppercase tracking-widest px-2 py-0.5">Promoção</span>
+                                    <label id="frete-gratis-option" class="hidden flex items-center gap-3 p-4 border-2 border-black bg-black text-white cursor-pointer frete-option" data-tipo="gratis">
                                         <input type="radio" name="frete" value="gratis" class="flex-shrink-0 accent-white w-4 h-4">
                                         <div class="flex-1 min-w-0">
-                                            <div class="font-mono text-sm font-black uppercase tracking-wide leading-tight">Frete Grátis</div>
+                                            <div class="flex items-center gap-2 leading-tight">
+                                                <span class="font-mono text-sm font-black uppercase tracking-wide">Frete Grátis</span>
+                                                <span class="bg-white text-black text-[9px] font-mono font-black uppercase tracking-widest px-1.5 py-0.5 leading-none">Promoção</span>
+                                            </div>
                                             <div class="text-xs text-white/70 mt-0.5 leading-tight">5&ndash;7 dias úteis &middot; tempo limitado</div>
                                         </div>
                                         <div class="flex-shrink-0 text-right">
