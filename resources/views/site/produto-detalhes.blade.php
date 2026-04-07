@@ -39,13 +39,13 @@
                 <a href="{{ route('site.produtos', ['categorias' => [$produto->categoria->id]]) }}" class="hover:text-black transition-colors">{{ strtoupper($produto->categoria->nome) }}</a>
                 @endif
                 <svg class="w-4 h-4 mx-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-                <span class="text-black">{{ strtoupper($produto->nome) }}</span>
+                <span class="text-black truncate max-w-[140px] sm:max-w-none inline-block align-bottom">{{ strtoupper($produto->nome) }}</span>
             </nav>
         </div>
 
         {{-- Product Hero --}}
-        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16">
+        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
                 {{-- Image Gallery --}}
                 <div class="space-y-4">
                     <div id="main-image-frame" class="product-image-frame aspect-square bg-white border border-[var(--color-lab-border)] overflow-hidden flex items-center justify-center p-8 relative">
@@ -270,8 +270,42 @@
         @endif
     </main>
 
+    {{-- Barra CTA mobile fixa --}}
+    @if(!$produto_no_carrinho && $produto->em_estoque && !($produto->tem_variantes && $produto->variantesAtivas->count() > 0))
+    <div class="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-white border-t border-[var(--color-lab-border)] p-3" id="mobile-cta-bar">
+        <div class="flex items-center gap-3">
+            <div class="flex-1 min-w-0">
+                <p class="font-mono text-xs text-gray-500 uppercase tracking-widest truncate">{{ $produto->nome }}</p>
+                <p class="font-mono font-bold text-sm">
+                    @if($produto->esta_em_promocao)
+                        R$ {{ number_format($produto->preco_com_desconto, 2, ',', '.') }}
+                    @else
+                        R$ {{ number_format($produto->preco, 2, ',', '.') }}
+                    @endif
+                </p>
+            </div>
+            <button class="mobile-add-to-cart-btn bg-black text-white font-mono font-bold text-xs uppercase tracking-widest px-5 py-3 hover:bg-gray-900 transition-colors flex-shrink-0">
+                ADICIONAR
+            </button>
+        </div>
+    </div>
+    {{-- Espaçador para a barra fixa não cobrir o conteúdo no mobile --}}
+    <div class="h-20 lg:hidden"></div>
+    @endif
+
     @include('includes.footer')
 
     <script src="{{ asset('js/produto-detalhes.js') }}?v={{ filemtime(public_path('js/produto-detalhes.js')) }}"></script>
+    <script>
+    (function() {
+        var mobileCta = document.querySelector('.mobile-add-to-cart-btn');
+        if (mobileCta) {
+            mobileCta.addEventListener('click', function() {
+                var mainBtn = document.querySelector('.add-to-cart-btn');
+                if (mainBtn && !mainBtn.disabled) mainBtn.click();
+            });
+        }
+    })();
+    </script>
 </body>
 </html>
