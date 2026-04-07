@@ -35,6 +35,7 @@ return [
         ],
     ],
 
+    'frete_gratis_ativo' => env('FRETE_GRATIS_ATIVO', false),
     'frete_gratis_minimo' => env('FRETE_GRATIS_MINIMO', 0),
 
     'mercadopago' => [

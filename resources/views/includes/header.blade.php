@@ -50,6 +50,7 @@
                 </div>
 
                 <a href="{{ route('site.contato') }}" class="text-sm font-medium transition-colors {{ request()->routeIs('site.contato') ? 'text-black' : 'text-gray-500 hover:text-black' }}">CONTATO</a>
+                <a href="{{ route('site.blog.index') }}" class="text-sm font-medium transition-colors {{ request()->routeIs('site.blog.*') ? 'text-black' : 'text-gray-500 hover:text-black' }}">BLOG</a>
                 @auth
                     <a href="{{ route('site.pedidos.index') }}" class="text-sm font-medium transition-colors {{ request()->routeIs('site.pedidos.index') ? 'text-black' : 'text-gray-500 hover:text-black' }}">PEDIDOS</a>
                 @endauth
@@ -182,6 +183,9 @@
             </div>
             <a href="{{ route('site.contato') }}" class="block px-4 py-3 text-sm font-medium tracking-wider uppercase transition-colors {{ request()->routeIs('site.contato') ? 'text-black bg-gray-50' : 'text-gray-500 hover:text-black hover:bg-gray-50' }}">
                 Contato
+            </a>
+            <a href="{{ route('site.blog.index') }}" class="block px-4 py-3 text-sm font-medium tracking-wider uppercase transition-colors {{ request()->routeIs('site.blog.*') ? 'text-black bg-gray-50' : 'text-gray-500 hover:text-black hover:bg-gray-50' }}">
+                Blog
             </a>
             @auth
                 <a href="{{ route('site.pedidos.index') }}" class="block px-4 py-3 text-sm font-medium tracking-wider uppercase transition-colors {{ request()->routeIs('site.pedidos.index') ? 'text-black bg-gray-50' : 'text-gray-500 hover:text-black hover:bg-gray-50' }}">

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Enums\PedidoStatus;
+use Illuminate\Validation\Rule;
 use App\Models\Produto;
 use App\Models\Categoria;
 use App\Models\Pedido;
@@ -650,7 +652,7 @@ class AdminController extends Controller
         $pedido = Pedido::findOrFail($id);
         
         $request->validate([
-            'status' => 'required|in:pago,pendente,processando,enviado,entregue,cancelado'
+            'status' => ['required', Rule::in(PedidoStatus::adminValues())]
         ]);
 
         $pedido->update(['status' => $request->status]);
@@ -1097,16 +1099,16 @@ class AdminController extends Controller
 
     private function getDashboardAnalyticsData(): array
     {
-        $performanceStatuses = ['pago', 'processando', 'enviado', 'entregue'];
+        $performanceStatuses = PedidoStatus::performanceValues();
         $total_produtos      = Produto::count();
         $total_pedidos       = Pedido::count();
-        $pedidos_nao_finalizados = Pedido::whereIn('status', ['carrinho', 'pendente'])->count();
-        $pedidos_pagos       = Pedido::where('status', 'pago')->count();
-        $pedidos_pendentes   = Pedido::where('status', 'pendente')->count();
-        $pedidos_processando = Pedido::where('status', 'processando')->count();
-        $pedidos_enviados    = Pedido::where('status', 'enviado')->count();
-        $pedidos_entregues   = Pedido::where('status', 'entregue')->count();
-        $pedidos_cancelados  = Pedido::where('status', 'cancelado')->count();
+        $pedidos_nao_finalizados = Pedido::whereIn('status', [PedidoStatus::CARRINHO, PedidoStatus::PENDENTE])->count();
+        $pedidos_pagos       = Pedido::where('status', PedidoStatus::PAGO)->count();
+        $pedidos_pendentes   = Pedido::where('status', PedidoStatus::PENDENTE)->count();
+        $pedidos_processando = Pedido::where('status', PedidoStatus::PROCESSANDO)->count();
+        $pedidos_enviados    = Pedido::where('status', PedidoStatus::ENVIADO)->count();
+        $pedidos_entregues   = Pedido::where('status', PedidoStatus::ENTREGUE)->count();
+        $pedidos_cancelados  = Pedido::where('status', PedidoStatus::CANCELADO)->count();
         $pedidos_performance = Pedido::whereIn('status', $performanceStatuses);
         $receita_total       = (float) (clone $pedidos_performance)->sum('valor_total');
 
@@ -1114,7 +1116,7 @@ class AdminController extends Controller
             'produto:id,custo_compra',
             'produtoVariante:id,produto_id,custo_compra',
         ])->whereHas('pedido', function ($query) {
-            $query->whereIn('status', ['pago', 'processando', 'enviado', 'entregue']);
+            $query->whereIn('status', PedidoStatus::performanceValues());
         })->get();
 
         $custo_total = 0;
@@ -1203,25 +1205,54 @@ class AdminController extends Controller
         $total_unidades = ItemPedido::whereHas('pedido', fn($q) => $q->whereIn('status', $performanceStatuses))->sum('quantidade');
         $total_ativos   = Produto::where('ativo', true)->count();
 
-        $pedidos_acao = Pedido::whereIn('status', ['pago', 'processando'])
+        $pedidos_acao = Pedido::whereIn('status', PedidoStatus::actionableValues())
             ->with('user:id,name')
             ->orderBy('created_at')
             ->get();
 
-        $sla_pago_sem_processar = Pedido::where('status', 'pago')
+        $sla_pago_sem_processar = Pedido::where('status', PedidoStatus::PAGO)
             ->where('updated_at', '<', now()->subHours(24))
             ->count();
 
-        $sla_processando_sem_enviar = Pedido::where('status', 'processando')
+        $sla_processando_sem_enviar = Pedido::where('status', PedidoStatus::PROCESSANDO)
             ->where('updated_at', '<', now()->subDays(3))
             ->count();
 
-        $sla_enviado_sem_entregar = Pedido::where('status', 'enviado')
+        $sla_enviado_sem_entregar = Pedido::where('status', PedidoStatus::ENVIADO)
             ->where('updated_at', '<', now()->subDays(15))
             ->count();
 
         $pedidos_recentes = Pedido::with('user')->orderBy('created_at', 'desc')->limit(5)->get();
         $categorias = Categoria::orderBy('nome')->get();
+        $statusCounts = [
+            PedidoStatus::PAGO => $pedidos_pagos,
+            PedidoStatus::PENDENTE => $pedidos_pendentes,
+            PedidoStatus::PROCESSANDO => $pedidos_processando,
+            PedidoStatus::ENVIADO => $pedidos_enviados,
+            PedidoStatus::ENTREGUE => $pedidos_entregues,
+            PedidoStatus::CANCELADO => $pedidos_cancelados,
+        ];
+        $statusPalette = [
+            PedidoStatus::PAGO => 'bg-green-500',
+            PedidoStatus::PENDENTE => 'bg-gray-400',
+            PedidoStatus::PROCESSANDO => 'bg-gray-600',
+            PedidoStatus::ENVIADO => 'bg-gray-800',
+            PedidoStatus::ENTREGUE => 'bg-black',
+            PedidoStatus::CANCELADO => 'bg-gray-300',
+        ];
+        $pedidos_por_status = array_merge([
+            [
+                'key' => 'nao_finalizados',
+                'label' => 'Não finalizados',
+                'count' => $pedidos_nao_finalizados,
+                'color' => 'bg-yellow-300',
+            ],
+        ], array_map(fn (string $status) => [
+            'key' => $status,
+            'label' => PedidoStatus::label($status),
+            'count' => $statusCounts[$status] ?? 0,
+            'color' => $statusPalette[$status] ?? 'bg-gray-300',
+        ], PedidoStatus::adminValues()));
 
         return compact(
             'total_produtos',
@@ -1248,6 +1279,7 @@ class AdminController extends Controller
             'total_ativos',
             'pedidos_acao',
             'categorias',
+            'pedidos_por_status',
             'sla_pago_sem_processar',
             'sla_processando_sem_enviar',
             'sla_enviado_sem_entregar'
@@ -1349,7 +1381,7 @@ class AdminController extends Controller
         $pedido = Pedido::findOrFail($id);
 
         $request->validate([
-            'status' => 'required|in:pago,pendente,processando,enviado,entregue,cancelado',
+            'status' => ['required', Rule::in(PedidoStatus::adminValues())],
         ]);
 
         $pedido->update(['status' => $request->status]);

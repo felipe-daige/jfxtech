@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Função para mostrar notificações
     function showNotification(message, type = 'info') {
         const notification = document.createElement('div');
-        notification.className = `fixed top-4 right-4 z-50 px-6 py-3 shadow-lg transition-all duration-300 transform translate-x-full`;
+        notification.className = `fixed top-4 right-4 z-50 pointer-events-none px-6 py-3 shadow-lg transition-all duration-300 transform translate-x-full`;
 
         // Cores baseadas no tipo
         const colors = {

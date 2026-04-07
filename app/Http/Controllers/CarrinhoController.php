@@ -406,10 +406,8 @@ class CarrinhoController extends Controller
      */
     private function recalcularValorTotal($carrinho)
     {
-        $valorTotal = $carrinho->itens()->get()->sum(function ($item) {
-            return $item->quantidade * $item->preco;
-        });
-        
-        $carrinho->update(['valor_total' => $valorTotal]);
+        $subtotal = $carrinho->itens()->get()->sum(fn ($item) => $item->quantidade * $item->preco);
+        $desconto = (float) ($carrinho->valor_desconto ?? 0);
+        $carrinho->update(['valor_total' => max(0, $subtotal - $desconto)]);
     }
 }

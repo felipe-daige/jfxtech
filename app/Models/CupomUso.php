@@ -1,0 +1,29 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class CupomUso extends Model
+{
+    protected $table = 'cupom_usos';
+
+    public $timestamps = false;
+
+    protected $fillable = ['cupom_id', 'user_id', 'pedido_id'];
+
+    protected $casts = [
+        'created_at' => 'datetime',
+    ];
+
+    public function cupom(): BelongsTo
+    {
+        return $this->belongsTo(Cupom::class);
+    }
+
+    public function pedido(): BelongsTo
+    {
+        return $this->belongsTo(Pedido::class);
+    }
+}

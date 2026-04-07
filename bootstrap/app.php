@@ -18,7 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'auth' => \App\Http\Middleware\Authenticate::class,
         ]);
-        if (app()->environment('testing')) {
+        if (env('APP_ENV') === 'testing') {
             $middleware->validateCsrfTokens(except: ['*']);
         }
     })

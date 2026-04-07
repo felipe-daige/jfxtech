@@ -3,6 +3,7 @@
 namespace App\Observers;
 
 use App\Enums\PedidoStatus;
+use App\Jobs\CartAbandonedNotificationJob;
 use App\Models\Pedido;
 use App\Services\OrderStatusNotificationService;
 
@@ -11,6 +12,12 @@ class PedidoObserver
     public function updated(Pedido $pedido): void
     {
         if (!$pedido->wasChanged('status')) {
+            return;
+        }
+
+        if ($pedido->status === PedidoStatus::PENDENTE) {
+            CartAbandonedNotificationJob::dispatch($pedido->id)
+                ->delay(now()->addMinutes(30));
             return;
         }
 

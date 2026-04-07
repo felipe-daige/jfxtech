@@ -36,3 +36,4 @@ AI-INSTRUCTIONS.md
 /imports/node_modules
 integracao-gateway-mercadopago.md
 .worktrees/
+docs/n8n-webhook-notifications.md

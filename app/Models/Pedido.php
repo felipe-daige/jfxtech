@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PedidoStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -18,6 +19,8 @@ class Pedido extends Model
         'valor_total',
         'frete_tipo',
         'frete_valor',
+        'cupom_codigo',
+        'valor_desconto',
         'customer_name',
         'customer_email',
         'customer_phone',
@@ -27,8 +30,9 @@ class Pedido extends Model
     ];
 
     protected $casts = [
-        'valor_total' => 'decimal:2',
-        'frete_valor' => 'decimal:2',
+        'valor_total'    => 'decimal:2',
+        'frete_valor'    => 'decimal:2',
+        'valor_desconto' => 'decimal:2',
     ];
 
     /**
@@ -86,7 +90,7 @@ class Pedido extends Model
      */
     public function getPagoAttribute(): bool
     {
-        return $this->status === 'pago';
+        return $this->status === PedidoStatus::PAGO;
     }
 
     /**
@@ -94,6 +98,6 @@ class Pedido extends Model
      */
     public function getPendenteAttribute(): bool
     {
-        return $this->status === 'pendente';
+        return $this->status === PedidoStatus::PENDENTE;
     }
 }

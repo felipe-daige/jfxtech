@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Criar nova notificação
         const notificacao = document.createElement('div');
-        notificacao.className = `favorito-notification fixed top-4 right-4 z-50 px-6 py-3 shadow-lg text-white font-semibold transition-all duration-300 transform translate-x-full`;
+        notificacao.className = `favorito-notification fixed top-4 right-4 z-50 pointer-events-none px-6 py-3 shadow-lg text-white font-semibold transition-all duration-300 transform translate-x-full`;
         
         // Definir cor baseada no tipo
         switch(tipo) {

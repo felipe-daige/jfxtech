@@ -20,6 +20,13 @@ class MercadoPagoService
         return $this->request('get', '/v1/payments/' . $paymentId);
     }
 
+    public function cancelPayment(string $paymentId): array
+    {
+        return $this->request('put', '/v1/payments/' . $paymentId, [
+            'status' => 'cancelled',
+        ]);
+    }
+
     /**
      * @throws RequestException
      */

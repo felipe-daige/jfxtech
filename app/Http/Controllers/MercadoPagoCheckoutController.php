@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Endereco;
 use App\Models\Pagamento;
+use App\Enums\PedidoStatus;
 use App\Models\Pedido;
 use App\Services\AffiliateService;
 use App\Services\CheckoutOrderService;
@@ -43,7 +44,7 @@ class MercadoPagoCheckoutController extends Controller
             'frete_tipo' => 'required|in:pac,sedex,retirada,gratis',
         ]);
 
-        $pedido = $this->checkoutOrderService->resolveActiveOrder($request, ['itens.produto', 'endereco'], ['carrinho', 'pendente']);
+        $pedido = $this->checkoutOrderService->resolveActiveOrder($request, ['itens.produto', 'endereco'], [PedidoStatus::CARRINHO, PedidoStatus::PENDENTE]);
 
         if (!$pedido || $pedido->itens->isEmpty()) {
             return response()->json([
@@ -66,14 +67,15 @@ class MercadoPagoCheckoutController extends Controller
         }
 
         $subtotal = $pedido->itens->sum(fn ($item) => (float) $item->preco * (int) $item->quantidade);
-        $valorTotal = round($subtotal + (float) $frete['valor'], 2);
+        $desconto = (float) ($pedido->valor_desconto ?? 0);
+        $valorTotal = round(max(0, $subtotal - $desconto) + (float) $frete['valor'], 2);
 
         DB::transaction(function () use ($request, $validated, $pedido, $frete, $valorTotal): void {
             $endereco = $this->persistEndereco($pedido, $validated);
 
             $pedido->update([
                 'endereco_id' => $endereco->id,
-                'status' => 'pendente',
+                'status' => PedidoStatus::PENDENTE,
                 'valor_total' => $valorTotal,
                 'frete_tipo' => $frete['tipo'],
                 'frete_valor' => $frete['valor'],
@@ -97,6 +99,7 @@ class MercadoPagoCheckoutController extends Controller
                 'public_key' => config('services.mercadopago.public_key'),
                 'amount' => $valorTotal,
                 'subtotal' => round($subtotal, 2),
+                'desconto' => round($desconto, 2),
                 'frete' => $frete,
                 'payer' => [
                     'email' => $customerEmail,
@@ -376,8 +379,21 @@ class MercadoPagoCheckoutController extends Controller
         $newStatus = $this->mapOrderStatus($gatewayResponse['status'] ?? null);
         $pedido->update(['status' => $newStatus]);
 
-        if ($newStatus === 'pago') {
+        if ($newStatus === PedidoStatus::PAGO) {
             $this->affiliateService->handleOrderPaid($pedido);
+
+            if ($pedido->cupom_codigo) {
+                \App\Models\Cupom::whereRaw('UPPER(codigo) = ?', [strtoupper($pedido->cupom_codigo)])
+                    ->increment('usos_realizados');
+
+                $cupomObj = \App\Models\Cupom::whereRaw('UPPER(codigo) = ?', [strtoupper($pedido->cupom_codigo)])->first();
+                if ($cupomObj) {
+                    \App\Models\CupomUso::firstOrCreate(
+                        ['cupom_id' => $cupomObj->id, 'pedido_id' => $pedido->id],
+                        ['user_id'  => $pedido->user_id]
+                    );
+                }
+            }
         }
 
         return $pagamento;
@@ -387,7 +403,7 @@ class MercadoPagoCheckoutController extends Controller
     {
         $pendingPayments = $pedido->pagamentos()
             ->where('gateway', 'mercado_pago')
-            ->where('status', 'pendente')
+            ->where('status', PedidoStatus::PENDENTE)
             ->whereNotNull('gateway_payment_id')
             ->orderByDesc('id')
             ->get();
@@ -625,19 +641,19 @@ class MercadoPagoCheckoutController extends Controller
     protected function mapPaymentStatus(?string $status): string
     {
         return match ($status) {
-            'approved' => 'pago',
+            'approved' => PedidoStatus::PAGO,
             'rejected', 'cancelled' => 'falhou',
-            default => 'pendente',
+            default => PedidoStatus::PENDENTE,
         };
     }
 
     protected function mapOrderStatus(?string $status): string
     {
         return match ($status) {
-            'approved' => 'pago',
-            'authorized', 'in_process' => 'processando',
-            'rejected', 'cancelled' => 'cancelado',
-            default => 'pendente',
+            'approved' => PedidoStatus::PAGO,
+            'authorized', 'in_process' => PedidoStatus::PROCESSANDO,
+            'rejected', 'cancelled' => PedidoStatus::CANCELADO,
+            default => PedidoStatus::PENDENTE,
         };
     }
 

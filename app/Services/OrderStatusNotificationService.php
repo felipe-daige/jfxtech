@@ -47,6 +47,41 @@ class OrderStatusNotificationService
         }
     }
 
+    public function sendCartAbandoned(Pedido $pedido): void
+    {
+        $enabled = (bool) config('order_status_notifications.enabled', true);
+        if (!$enabled) {
+            return;
+        }
+
+        $webhook = config('order_status_notifications.webhook_url', env('ORDER_STATUS_NOTIFICATION_WEBHOOK', 'https://webhooks.jfxtech.com.br/webhook/n8n'));
+        if (empty($webhook)) {
+            return;
+        }
+
+        $timeout = (float) config('order_status_notifications.timeout', 5);
+
+        try {
+            $http = Http::timeout($timeout);
+
+            $authUser = config('order_status_notifications.auth_user', '');
+            $authPass = config('order_status_notifications.auth_pass', '');
+            if (!empty($authUser) && !empty($authPass)) {
+                $http = $http->withBasicAuth($authUser, $authPass);
+            }
+
+            $payload = $this->buildPayload($pedido);
+            $payload['trigger'] = 'cart_abandoned';
+
+            $http->post($webhook, $payload);
+        } catch (Throwable $exception) {
+            Log::error('Cart abandoned notification failed', [
+                'pedido_id' => $pedido->id,
+                'error' => $exception->getMessage(),
+            ]);
+        }
+    }
+
     protected function shouldNotify(Pedido $pedido): bool
     {
         return in_array($pedido->status, PedidoStatus::notificationValues(), true);

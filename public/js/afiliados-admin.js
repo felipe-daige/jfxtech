@@ -52,6 +52,7 @@ document.addEventListener('keydown', function (e) {
 
 // Create affiliate modal
 let criarBuscarTimeout = null;
+let criarFetchController = null;
 
 function abrirModalCriar() {
     document.getElementById('modalCriarAfiliado').classList.remove('hidden');
@@ -76,6 +77,8 @@ function gerarCodigoAuto() {
 }
 
 function selecionarUsuarioCriar(id, name, email) {
+    clearTimeout(criarBuscarTimeout);
+    if (criarFetchController) { criarFetchController.abort(); criarFetchController = null; }
     document.getElementById('criar-user-id').value = id;
     document.getElementById('criar-user-search').value = name;
     document.getElementById('criar-user-selected').textContent = email;
@@ -99,25 +102,34 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
         criarBuscarTimeout = setTimeout(() => {
+            if (criarFetchController) criarFetchController.abort();
+            criarFetchController = new AbortController();
             const url = (window.routes.adminAfiliadosBuscarUsuarios || '') + '?q=' + encodeURIComponent(q);
-            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            fetch(url, { signal: criarFetchController.signal, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
                 .then(r => r.json())
                 .then(users => {
+                    criarFetchController = null;
                     const box = document.getElementById('criar-user-results');
                     if (!users.length) {
                         box.innerHTML = '<p class="px-3 py-2 text-[10px] text-gray-400">Nenhum usuário encontrado</p>';
                     } else {
                         box.innerHTML = users.map(u =>
-                            `<button type="button" onclick="selecionarUsuarioCriar(${u.id}, ${JSON.stringify(u.name)}, ${JSON.stringify(u.email)})"
+                            `<button type="button" data-id="${u.id}" data-name=${JSON.stringify(u.name)} data-email=${JSON.stringify(u.email)}
                                 class="w-full text-left px-3 py-2 text-xs hover:bg-gray-100 border-b border-gray-100 last:border-0">
                                 <span class="font-bold">${u.name}</span>
                                 <span class="text-gray-400 ml-2">${u.email}</span>
                             </button>`
                         ).join('');
+                        box.querySelectorAll('button').forEach(btn => {
+                            btn.addEventListener('mousedown', function (e) {
+                                e.preventDefault();
+                                selecionarUsuarioCriar(this.dataset.id, this.dataset.name, this.dataset.email);
+                            });
+                        });
                     }
                     box.classList.remove('hidden');
                 })
-                .catch(() => {});
+                .catch(() => { criarFetchController = null; });
         }, 300);
     });
 

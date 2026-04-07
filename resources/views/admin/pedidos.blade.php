@@ -3,6 +3,7 @@
 @section('title', 'Gerenciar Pedidos')
 
 @section('content')
+@php use App\Enums\PedidoStatus; @endphp
 <div class="space-y-6 lg:space-y-8">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
@@ -16,16 +17,14 @@
     <div class="border border-[var(--color-lab-border)] bg-white p-4 sm:p-6">
         <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-4">Filtros</p>
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] gap-4">
-            <select id="filtroStatus" class="flex-1 px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black bg-white">
-                <option value="">Todos os status</option>
-                <option value="pendente">Pendente</option>
-                <option value="processando">Processando</option>
-                <option value="enviado">Enviado</option>
-                <option value="entregue">Entregue</option>
-                <option value="cancelado">Cancelado</option>
-            </select>
+                <select id="filtroStatus" class="flex-1 px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black bg-white">
+                    <option value="">Todos os status</option>
+                    @foreach(PedidoStatus::adminValues() as $status)
+                        <option value="{{ $status }}" @selected(request('status') == $status)>{{ PedidoStatus::label($status) }}</option>
+                    @endforeach
+                </select>
 
-            <input type="date" id="filtroData" class="flex-1 px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black">
+            <input type="date" id="filtroData" value="{{ request('data') }}" class="flex-1 px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black">
 
             <button onclick="aplicarFiltros()" class="bg-black text-white px-5 py-2.5 text-xs font-bold tracking-widest uppercase hover:bg-gray-800 transition-colors w-full sm:w-auto flex items-center justify-center space-x-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
@@ -76,17 +75,9 @@
                 <!-- Status -->
                 <div class="flex items-center justify-between gap-3">
                     <span class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Status:</span>
-                    @php
-                        $statusColors = [
-                            'pendente' => 'border-gray-400 text-gray-600',
-                            'processando' => 'border-gray-600 text-gray-700',
-                            'enviado' => 'border-gray-800 text-gray-800',
-                            'entregue' => 'border-black text-black',
-                            'cancelado' => 'border-gray-300 text-gray-400'
-                        ];
-                    @endphp
-                    <span class="inline-block px-3 py-1 font-mono text-[10px] uppercase tracking-widest border {{ $statusColors[$pedido->status] ?? 'border-gray-300 text-gray-500' }}">
-                        {{ ucfirst($pedido->status) }}
+                    @php $badgeColors = PedidoStatus::badgeClasses(); @endphp
+                    <span class="inline-block px-3 py-1 font-mono text-[10px] uppercase tracking-widest border {{ $badgeColors[$pedido->status] ?? 'border-gray-300 text-gray-500' }}">
+                        {{ PedidoStatus::label($pedido->status) }}
                     </span>
                 </div>
             </div>
@@ -148,11 +139,9 @@
                     <div>
                         <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Novo Status</label>
                         <select name="status" id="novoStatus" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black bg-white" required>
-                            <option value="pendente">Pendente</option>
-                            <option value="processando">Processando</option>
-                            <option value="enviado">Enviado</option>
-                            <option value="entregue">Entregue</option>
-                            <option value="cancelado">Cancelado</option>
+                            @foreach(PedidoStatus::adminValues() as $status)
+                                <option value="{{ $status }}">{{ PedidoStatus::label($status) }}</option>
+                            @endforeach
                         </select>
                     </div>
                 </div>

@@ -3,6 +3,7 @@
 @section('title', 'Dashboard')
 
 @section('content')
+@php use App\Enums\PedidoStatus; @endphp
 <div class="space-y-4 lg:space-y-6">
 
     {{-- Header --}}
@@ -288,21 +289,13 @@
                 <div>
                     <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-4">Status dos Pedidos</p>
                     <div class="space-y-3">
-                        @foreach([
-                            ['label'=>'Não finalizados', 'val'=>$pedidos_nao_finalizados, 'color'=>'bg-yellow-300'],
-                            ['label'=>'Pagos',        'val'=>$pedidos_pagos,        'color'=>'bg-green-500'],
-                            ['label'=>'Pendentes',   'val'=>$pedidos_pendentes,   'color'=>'bg-gray-400'],
-                            ['label'=>'Processando', 'val'=>$pedidos_processando, 'color'=>'bg-gray-600'],
-                            ['label'=>'Enviados',    'val'=>$pedidos_enviados,    'color'=>'bg-gray-800'],
-                            ['label'=>'Entregues',   'val'=>$pedidos_entregues,   'color'=>'bg-black'],
-                            ['label'=>'Cancelados',  'val'=>$pedidos_cancelados,  'color'=>'bg-gray-300'],
-                        ] as $s)
+                @foreach($pedidos_por_status as $s)
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
                                 <div class="w-2 h-2 {{ $s['color'] }} shrink-0"></div>
                                 <span class="font-mono text-sm text-black">{{ $s['label'] }}</span>
                             </div>
-                            <span class="font-mono text-sm font-bold text-black">{{ $s['val'] }}</span>
+                            <span class="font-mono text-sm font-bold text-black">{{ $s['count'] }}</span>
                         </div>
                         @endforeach
                         <div class="pt-3 border-t border-[var(--color-lab-border)]">
@@ -415,33 +408,24 @@
                     <div class="flex flex-wrap items-center gap-2 sm:gap-3 mb-0.5">
                         <span class="font-mono text-sm font-bold text-black">#{{ $pedido->id }}</span>
                         <span class="font-mono text-[10px] text-[var(--color-lab-muted)]">{{ $pedido->created_at->format('d/m H:i') }}</span>
-                        @php
-                            $badgeColors = [
-                                'pago'        => 'border-green-500 text-green-700',
-                                'pendente'    => 'border-yellow-500 text-yellow-700',
-                                'processando' => 'border-blue-500 text-blue-700',
-                                'enviado'     => 'border-purple-500 text-purple-700',
-                                'entregue'    => 'border-green-700 text-green-900',
-                                'cancelado'   => 'border-red-400 text-red-600',
-                            ];
-                        @endphp
+                        @php $badgeColors = PedidoStatus::badgeClasses(); @endphp
                         <span data-status-badge class="inline-block px-2 py-0.5 font-mono text-[10px] border {{ $badgeColors[$pedido->status] ?? 'border-gray-400 text-gray-600' }}">
-                            {{ ucfirst($pedido->status) }}
+                            {{ PedidoStatus::label($pedido->status) }}
                         </span>
                     </div>
                     <div class="font-mono text-sm text-black">{{ $pedido->user->name ?? $pedido->customer_name ?? 'Guest' }}</div>
                     <div class="font-mono text-xs text-[var(--color-lab-muted)]">R$&nbsp;{{ number_format($pedido->valor_total, 2, ',', '.') }}</div>
                 </div>
                 <div class="sm:mt-0">
-                    @if($pedido->status === 'pago')
-                    <button onclick="avancarStatusPedido(this, {{ $pedido->id }}, 'processando')"
+                    @if($pedido->status === PedidoStatus::PAGO)
+                    <button onclick="avancarStatusPedido(this, {{ $pedido->id }}, '{{ PedidoStatus::PROCESSANDO }}')"
                             class="w-full sm:w-auto font-mono text-[10px] uppercase tracking-widest px-3 py-2 border border-black text-black hover:bg-black hover:text-white transition-colors">
-                        &rarr; Processando
+                        &rarr; {{ PedidoStatus::label(PedidoStatus::PROCESSANDO) }}
                     </button>
-                    @elseif($pedido->status === 'processando')
-                    <button onclick="avancarStatusPedido(this, {{ $pedido->id }}, 'enviado')"
+                    @elseif($pedido->status === PedidoStatus::PROCESSANDO)
+                    <button onclick="avancarStatusPedido(this, {{ $pedido->id }}, '{{ PedidoStatus::ENVIADO }}')"
                             class="w-full sm:w-auto font-mono text-[10px] uppercase tracking-widest px-3 py-2 border border-black text-black hover:bg-black hover:text-white transition-colors">
-                        &rarr; Enviado
+                        &rarr; {{ PedidoStatus::label(PedidoStatus::ENVIADO) }}
                     </button>
                     @endif
                 </div>
@@ -669,9 +653,9 @@
                     </div>
                     <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2 sm:mt-0">
                         <div class="font-mono text-sm font-bold text-black text-right">R$&nbsp;{{ number_format($pedido->valor_total, 2, ',', '.') }}</div>
-                        @php $sc = ['pendente'=>'border-gray-400 text-gray-600','processando'=>'border-gray-600 text-gray-700','enviado'=>'border-gray-800 text-gray-800','entregue'=>'border-black text-black','cancelado'=>'border-gray-300 text-gray-400']; @endphp
-                        <span class="inline-block px-3 py-1 font-mono text-[10px] uppercase tracking-widest border {{ $sc[$pedido->status] ?? 'border-gray-300 text-gray-500' }}">
-                            {{ ucfirst($pedido->status) }}
+                        @php $badgeColors = PedidoStatus::badgeClasses(); @endphp
+                        <span class="inline-block px-3 py-1 font-mono text-[10px] uppercase tracking-widest border {{ $badgeColors[$pedido->status] ?? 'border-gray-300 text-gray-500' }}">
+                            {{ PedidoStatus::label($pedido->status) }}
                         </span>
                     </div>
                 </div>
