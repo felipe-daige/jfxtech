@@ -115,7 +115,7 @@ class PedidoController extends Controller
                 'success' => true,
                 'message' => 'Pedido criado com sucesso!',
                 'pedido_id' => $carrinho->id,
-                'redirect_url' => route('site.finalizar-compra')
+                'redirect_url' => route('site.checkout')
             ]);
 
         } catch (\Exception $e) {
@@ -150,7 +150,7 @@ class PedidoController extends Controller
         }
 
         // Redirecionar para a view unificada de finalizar compra
-        return redirect()->route('site.finalizar-compra');
+        return redirect()->route('site.checkout');
     }
 
     /**

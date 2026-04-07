@@ -258,7 +258,7 @@
                 </div>
             </div>
         </div>
-        <a href="{{ route('site.finalizar-compra') }}" class="block w-full bg-black text-white py-3.5 px-6 text-xs font-bold tracking-widest uppercase hover:bg-gray-800 transition-colors text-center" id="checkout-btn">
+        <a href="{{ route('site.checkout') }}" class="block w-full bg-black text-white py-3.5 px-6 text-xs font-bold tracking-widest uppercase hover:bg-gray-800 transition-colors text-center" id="checkout-btn">
             FINALIZAR COMPRA
         </a>
         <div class="mt-3 flex justify-center gap-4 text-[10px] text-gray-400 font-mono uppercase tracking-wider">
