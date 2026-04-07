@@ -49,7 +49,7 @@ Route::get('/carrinho/itens', [CarrinhoController::class, 'itens'])->name('site.
 Route::post('/carrinho/verificar', [CarrinhoController::class, 'verificar_produto'])->name('site.carrinho.verificar');
 
 // Rota do checkout
-Route::get('/finalizar-compra', [SiteController::class, 'finalizar_compra'])->name('site.finalizar-compra');
+Route::get('/checkout', [SiteController::class, 'checkout'])->name('site.checkout');
 
 // Cupons de desconto
 Route::post('/cupom/aplicar', [App\Http\Controllers\CupomController::class, 'aplicar'])->name('cupom.aplicar');

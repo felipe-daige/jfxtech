@@ -525,7 +525,7 @@ class SiteController extends Controller
     /**
      * Exibe a página de finalizar compra
      */
-    public function finalizar_compra()
+    public function checkout()
     {
         $carrinho = $this->checkoutOrderService->resolveActiveOrder(request(), ['itens.produto.imagens']);
 
