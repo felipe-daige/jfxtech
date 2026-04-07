@@ -302,7 +302,14 @@
         if (mobileCta) {
             mobileCta.addEventListener('click', function() {
                 var mainBtn = document.querySelector('.add-to-cart-btn');
-                if (mainBtn && !mainBtn.disabled) mainBtn.click();
+                if (!mainBtn || mainBtn.disabled) return;
+                mobileCta.disabled = true;
+                mobileCta.textContent = '...';
+                mainBtn.click();
+                setTimeout(function() {
+                    mobileCta.disabled = false;
+                    mobileCta.textContent = 'ADICIONAR';
+                }, 2000);
             });
         }
     })();
