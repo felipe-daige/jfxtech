@@ -69,6 +69,46 @@
                     </div>
                 </div>
 
+                @php
+                    $whatsapp = '5567999844366';
+                    $showButton = false;
+                    $buttonLabel = '';
+                    $waMessage = '';
+
+                    if (in_array($pedido->status, ['pago', 'processando', 'enviado'])) {
+                        $showButton = true;
+                        $buttonLabel = 'Solicitar Reembolso';
+                        $waMessage = "Olá, gostaria de solicitar o reembolso do pedido #{$pedido->id} (ainda não recebi o produto).";
+                    } elseif ($pedido->status === 'entregue') {
+                        $diasDesdeEntrega = $pedido->updated_at->diffInDays(now());
+                        if ($diasDesdeEntrega <= 7) {
+                            $showButton = true;
+                            $buttonLabel = 'Solicitar Reembolso';
+                            $dataEntrega = $pedido->updated_at->format('d/m/Y');
+                            $waMessage = "Olá, gostaria de solicitar o reembolso do pedido #{$pedido->id}, recebido em {$dataEntrega}.";
+                        } else {
+                            $showButton = true;
+                            $buttonLabel = 'Garantia de Fábrica';
+                            $waMessage = "Olá, tenho um produto com problema no pedido #{$pedido->id}. Gostaria de acionar a garantia de fábrica.";
+                        }
+                    }
+                @endphp
+
+                @if($showButton)
+                <div class="bg-white border border-[var(--color-lab-border)] p-6 mb-6">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <p class="font-mono text-[10px] uppercase tracking-[0.2em] text-gray-500 mb-1">Precisa de ajuda?</p>
+                            <p class="text-sm text-gray-600">Entre em contato pelo WhatsApp para {{ $buttonLabel === 'Solicitar Reembolso' ? 'solicitar seu reembolso' : 'acionar a garantia de fábrica' }}.</p>
+                        </div>
+                        <a href="{{ route('site.pedidos.reembolso', $pedido) }}"
+                           class="shrink-0 inline-flex items-center gap-2 px-5 py-3 border border-black text-sm font-mono font-bold uppercase tracking-widest hover:bg-black hover:text-white transition-colors">
+                            {{ $buttonLabel }}
+                        </a>
+                    </div>
+                </div>
+                @endif
+
                 @if($isGuestOrder && $pedido->status === 'pago')
                 <div class="bg-white border border-[var(--color-lab-border)] p-6 mb-6">
                     <div class="max-w-2xl">
@@ -179,7 +219,13 @@
                     </div>
 
                     <!-- Total do Pedido -->
-                    <div class="border-t border-gray-200 mt-6 pt-4">
+                    <div class="border-t border-gray-200 mt-6 pt-4 space-y-2">
+                        @if($pedido->cupom_codigo)
+                        <div class="flex justify-between items-center text-sm text-green-700">
+                            <span>Cupom <span class="font-mono font-bold">{{ $pedido->cupom_codigo }}</span>:</span>
+                            <span class="font-mono font-bold">- R$ {{ number_format($pedido->valor_desconto, 2, ',', '.') }}</span>
+                        </div>
+                        @endif
                         <div class="flex justify-between items-center">
                             <span class="text-2xl font-bold text-gray-900">Total do Pedido:</span>
                             <span class="text-3xl font-mono font-bold">R$ {{ number_format($pedido->valor_total, 2, ',', '.') }}</span>
