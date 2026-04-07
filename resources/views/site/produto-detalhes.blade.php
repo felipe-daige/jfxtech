@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="description" content="{{ Str::limit($produto->descricao_curta ?? strip_tags($produto->descricao), 155) }}">
     <title>{{ $produto->nome }} - JFXTECH</title>
 
     {{-- Open Graph (WhatsApp, Facebook) --}}
@@ -20,6 +21,24 @@
     <meta name="twitter:title" content="{{ $produto->nome }} - JFXTECH">
     <meta name="twitter:description" content="{{ $produto->descricao_curta ?? Str::limit(strip_tags($produto->descricao), 160) }}">
     <meta name="twitter:image" content="{{ $produto->imagemCapa ? url('storage/' . $produto->imagemCapa->caminho) : url('storage/images/jfxtech-link-preiew-opt.jpg') }}">
+
+    <script type="application/ld+json">
+    {
+        "@@context": "https://schema.org",
+        "@@type": "Product",
+        "name": "{{ addslashes($produto->nome) }}",
+        "description": "{{ addslashes(Str::limit($produto->descricao_curta ?? strip_tags($produto->descricao), 155)) }}",
+        "image": "{{ $produto->imagemCapa ? url('storage/' . $produto->imagemCapa->caminho) : url('storage/images/jfxtech-link-preiew-opt.jpg') }}",
+        "brand": { "@@type": "Brand", "name": "{{ addslashes($produto->marca ?? 'JFXTech') }}" },
+        "offers": {
+            "@@type": "Offer",
+            "priceCurrency": "BRL",
+            "price": "{{ number_format($produto->preco_com_desconto, 2, '.', '') }}",
+            "availability": "https://schema.org/{{ $produto->em_estoque ? 'InStock' : 'OutOfStock' }}",
+            "url": "{{ url()->current() }}"
+        }
+    }
+    </script>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="{{ asset('css/site-styles.css') }}?v={{ filemtime(public_path('css/site-styles.css')) }}">

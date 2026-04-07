@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="description" content="Hardware gamer premium para quem exige alta performance em monitores, teclados e mouses. Produtos originais, garantia estendida e envio rápido. JFXTech.">
     <title>JFXTECH - Hardware Gamer de Alta Performance</title>
 
     {{-- Open Graph (WhatsApp, Facebook) --}}
@@ -22,6 +23,22 @@
     <meta name="twitter:title" content="JFXTECH - Hardware Gamer de Alta Performance">
     <meta name="twitter:description" content="Hardware gamer premium para quem exige alta performance em monitores, teclados e mouses. Produtos originais, garantia estendida e envio rápido.">
     <meta name="twitter:image" content="{{ url('storage/images/jfxtech-link-preiew-opt.jpg') }}">
+
+    <script type="application/ld+json">
+    {
+        "@@context": "https://schema.org",
+        "@@type": "Organization",
+        "name": "JFXTech",
+        "url": "{{ url('/') }}",
+        "logo": "{{ url('storage/images/jfxtech-link-preiew-opt.jpg') }}",
+        "description": "Hardware gamer premium — monitores, teclados e mouses originais com garantia e envio rápido.",
+        "contactPoint": {
+            "@@type": "ContactPoint",
+            "contactType": "customer service",
+            "url": "{{ url('/contato') }}"
+        }
+    }
+    </script>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="{{ asset('css/site-styles.css') }}?v=2">

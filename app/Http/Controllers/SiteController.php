@@ -167,7 +167,16 @@ class SiteController extends Controller
             }
         }
 
-        return view('site.produtos', compact('produtos', 'categorias', 'favoritosIds', 'produtos_no_carrinho'));
+        $categoriaAtiva = null;
+        if ($request->filled('categorias')) {
+            $ids = is_array($request->categorias) ? $request->categorias : [$request->categorias];
+            $categoriaAtiva = Categoria::whereIn('id', $ids)->pluck('nome')->implode(', ');
+        }
+        $metaDescription = $categoriaAtiva
+            ? "{$categoriaAtiva} — catálogo completo com os melhores produtos gamer. JFXTech."
+            : 'Catálogo completo de hardware gamer: monitores, teclados, mouses e mais. Produtos originais com garantia. JFXTech.';
+
+        return view('site.produtos', compact('produtos', 'categorias', 'favoritosIds', 'produtos_no_carrinho', 'metaDescription'));
     }
 
     /**

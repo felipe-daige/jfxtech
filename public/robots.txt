@@ -1,2 +1,12 @@
 User-agent: *
-Disallow:
+Disallow: /admin/
+Disallow: /checkout
+Disallow: /carrinho
+Disallow: /perfil
+Disallow: /meus-pedidos
+Disallow: /favoritos
+Disallow: /login
+Disallow: /register
+Disallow: /pedidos/
+
+Sitemap: https://jfxtech.com.br/sitemap.xml
