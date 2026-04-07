@@ -260,7 +260,7 @@
                                     </table>
                                 </div>
                                 <div class="p-4 border-t border-[var(--color-lab-border)] text-center">
-                                    <a href="{{ route('site.meus-pedidos') }}"
+                                    <a href="{{ route('site.pedidos.index') }}"
                                         class="font-mono text-[11px] uppercase tracking-widest text-black hover:underline">
                                         Ver todos os pedidos →
                                     </a>
