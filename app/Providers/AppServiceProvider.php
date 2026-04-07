@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Pedido;
+use App\Observers\PedidoObserver;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
@@ -23,6 +25,8 @@ class AppServiceProvider extends ServiceProvider
         if ($this->app->environment('production')) {
             URL::forceScheme('https');
         }
+
+        Pedido::observe(PedidoObserver::class);
 
         // Align PHP session GC with Laravel's SESSION_LIFETIME.
         // By default PHP uses gc_maxlifetime=1440s (24min) which can GC
