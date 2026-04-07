@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use League\CommonMark\CommonMarkConverter;
+use League\CommonMark\GithubFlavoredMarkdownConverter;
 use Symfony\Component\Yaml\Yaml;
 use Illuminate\Support\Facades\Log;
 
@@ -52,7 +52,7 @@ class BlogController extends Controller
         $parts = explode('---', $rawContent, 3);
         $markdown = trim($parts[2] ?? '');
 
-        $converter = new CommonMarkConverter(['html_input' => 'strip', 'allow_unsafe_links' => false]);
+        $converter = new GithubFlavoredMarkdownConverter(['html_input' => 'strip', 'allow_unsafe_links' => false]);
         $html = $converter->convert($markdown)->getContent();
 
         $article = array_merge($frontMatter, ['content' => $html]);
