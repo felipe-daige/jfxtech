@@ -357,8 +357,15 @@ class SiteController extends Controller
             ->orderByDesc('updated_at')
             ->orderByDesc('id')
             ->get();
+        $pedidosRecentes = $usuario->pedidos()
+            ->where('status', '!=', 'carrinho')
+            ->orderByDesc('created_at')
+            ->limit(5)
+            ->get();
+        $totalPedidos = $usuario->pedidos()->where('status', '!=', 'carrinho')->count();
+        $totalFavoritos = $usuario->favoritos()->count();
 
-        return view('site.perfil', compact('usuario', 'enderecos'));
+        return view('site.perfil', compact('usuario', 'enderecos', 'pedidosRecentes', 'totalPedidos', 'totalFavoritos'));
     }
 
     /**
@@ -391,6 +398,7 @@ class SiteController extends Controller
 
         // Validação com regras específicas
         $request->validate([
+            'name' => 'nullable|string|min:2|max:255',
             'phone' => [
                 'nullable',
                 'string',
@@ -400,6 +408,7 @@ class SiteController extends Controller
             'current_password' => 'nullable|string',
             'new_password' => 'nullable|string|min:6|confirmed',
         ], [
+            'name.min' => 'O nome deve ter pelo menos 2 caracteres.',
             'phone.regex' => 'O telefone deve estar no formato (XX) XXXXX-XXXX ou (XX) XXXX-XXXX.',
             'phone.unique' => 'Este número de telefone já está sendo usado por outro usuário.',
             'new_password.min' => 'A nova senha deve ter pelo menos 6 caracteres.',
@@ -427,6 +436,11 @@ class SiteController extends Controller
             }
         }
 
+        // Atualizar nome
+        if ($request->filled('name')) {
+            $user->name = $request->name;
+        }
+
         // Atualizar telefone
         if ($request->filled('phone')) {
             $user->phone = $request->phone;
@@ -444,7 +458,8 @@ class SiteController extends Controller
             'success' => true,
             'message' => 'Perfil atualizado com sucesso!',
             'user' => [
-                'phone' => $user->phone
+                'name'  => $user->name,
+                'phone' => $user->phone,
             ]
         ]);
     }
