@@ -29,10 +29,14 @@
     </div>
 
     @if(config('services.frete_gratis_ativo'))
-    <div class="bg-black text-white py-3 px-4">
-        <div class="max-w-7xl mx-auto flex items-center justify-center gap-2">
-            <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <p class="font-mono text-xs font-bold uppercase tracking-widest">Frete Grátis por Tempo Limitado &mdash; Aproveite antes que acabe!</p>
+    <div class="bg-black text-white py-3 sm:py-2.5 px-4">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3 text-center">
+            <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                <span class="font-mono text-xs font-black uppercase tracking-widest">Frete Grátis</span>
+            </div>
+            <span class="hidden sm:block text-white/40 text-xs">—</span>
+            <span class="font-mono text-[11px] text-white/80 uppercase tracking-wider">Promoção por tempo limitado. Aproveite!</span>
         </div>
     </div>
     @endif
@@ -145,15 +149,15 @@
                                 <h4 class="font-mono text-sm font-bold mb-3">Escolha o frete:</h4>
                                 <div class="space-y-3">
                                     @if(config('services.frete_gratis_ativo'))
-                                    <label id="frete-gratis-option" class="hidden relative flex items-center p-4 border-2 border-green-500 cursor-pointer hover:bg-green-50 frete-option" data-tipo="gratis">
-                                        <span class="absolute -top-2.5 right-2 bg-black text-white text-[9px] font-mono font-bold uppercase tracking-widest px-2 py-0.5">Tempo Limitado</span>
-                                        <input type="radio" name="frete" value="gratis" class="mr-3 text-black focus:ring-black">
-                                        <div class="flex-1">
-                                            <div class="font-mono text-sm font-bold text-green-700">Frete Grátis</div>
-                                            <div class="text-sm text-gray-600">Promoção por tempo limitado &middot; 5&ndash;7 dias úteis</div>
+                                    <label id="frete-gratis-option" class="hidden relative flex items-center gap-3 p-4 border-2 border-black bg-black text-white cursor-pointer frete-option" data-tipo="gratis">
+                                        <span class="absolute -top-2.5 left-3 bg-white text-black text-[9px] font-mono font-black uppercase tracking-widest px-2 py-0.5">Promoção</span>
+                                        <input type="radio" name="frete" value="gratis" class="flex-shrink-0 accent-white w-4 h-4">
+                                        <div class="flex-1 min-w-0">
+                                            <div class="font-mono text-sm font-black uppercase tracking-wide leading-tight">Frete Grátis</div>
+                                            <div class="text-xs text-white/70 mt-0.5 leading-tight">5&ndash;7 dias úteis &middot; tempo limitado</div>
                                         </div>
-                                        <div class="text-right">
-                                            <div class="font-mono font-bold text-green-700" id="gratis-valor">R$ 0,00</div>
+                                        <div class="flex-shrink-0 text-right">
+                                            <div class="font-mono text-base font-black" id="gratis-valor">R$ 0,00</div>
                                         </div>
                                     </label>
                                     @endif
