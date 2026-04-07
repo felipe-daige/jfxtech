@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Pedido;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class PedidoReembolsoTest extends TestCase
@@ -56,10 +57,11 @@ class PedidoReembolsoTest extends TestCase
 
     public function test_entregue_within_7_days_shows_reembolso_mode(): void
     {
-        $this->pedido->update([
-            'status'     => 'entregue',
-            'updated_at' => now()->subDays(3),
-        ]);
+        $this->pedido->update(['status' => 'entregue']);
+        DB::table('pedidos')
+            ->where('id', $this->pedido->id)
+            ->update(['updated_at' => now()->subDays(3)]);
+        $this->pedido->refresh();
 
         $this->actingAs($this->user)
             ->get(route('site.pedidos.reembolso', $this->pedido))
@@ -69,10 +71,11 @@ class PedidoReembolsoTest extends TestCase
 
     public function test_entregue_after_7_days_shows_garantia_mode(): void
     {
-        $this->pedido->update([
-            'status'     => 'entregue',
-            'updated_at' => now()->subDays(10),
-        ]);
+        $this->pedido->update(['status' => 'entregue']);
+        DB::table('pedidos')
+            ->where('id', $this->pedido->id)
+            ->update(['updated_at' => now()->subDays(10)]);
+        $this->pedido->refresh();
 
         $this->actingAs($this->user)
             ->get(route('site.pedidos.reembolso', $this->pedido))
@@ -83,6 +86,15 @@ class PedidoReembolsoTest extends TestCase
     public function test_cancelado_pedido_redirects_to_show(): void
     {
         $this->pedido->update(['status' => 'cancelado']);
+
+        $this->actingAs($this->user)
+            ->get(route('site.pedidos.reembolso', $this->pedido))
+            ->assertRedirect(route('site.pedidos.show', $this->pedido));
+    }
+
+    public function test_pendente_pedido_redirects_to_show(): void
+    {
+        $this->pedido->update(['status' => 'pendente']);
 
         $this->actingAs($this->user)
             ->get(route('site.pedidos.reembolso', $this->pedido))
