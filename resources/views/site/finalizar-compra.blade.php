@@ -23,8 +23,8 @@
                 <svg class="w-4 h-4 mx-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
                 <span class="text-black">FINALIZAR COMPRA</span>
             </nav>
-            <h1 id="checkout-title" class="text-4xl font-bold tracking-tight mb-2">ENDEREÇO DE ENTREGA</h1>
-            <p id="checkout-subtitle" class="text-gray-500 font-mono text-sm">CONFIRME SEU ENDEREÇO PARA CONTINUAR</p>
+            <h1 id="checkout-title" class="text-2xl sm:text-4xl font-bold tracking-tight mb-2">ENDEREÇO DE ENTREGA</h1>
+            <p id="checkout-subtitle" class="text-gray-500 font-mono text-xs sm:text-sm">CONFIRME SEU ENDEREÇO PARA CONTINUAR</p>
         </div>
     </div>
 
@@ -40,8 +40,168 @@
     <section class="py-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- Address Form -->
-                <div class="lg:col-span-2">
+                <!-- Order Summary — shown first on mobile, column 3 on desktop -->
+                <div class="lg:col-span-1 lg:col-start-3 lg:row-start-1">
+                    <div class="bg-white border border-[var(--color-lab-border)] p-4 sm:p-6 lg:sticky lg:top-6">
+                        <h3 class="text-lg sm:text-xl font-bold tracking-tight mb-4 sm:mb-6">Resumo do Pedido</h3>
+
+                        <!-- Order Items -->
+                        <div class="space-y-3 mb-4 sm:mb-6">
+                            @foreach($carrinho->itens as $item)
+                            <div class="flex items-center space-x-3">
+                                <div class="w-14 h-14 sm:w-16 sm:h-16 bg-gray-100 flex-shrink-0 overflow-hidden">
+                                    @if($item->produto->imagens->count() > 0)
+                                        <img src="{{ asset('storage/' . $item->produto->imagens->first()->caminho) }}"
+                                             alt="{{ $item->produto->nome }}" class="w-full h-full object-cover">
+                                    @else
+                                        <div class="w-full h-full bg-gray-200 flex items-center justify-center">
+                                            <svg class="w-6 h-6 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-mono text-sm font-bold">{{ $item->produto->nome }}</h4>
+                                    <p class="text-sm text-gray-600">Qtd: {{ $item->quantidade }}</p>
+                                    <p class="text-sm font-mono font-bold">R$ {{ number_format($item->preco * $item->quantidade, 2, ',', '.') }}</p>
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+
+                        <!-- Order Summary -->
+                        <div class="space-y-2">
+                            <div class="mb-4">
+                                <label for="payer-document" class="block text-[10px] font-mono font-bold uppercase tracking-widest text-gray-500 mb-2">CPF do pagador</label>
+                                <input
+                                    type="text"
+                                    id="payer-document"
+                                    name="payer_document"
+                                    placeholder="000.000.000-00"
+                                    aria-describedby="payer-document-error"
+                                    aria-invalid="false"
+                                    class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black transition-colors"
+                                >
+                                <div
+                                    id="payer-document-error"
+                                    class="hidden mt-3 border border-red-200 bg-white px-4 py-3"
+                                    role="alert"
+                                >
+                                    <div class="flex items-start gap-3">
+                                        <svg class="w-4 h-4 mt-0.5 text-red-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <circle cx="12" cy="12" r="9"></circle>
+                                            <path d="M12 8v5"></path>
+                                            <path d="M12 16h.01"></path>
+                                        </svg>
+                                        <div>
+                                            <p class="text-[10px] font-mono font-bold uppercase tracking-widest text-red-500">CPF obrigatório</p>
+                                            <p class="mt-1 text-sm text-gray-700">Informe um CPF válido do pagador para continuar com o checkout.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-2">Usado para concluir o pagamento com Pix no Mercado Pago.</p>
+                            </div>
+
+                            <!-- Cupom de desconto -->
+                            <div class="border border-[var(--color-lab-border)] p-3 mb-1">
+                                <div id="cupom-form">
+                                    <div class="flex gap-2">
+                                        <input
+                                            type="text"
+                                            id="cupom-input"
+                                            placeholder="Código do cupom"
+                                            class="flex-1 border border-[var(--color-lab-border)] px-3 py-2 text-sm font-mono uppercase focus:outline-none focus:border-black"
+                                            maxlength="50"
+                                        >
+                                        <button
+                                            type="button"
+                                            id="cupom-btn"
+                                            class="bg-black text-white px-4 py-2 text-xs font-mono uppercase tracking-widest hover:bg-gray-900 transition-colors whitespace-nowrap"
+                                        >
+                                            Aplicar
+                                        </button>
+                                    </div>
+                                    <p id="cupom-erro" class="text-red-600 text-xs mt-1 hidden"></p>
+                                </div>
+                                <div id="cupom-aplicado" class="hidden">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm font-mono text-green-700" id="cupom-label"></span>
+                                        <button type="button" id="cupom-remover-btn" class="text-xs text-gray-500 underline hover:text-black ml-2">remover</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Subtotal:</span>
+                                <span class="font-semibold">R$ {{ number_format($subtotalProdutos, 2, ',', '.') }}</span>
+                            </div>
+
+                            <div class="flex justify-between text-sm" id="desconto-resumo" style="display:none">
+                                <span class="text-gray-600">Desconto:</span>
+                                <span class="font-semibold text-green-700" id="desconto-valor">- R$ 0,00</span>
+                            </div>
+
+                            <!-- Opções de Frete -->
+                            <div id="opcoes-frete" class="hidden">
+                                <h4 class="font-mono text-sm font-bold mb-3">Escolha o frete:</h4>
+                                <div class="space-y-3">
+                                    @if(config('services.frete_gratis_ativo'))
+                                    <label id="frete-gratis-option" class="hidden relative flex items-center p-4 border-2 border-green-500 cursor-pointer hover:bg-green-50 frete-option" data-tipo="gratis">
+                                        <span class="absolute -top-2.5 right-2 bg-black text-white text-[9px] font-mono font-bold uppercase tracking-widest px-2 py-0.5">Tempo Limitado</span>
+                                        <input type="radio" name="frete" value="gratis" class="mr-3 text-black focus:ring-black">
+                                        <div class="flex-1">
+                                            <div class="font-mono text-sm font-bold text-green-700">Frete Grátis</div>
+                                            <div class="text-sm text-gray-600">Promoção por tempo limitado &middot; 5&ndash;7 dias úteis</div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="font-mono font-bold text-green-700" id="gratis-valor">R$ 0,00</div>
+                                        </div>
+                                    </label>
+                                    @endif
+                                    <label class="flex items-center p-4 border border-[var(--color-lab-border)] cursor-pointer hover:bg-gray-50 frete-option" data-tipo="pac">
+                                        <input type="radio" name="frete" value="pac" class="mr-3 text-black focus:ring-black">
+                                        <div class="flex-1">
+                                            <div class="font-mono text-sm font-bold">PAC</div>
+                                            <div class="text-sm text-gray-600">Entrega em até 7 dias úteis</div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="font-mono font-bold" id="pac-valor">-</div>
+                                        </div>
+                                    </label>
+                                    <label class="flex items-center p-4 border border-[var(--color-lab-border)] cursor-pointer hover:bg-gray-50 frete-option" data-tipo="sedex">
+                                        <input type="radio" name="frete" value="sedex" class="mr-3 text-black focus:ring-black">
+                                        <div class="flex-1">
+                                            <div class="font-mono text-sm font-bold">SEDEX</div>
+                                            <div class="text-sm text-gray-600">Entrega em até 3 dias úteis</div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="font-mono font-bold" id="sedex-valor">-</div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between text-sm" id="frete-resumo">
+                                <span class="text-gray-600">Frete:</span>
+                                <span class="font-semibold" id="frete-valor">Calculando...</span>
+                            </div>
+                            <div class="border-t pt-2">
+                                <div class="flex justify-between text-lg font-bold">
+                                    <span>Total:</span>
+                                    <span class="font-mono font-bold" id="total-valor">R$ {{ number_format($subtotalProdutos, 2, ',', '.') }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Continue Button -->
+                        <button id="continue-btn" class="w-full mt-6 bg-black text-white font-bold py-3 px-6 tracking-widest uppercase text-sm hover:bg-gray-900 transition-colors">
+                            Continuar para Pagamento
+                        </button>
+
+                    </div>
+                </div>
+
+                <!-- Address Form — columns 1-2 on desktop -->
+                <div class="lg:col-span-2 lg:col-start-1 lg:row-start-1">
                     <div class="bg-white border border-[var(--color-lab-border)] p-6">
                         <h2 class="text-2xl font-bold tracking-tight mb-6">Endereço de Entrega</h2>
 
@@ -149,165 +309,6 @@
                     </div>
                 </div>
 
-                <!-- Order Summary -->
-                <div class="lg:col-span-1">
-                    <div class="bg-white border border-[var(--color-lab-border)] p-6 sticky top-6">
-                        <h3 class="text-xl font-bold tracking-tight mb-6">Resumo do Pedido</h3>
-
-                        <!-- Order Items -->
-                        <div class="space-y-4 mb-6">
-                            @foreach($carrinho->itens as $item)
-                            <div class="flex items-center space-x-3">
-                                <div class="w-16 h-16 bg-gray-100 rounded-xl overflow-hidden">
-                                    @if($item->produto->imagens->count() > 0)
-                                        <img src="{{ asset('storage/' . $item->produto->imagens->first()->caminho) }}"
-                                             alt="{{ $item->produto->nome }}" class="w-full h-full object-cover">
-                                    @else
-                                        <div class="w-full h-full bg-gray-200 flex items-center justify-center">
-                                            <svg class="w-6 h-6 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-                                        </div>
-                                    @endif
-                                </div>
-                                <div class="flex-1">
-                                    <h4 class="font-mono text-sm font-bold">{{ $item->produto->nome }}</h4>
-                                    <p class="text-sm text-gray-600">Qtd: {{ $item->quantidade }}</p>
-                                    <p class="text-sm font-mono font-bold">R$ {{ number_format($item->preco * $item->quantidade, 2, ',', '.') }}</p>
-                                </div>
-                            </div>
-                            @endforeach
-                        </div>
-
-                        <!-- Order Summary -->
-                        <div class="space-y-2">
-                            <div class="mb-4">
-                                <label for="payer-document" class="block text-[10px] font-mono font-bold uppercase tracking-widest text-gray-500 mb-2">CPF do pagador</label>
-                                <input
-                                    type="text"
-                                    id="payer-document"
-                                    name="payer_document"
-                                    placeholder="000.000.000-00"
-                                    aria-describedby="payer-document-error"
-                                    aria-invalid="false"
-                                    class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black transition-colors"
-                                >
-                                <div
-                                    id="payer-document-error"
-                                    class="hidden mt-3 border border-red-200 bg-white px-4 py-3"
-                                    role="alert"
-                                >
-                                    <div class="flex items-start gap-3">
-                                        <svg class="w-4 h-4 mt-0.5 text-red-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                            <circle cx="12" cy="12" r="9"></circle>
-                                            <path d="M12 8v5"></path>
-                                            <path d="M12 16h.01"></path>
-                                        </svg>
-                                        <div>
-                                            <p class="text-[10px] font-mono font-bold uppercase tracking-widest text-red-500">CPF obrigatório</p>
-                                            <p class="mt-1 text-sm text-gray-700">Informe um CPF válido do pagador para continuar com o checkout.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <p class="text-xs text-gray-500 mt-2">Usado para concluir o pagamento com Pix no Mercado Pago.</p>
-                            </div>
-
-                            <!-- Cupom de desconto -->
-                            <div class="border border-[var(--color-lab-border)] p-3 mb-1">
-                                <div id="cupom-form">
-                                    <div class="flex gap-2">
-                                        <input
-                                            type="text"
-                                            id="cupom-input"
-                                            placeholder="Código do cupom"
-                                            class="flex-1 border border-[var(--color-lab-border)] px-3 py-2 text-sm font-mono uppercase focus:outline-none focus:border-black"
-                                            maxlength="50"
-                                        >
-                                        <button
-                                            type="button"
-                                            id="cupom-btn"
-                                            class="bg-black text-white px-4 py-2 text-xs font-mono uppercase tracking-widest hover:bg-gray-900 transition-colors whitespace-nowrap"
-                                        >
-                                            Aplicar
-                                        </button>
-                                    </div>
-                                    <p id="cupom-erro" class="text-red-600 text-xs mt-1 hidden"></p>
-                                </div>
-                                <div id="cupom-aplicado" class="hidden">
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm font-mono text-green-700" id="cupom-label"></span>
-                                        <button type="button" id="cupom-remover-btn" class="text-xs text-gray-500 underline hover:text-black ml-2">remover</button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-600">Subtotal:</span>
-                                <span class="font-semibold">R$ {{ number_format($subtotalProdutos, 2, ',', '.') }}</span>
-                            </div>
-
-                            <div class="flex justify-between text-sm" id="desconto-resumo" style="display:none">
-                                <span class="text-gray-600">Desconto:</span>
-                                <span class="font-semibold text-green-700" id="desconto-valor">- R$ 0,00</span>
-                            </div>
-
-                            <!-- Opções de Frete -->
-                            <div id="opcoes-frete" class="hidden">
-                                <h4 class="font-mono text-sm font-bold mb-3">Escolha o frete:</h4>
-                                <div class="space-y-3">
-                                    @if(config('services.frete_gratis_ativo'))
-                                    <label id="frete-gratis-option" class="hidden relative flex items-center p-3 border-2 border-green-500 cursor-pointer hover:bg-green-50 frete-option" data-tipo="gratis">
-                                        <span class="absolute -top-2.5 right-2 bg-black text-white text-[9px] font-mono font-bold uppercase tracking-widest px-2 py-0.5">Tempo Limitado</span>
-                                        <input type="radio" name="frete" value="gratis" class="mr-3 text-black focus:ring-black">
-                                        <div class="flex-1">
-                                            <div class="font-mono text-sm font-bold text-green-700">Frete Grátis</div>
-                                            <div class="text-sm text-gray-600">Promoção por tempo limitado &middot; 5&ndash;7 dias úteis</div>
-                                        </div>
-                                        <div class="text-right">
-                                            <div class="font-mono font-bold text-green-700" id="gratis-valor">R$ 0,00</div>
-                                        </div>
-                                    </label>
-                                    @endif
-                                    <label class="flex items-center p-3 border border-[var(--color-lab-border)] cursor-pointer hover:bg-gray-50 frete-option" data-tipo="pac">
-                                        <input type="radio" name="frete" value="pac" class="mr-3 text-black focus:ring-black">
-                                        <div class="flex-1">
-                                            <div class="font-mono text-sm font-bold">PAC</div>
-                                            <div class="text-sm text-gray-600">Entrega em até 7 dias úteis</div>
-                                        </div>
-                                        <div class="text-right">
-                                            <div class="font-mono font-bold" id="pac-valor">-</div>
-                                        </div>
-                                    </label>
-                                    <label class="flex items-center p-3 border border-[var(--color-lab-border)] cursor-pointer hover:bg-gray-50 frete-option" data-tipo="sedex">
-                                        <input type="radio" name="frete" value="sedex" class="mr-3 text-black focus:ring-black">
-                                        <div class="flex-1">
-                                            <div class="font-mono text-sm font-bold">SEDEX</div>
-                                            <div class="text-sm text-gray-600">Entrega em até 3 dias úteis</div>
-                                        </div>
-                                        <div class="text-right">
-                                            <div class="font-mono font-bold" id="sedex-valor">-</div>
-                                        </div>
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div class="flex justify-between text-sm" id="frete-resumo">
-                                <span class="text-gray-600">Frete:</span>
-                                <span class="font-semibold" id="frete-valor">Calculando...</span>
-                            </div>
-                            <div class="border-t pt-2">
-                                <div class="flex justify-between text-lg font-bold">
-                                    <span>Total:</span>
-                                    <span class="font-mono font-bold" id="total-valor">R$ {{ number_format($subtotalProdutos, 2, ',', '.') }}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Continue Button -->
-                        <button id="continue-btn" class="w-full mt-6 bg-black text-white font-bold py-3 px-6 tracking-widest uppercase text-sm hover:bg-gray-900 transition-colors">
-                            Continuar para Pagamento
-                        </button>
-
-                    </div>
-                </div>
             </div>
         </div>
     </section>
