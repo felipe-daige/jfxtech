@@ -3,7 +3,7 @@ title: "Como Escolher o Monitor Gamer Ideal"
 description: "Guia completo para escolher o monitor gamer certo: resolução, taxa de atualização, tempo de resposta e painel."
 date: 2026-04-07
 tags: [monitor, guia, hardware]
-image: storage/images/jfxtech-link-preiew-opt.jpg
+image: images/blog/monitor-gamer-guia.jpg
 ---
 
 ## Por que o monitor importa tanto?
