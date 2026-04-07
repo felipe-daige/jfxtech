@@ -423,10 +423,14 @@ class MercadoPagoCheckoutController extends Controller
     protected function resolveFrete(Pedido $pedido, string $cep, string $tipo): ?array
     {
         if ($tipo === 'gratis') {
-            $minimoFrete = (float) config('services.frete_gratis_minimo', 0);
-            $subtotal = $pedido->itens->sum(fn($item) => $item->preco_unitario * $item->quantidade);
+            if (!config('services.frete_gratis_ativo', false)) {
+                return null;
+            }
 
-            if ($minimoFrete <= 0 || $subtotal < $minimoFrete) {
+            $minimoFrete = (float) config('services.frete_gratis_minimo', 0);
+            $subtotal = $pedido->itens->sum(fn($item) => $item->preco * $item->quantidade);
+
+            if ($minimoFrete > 0 && $subtotal < $minimoFrete) {
                 return null;
             }
 
