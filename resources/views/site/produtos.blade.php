@@ -21,8 +21,8 @@
                     <svg class="w-4 h-4 mx-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
                     <span class="text-black">PRODUTOS</span>
                 </nav>
-                <h1 class="text-4xl font-bold tracking-tight mb-2">CATÁLOGO DE HARDWARE</h1>
-                <p class="text-gray-500 font-mono text-sm">NAVEGUE PELO NOSSO ARSENAL COMPLETO DE EQUIPAMENTOS DE ALTA PERFORMANCE</p>
+                <h1 class="text-2xl sm:text-4xl font-bold tracking-tight mb-2">CATÁLOGO DE HARDWARE</h1>
+                <p class="text-gray-500 font-mono text-xs sm:text-sm leading-relaxed">NAVEGUE PELO NOSSO ARSENAL COMPLETO DE EQUIPAMENTOS DE ALTA PERFORMANCE</p>
             </div>
         </div>
 
@@ -116,6 +116,12 @@
                                                    {{ request('em_estoque') ? 'checked' : '' }}>
                                             <span class="text-gray-600 group-hover:text-black transition-colors">EM ESTOQUE</span>
                                         </label>
+                                        <label class="flex items-center gap-3 cursor-pointer group text-sm">
+                                            <input type="checkbox" name="em_destaque" value="1"
+                                                   class="tech-checkbox"
+                                                   {{ request('em_destaque') ? 'checked' : '' }}>
+                                            <span class="text-gray-600 group-hover:text-black transition-colors">EM DESTAQUE</span>
+                                        </label>
                                     </div>
                                 </div>
                             </div>
@@ -153,16 +159,33 @@
                         </button>
                     </div>
 
-                    {{-- Results Header --}}
-                    <div class="flex justify-between items-end border-b border-[var(--color-lab-border)] pb-4 mb-8">
-                        <div>
-                            <h2 class="text-xl font-bold tracking-tight">TODOS OS PRODUTOS</h2>
-                            <p class="text-sm text-gray-500 font-mono mt-1">MOSTRANDO {{ $produtos->total() }} RESULTADO{{ $produtos->total() != 1 ? 'S' : '' }}</p>
+                    {{-- Results Header + Quick Sort Pills --}}
+                    @php
+                        $ordenacaoAtual = request('ordenacao', 'nome');
+                        $sortUrl = fn($val) => url()->current() . '?' . http_build_query(array_merge(request()->except(['ordenacao', 'page']), ['ordenacao' => $val]));
+                        $pillClass = fn($val) => 'px-3 py-1.5 text-xs font-mono font-bold uppercase tracking-wider border transition-colors ' . ($ordenacaoAtual === $val
+                            ? 'bg-black text-white border-black'
+                            : 'bg-white text-gray-600 border-[var(--color-lab-border)] hover:bg-black hover:text-white hover:border-black');
+                    @endphp
+                    <div class="border-b border-[var(--color-lab-border)] pb-4 mb-8">
+                        <div class="flex justify-between items-end mb-3">
+                            <div>
+                                <h2 class="text-xl font-bold tracking-tight">TODOS OS PRODUTOS</h2>
+                                <p class="text-sm text-gray-500 font-mono mt-1">MOSTRANDO {{ $produtos->total() }} RESULTADO{{ $produtos->total() != 1 ? 'S' : '' }}</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <a href="{{ $sortUrl('destaque') }}" class="{{ $pillClass('destaque') }}">DESTAQUE</a>
+                            <a href="{{ $sortUrl('novidade') }}" class="{{ $pillClass('novidade') }}">NOVIDADE</a>
+                            <a href="{{ $sortUrl('preco_asc') }}" class="{{ $pillClass('preco_asc') }}">MENOR PREÇO</a>
+                            <a href="{{ $sortUrl('preco_desc') }}" class="{{ $pillClass('preco_desc') }}">MAIOR PREÇO</a>
+                            <a href="{{ $sortUrl('promocao') }}" class="{{ $pillClass('promocao') }}">PROMOÇÃO</a>
+                            <a href="{{ $sortUrl('nome') }}" class="{{ $pillClass('nome') }}">A-Z</a>
                         </div>
                     </div>
 
                     {{-- Product Grid --}}
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 mb-8">
                         @forelse($produtos as $produto)
                             @include('components.product-card', ['produto' => $produto])
                         @empty
