@@ -4,6 +4,7 @@
     {{-- Homepage --}}
     <url>
         <loc>{{ url('/') }}</loc>
+        <lastmod>{{ now()->toDateString() }}</lastmod>
         <priority>1.0</priority>
         <changefreq>weekly</changefreq>
     </url>
@@ -11,22 +12,25 @@
     {{-- Catálogo --}}
     <url>
         <loc>{{ url('/produtos') }}</loc>
+        <lastmod>{{ $latestProductDate }}</lastmod>
         <priority>0.8</priority>
         <changefreq>daily</changefreq>
-    </url>
-
-    {{-- Contato --}}
-    <url>
-        <loc>{{ url('/contato') }}</loc>
-        <priority>0.5</priority>
-        <changefreq>monthly</changefreq>
     </url>
 
     {{-- Blog index --}}
     <url>
         <loc>{{ url('/blog') }}</loc>
+        <lastmod>{{ $latestArticleDate }}</lastmod>
         <priority>0.7</priority>
         <changefreq>weekly</changefreq>
+    </url>
+
+    {{-- Contato --}}
+    <url>
+        <loc>{{ url('/contato') }}</loc>
+        <lastmod>2026-01-01</lastmod>
+        <priority>0.5</priority>
+        <changefreq>monthly</changefreq>
     </url>
 
     {{-- Produtos ativos --}}

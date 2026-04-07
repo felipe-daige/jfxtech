@@ -17,7 +17,10 @@ class SitemapController extends Controller
 
             $articles = $this->loadBlogArticles();
 
-            return view('sitemap', compact('produtos', 'articles'))->render();
+            $latestProductDate = $produtos->max('updated_at')?->toDateString() ?? now()->toDateString();
+            $latestArticleDate = collect($articles)->max('date') ?? now()->toDateString();
+
+            return view('sitemap', compact('produtos', 'articles', 'latestProductDate', 'latestArticleDate'))->render();
         });
 
         return response($xml, 200, ['Content-Type' => 'application/xml; charset=utf-8']);
