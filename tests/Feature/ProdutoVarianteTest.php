@@ -120,4 +120,113 @@ class ProdutoVarianteTest extends TestCase
         $this->assertDatabaseHas('produto_variantes', ['id' => $variante->id, 'preco' => 149.90, 'estoque' => 5]);
         $this->assertDatabaseHas('produtos', ['id' => $produto->id, 'estoque_compartilhado' => false]);
     }
+
+    public function test_get_opcoes_retorna_descricao_e_specs_crus_das_variantes(): void
+    {
+        $produto = Produto::factory()->create();
+        $grupo = ProdutoOpcaoGrupo::factory()->create(['produto_id' => $produto->id, 'nome' => 'Cor']);
+        $valor = ProdutoOpcaoValor::factory()->create(['grupo_id' => $grupo->id, 'valor' => 'Azul']);
+        ProdutoVariante::factory()->create([
+            'produto_id' => $produto->id,
+            'valores'    => [$valor->id],
+            'descricao'  => '<p>Descrição da variante</p>',
+            'specs'      => ['dpi_maximo' => '16000'],
+        ]);
+
+        $response = $this->actingAsAdmin()->getJson("/admin/produtos/{$produto->id}/opcoes");
+
+        $response->assertOk();
+        $variantes = $response->json('variantes');
+        $this->assertNotEmpty($variantes);
+        $this->assertArrayHasKey('descricao', $variantes[0]);
+        $this->assertArrayHasKey('specs', $variantes[0]);
+        $this->assertEquals('<p>Descrição da variante</p>', $variantes[0]['descricao']);
+        $this->assertEquals(['dpi_maximo' => '16000'], $variantes[0]['specs']);
+    }
+
+    public function test_put_variantes_salva_descricao_e_specs_por_variante(): void
+    {
+        $produto = Produto::factory()->create();
+        $grupo = ProdutoOpcaoGrupo::factory()->create(['produto_id' => $produto->id]);
+        $valor = ProdutoOpcaoValor::factory()->create(['grupo_id' => $grupo->id]);
+        $variante = ProdutoVariante::factory()->create([
+            'produto_id' => $produto->id,
+            'valores'    => [$valor->id],
+        ]);
+
+        $response = $this->actingAsAdmin()->putJson("/admin/produtos/{$produto->id}/variantes", [
+            'variantes' => [
+                [
+                    'id'        => $variante->id,
+                    'descricao' => '<p>Texto da variante</p>',
+                    'specs'     => ['peso' => '95g'],
+                ],
+            ],
+        ]);
+
+        $response->assertOk();
+        $variante->refresh();
+        $this->assertNotNull($variante->descricao);
+        $this->assertStringContainsString('Texto da variante', $variante->descricao);
+        $this->assertEquals(['peso' => '95g'], $variante->specs);
+    }
+
+    public function test_put_variantes_salva_null_quando_descricao_e_specs_omitidos(): void
+    {
+        $produto = Produto::factory()->create();
+        $grupo = ProdutoOpcaoGrupo::factory()->create(['produto_id' => $produto->id]);
+        $valor = ProdutoOpcaoValor::factory()->create(['grupo_id' => $grupo->id]);
+        $variante = ProdutoVariante::factory()->create([
+            'produto_id' => $produto->id,
+            'valores'    => [$valor->id],
+            'descricao'  => '<p>Valor original</p>',
+            'specs'      => ['peso' => '80g'],
+        ]);
+
+        $response = $this->actingAsAdmin()->putJson("/admin/produtos/{$produto->id}/variantes", [
+            'variantes' => [
+                ['id' => $variante->id, 'preco' => 99.90],
+            ],
+        ]);
+
+        $response->assertOk();
+        $variante->refresh();
+        // descricao and specs keys were omitted, so existing values remain unchanged
+        $this->assertEquals('<p>Valor original</p>', $variante->descricao);
+        $this->assertEquals(['peso' => '80g'], $variante->specs);
+    }
+
+    public function test_put_variantes_sanitiza_descricao_antes_de_salvar(): void
+    {
+        $produto = Produto::factory()->create();
+        $grupo = ProdutoOpcaoGrupo::factory()->create(['produto_id' => $produto->id]);
+        $valor = ProdutoOpcaoValor::factory()->create(['grupo_id' => $grupo->id]);
+        $variante = ProdutoVariante::factory()->create([
+            'produto_id' => $produto->id,
+            'valores'    => [$valor->id],
+            'descricao'  => '<p>Valor anterior</p>',
+        ]);
+
+        // Empty string should be sanitized to null
+        $response = $this->actingAsAdmin()->putJson("/admin/produtos/{$produto->id}/variantes", [
+            'variantes' => [
+                ['id' => $variante->id, 'descricao' => ''],
+            ],
+        ]);
+
+        $response->assertOk();
+        $variante->refresh();
+        $this->assertNull($variante->descricao);
+
+        // Whitespace-only HTML (e.g. <p>   </p>) should also be sanitized to null
+        $response = $this->actingAsAdmin()->putJson("/admin/produtos/{$produto->id}/variantes", [
+            'variantes' => [
+                ['id' => $variante->id, 'descricao' => '<p>   </p>'],
+            ],
+        ]);
+
+        $response->assertOk();
+        $variante->refresh();
+        $this->assertNull($variante->descricao);
+    }
 }
