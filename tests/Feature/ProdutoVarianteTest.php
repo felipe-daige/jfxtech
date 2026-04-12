@@ -121,7 +121,7 @@ class ProdutoVarianteTest extends TestCase
         $this->assertDatabaseHas('produtos', ['id' => $produto->id, 'estoque_compartilhado' => false]);
     }
 
-    public function test_get_opcoes_retorna_descricao_e_specs_crus_das_variantes(): void
+    public function test_get_opcoes_returns_descricao_and_specs_raw_values(): void
     {
         $produto = Produto::factory()->create();
         $grupo = ProdutoOpcaoGrupo::factory()->create(['produto_id' => $produto->id, 'nome' => 'Cor']);
@@ -144,7 +144,7 @@ class ProdutoVarianteTest extends TestCase
         $this->assertEquals(['dpi_maximo' => '16000'], $variantes[0]['specs']);
     }
 
-    public function test_put_variantes_salva_descricao_e_specs_por_variante(): void
+    public function test_put_variantes_saves_descricao_and_specs_per_variant(): void
     {
         $produto = Produto::factory()->create();
         $grupo = ProdutoOpcaoGrupo::factory()->create(['produto_id' => $produto->id]);
@@ -166,12 +166,11 @@ class ProdutoVarianteTest extends TestCase
 
         $response->assertOk();
         $variante->refresh();
-        $this->assertNotNull($variante->descricao);
-        $this->assertStringContainsString('Texto da variante', $variante->descricao);
+        $this->assertEquals('<p>Texto da variante</p>', $variante->descricao);
         $this->assertEquals(['peso' => '95g'], $variante->specs);
     }
 
-    public function test_put_variantes_salva_null_quando_descricao_e_specs_omitidos(): void
+    public function test_put_variantes_preserves_existing_values_when_keys_omitted(): void
     {
         $produto = Produto::factory()->create();
         $grupo = ProdutoOpcaoGrupo::factory()->create(['produto_id' => $produto->id]);
@@ -196,7 +195,7 @@ class ProdutoVarianteTest extends TestCase
         $this->assertEquals(['peso' => '80g'], $variante->specs);
     }
 
-    public function test_put_variantes_sanitiza_descricao_antes_de_salvar(): void
+    public function test_put_variantes_sanitizes_blank_descricao_to_null(): void
     {
         $produto = Produto::factory()->create();
         $grupo = ProdutoOpcaoGrupo::factory()->create(['produto_id' => $produto->id]);
