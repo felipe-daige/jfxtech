@@ -81,13 +81,11 @@ class ProdutoVarianteTest extends TestCase
 
     public function test_descricao_efetiva_retorna_propria_quando_preenchida(): void
     {
-        $produto = Produto::factory()->create(['descricao' => 'Descrição do produto pai']);
         $variante = ProdutoVariante::factory()->create([
-            'produto_id' => $produto->id,
+            'produto_id' => Produto::factory()->create()->id,
             'descricao' => 'Descrição própria da variante',
             'valores' => [1],
         ]);
-        $variante->setRelation('produto', $produto);
 
         $this->assertEquals('Descrição própria da variante', $variante->descricao_efetiva);
     }
