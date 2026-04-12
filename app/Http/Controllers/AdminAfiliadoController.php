@@ -212,6 +212,51 @@ class AdminAfiliadoController extends Controller
             ->with('success', 'Configurações salvas.');
     }
 
+    public function update(Request $request, int $id)
+    {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Não autorizado'], 401);
+        }
+
+        $affiliate = Affiliate::findOrFail($id);
+
+        $request->validate([
+            'codigo'           => "required|string|max:20|regex:/^[A-Z0-9]+$/|unique:affiliates,codigo,{$id}",
+            'status'           => 'required|in:pendente,ativo,inativo',
+            'commission_type'  => 'required|in:percent,fixed',
+            'commission_value' => 'nullable|numeric|min:0|max:99999',
+            'pix_key'          => 'nullable|string|max:255',
+        ]);
+
+        $data = [
+            'codigo'           => strtoupper($request->codigo),
+            'status'           => $request->status,
+            'commission_type'  => $request->commission_type,
+            'commission_value' => $request->commission_value ?: null,
+            'pix_key'          => $request->pix_key ?: null,
+        ];
+
+        if ($request->status === 'ativo' && $affiliate->status !== 'ativo') {
+            $data['approved_at'] = now();
+        }
+
+        $affiliate->update($data);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function destroy(int $id)
+    {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Não autorizado'], 401);
+        }
+
+        $affiliate = Affiliate::findOrFail($id);
+        $affiliate->delete();
+
+        return response()->json(['success' => true]);
+    }
+
     public function buscarUsuarios(Request $request)
     {
         if (!Auth::check()) {

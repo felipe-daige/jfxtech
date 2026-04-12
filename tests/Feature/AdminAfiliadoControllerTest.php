@@ -171,9 +171,9 @@ class AdminAfiliadoControllerTest extends TestCase
 
     public function test_configuracoes_returns_ok(): void
     {
-        AffiliateSetting::create(['key' => 'commission_percent_default', 'value' => '5.00']);
-        AffiliateSetting::create(['key' => 'cookie_days', 'value' => '30']);
-        AffiliateSetting::create(['key' => 'grace_period_days', 'value' => '30']);
+        AffiliateSetting::firstOrCreate(['key' => 'commission_percent_default'], ['value' => '5.00']);
+        AffiliateSetting::firstOrCreate(['key' => 'cookie_days'], ['value' => '30']);
+        AffiliateSetting::firstOrCreate(['key' => 'grace_period_days'], ['value' => '30']);
 
         $this->actingAs($this->admin)
              ->get(route('admin.afiliados.configuracoes'))
@@ -182,9 +182,9 @@ class AdminAfiliadoControllerTest extends TestCase
 
     public function test_salvar_configuracoes_updates_settings(): void
     {
-        AffiliateSetting::create(['key' => 'commission_percent_default', 'value' => '5.00']);
-        AffiliateSetting::create(['key' => 'cookie_days', 'value' => '30']);
-        AffiliateSetting::create(['key' => 'grace_period_days', 'value' => '30']);
+        AffiliateSetting::firstOrCreate(['key' => 'commission_percent_default'], ['value' => '5.00']);
+        AffiliateSetting::firstOrCreate(['key' => 'cookie_days'], ['value' => '30']);
+        AffiliateSetting::firstOrCreate(['key' => 'grace_period_days'], ['value' => '30']);
 
         $this->actingAs($this->admin)
              ->post(route('admin.afiliados.configuracoes.salvar'), [
@@ -291,5 +291,69 @@ class AdminAfiliadoControllerTest extends TestCase
              ->assertOk();
 
         $response->assertJsonFragment(['name' => 'Joao Testador']);
+    }
+
+    public function test_update_updates_affiliate_details(): void
+    {
+        $affiliate = Affiliate::factory()->create([
+            'codigo'           => 'OLDCODE',
+            'status'           => 'ativo',
+            'commission_type'  => 'percent',
+            'commission_value' => 5.00,
+            'pix_key'          => null,
+        ]);
+
+        $this->actingAs($this->admin)
+             ->putJson(route('admin.afiliados.update', $affiliate->id), [
+                 'codigo'           => 'NEWCODE',
+                 'status'           => 'ativo',
+                 'commission_type'  => 'fixed',
+                 'commission_value' => '20.00',
+                 'pix_key'          => 'chave@pix.com',
+             ])
+             ->assertOk()
+             ->assertJson(['success' => true]);
+
+        $this->assertDatabaseHas('affiliates', [
+            'id'               => $affiliate->id,
+            'codigo'           => 'NEWCODE',
+            'commission_type'  => 'fixed',
+            'commission_value' => 20.00,
+            'pix_key'          => 'chave@pix.com',
+        ]);
+    }
+
+    public function test_update_rejects_duplicate_codigo(): void
+    {
+        $existing = Affiliate::factory()->create(['codigo' => 'TAKEN']);
+        $affiliate = Affiliate::factory()->create(['codigo' => 'MINE']);
+
+        $this->actingAs($this->admin)
+             ->putJson(route('admin.afiliados.update', $affiliate->id), [
+                 'codigo'          => 'TAKEN',
+                 'status'          => 'ativo',
+                 'commission_type' => 'percent',
+             ])
+             ->assertStatus(422)
+             ->assertJsonValidationErrors('codigo');
+    }
+
+    public function test_destroy_deletes_affiliate(): void
+    {
+        $affiliate = Affiliate::factory()->create();
+
+        $this->actingAs($this->admin)
+             ->deleteJson(route('admin.afiliados.destroy', $affiliate->id))
+             ->assertOk()
+             ->assertJson(['success' => true]);
+
+        $this->assertDatabaseMissing('affiliates', ['id' => $affiliate->id]);
+    }
+
+    public function test_destroy_returns_404_for_nonexistent(): void
+    {
+        $this->actingAs($this->admin)
+             ->deleteJson(route('admin.afiliados.destroy', 99999))
+             ->assertNotFound();
     }
 }

@@ -157,4 +157,6 @@ Route::prefix('admin/afiliados')->name('admin.afiliados.')->group(function () {
     Route::post('/{id}/aprovar',   [AdminAfiliadoController::class, 'aprovar'])->name('aprovar');
     Route::post('/{id}/suspender', [AdminAfiliadoController::class, 'suspender'])->name('suspender');
     Route::post('/{id}/comissao',  [AdminAfiliadoController::class, 'editarComissao'])->name('comissao');
+    Route::put('/{id}',            [AdminAfiliadoController::class, 'update'])->name('update');
+    Route::delete('/{id}',         [AdminAfiliadoController::class, 'destroy'])->name('destroy');
 });

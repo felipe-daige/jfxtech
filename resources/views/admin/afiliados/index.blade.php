@@ -101,6 +101,14 @@
                             class="border border-black px-2 py-1 text-[10px] uppercase tracking-widest hover:bg-black hover:text-white transition-colors">
                             Comissão
                         </button>
+                        <button onclick="abrirModalEditar({{ $aff->id }}, '{{ $aff->codigo }}', '{{ $aff->status }}', '{{ $aff->commission_type }}', '{{ $aff->commission_value ?? '' }}', '{{ addslashes($aff->pix_key ?? '') }}')"
+                            class="border border-black px-2 py-1 text-[10px] uppercase tracking-widest hover:bg-black hover:text-white transition-colors">
+                            Editar
+                        </button>
+                        <button onclick="excluirAfiliado({{ $aff->id }}, '{{ addslashes($aff->user?->name ?? '#' . $aff->id) }}')"
+                            class="border border-black bg-black text-white px-2 py-1 text-[10px] uppercase tracking-widest hover:bg-white hover:text-black transition-colors">
+                            Excluir
+                        </button>
                     </td>
                 </tr>
                 @endforeach
@@ -233,11 +241,93 @@
     </div>
 </div>
 
+{{-- Modal: Editar Afiliado --}}
+<div id="modalEditarAfiliado" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div class="bg-white border border-black p-6 w-full max-w-md font-mono overflow-y-auto max-h-[90vh]">
+        <h2 class="text-xs uppercase tracking-widest font-bold mb-5">Editar Afiliado</h2>
+        <div id="editar-erros" class="hidden border border-black p-3 mb-4 text-xs"></div>
+        <div class="space-y-4">
+            {{-- Código --}}
+            <div>
+                <label class="block text-[10px] uppercase tracking-widest mb-1">Código de afiliado</label>
+                <input type="text" id="editar-codigo"
+                    maxlength="20"
+                    class="w-full border border-black px-3 py-2 text-xs uppercase focus:outline-none"
+                    oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '')">
+            </div>
+            {{-- Status --}}
+            <div>
+                <label class="block text-[10px] uppercase tracking-widest mb-1">Status</label>
+                <select id="editar-status" class="w-full border border-black px-3 py-2 text-xs">
+                    <option value="ativo">Ativo</option>
+                    <option value="pendente">Pendente</option>
+                    <option value="inativo">Inativo</option>
+                </select>
+            </div>
+            {{-- Comissão --}}
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="block text-[10px] uppercase tracking-widest mb-1">Comissão tipo</label>
+                    <select id="editar-commission-type" class="w-full border border-black px-3 py-2 text-xs">
+                        <option value="percent">Percentual (%)</option>
+                        <option value="fixed">Fixo (R$)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] uppercase tracking-widest mb-1">Valor (vazio = global)</label>
+                    <input type="number" step="0.01" id="editar-commission-value"
+                        class="w-full border border-black px-3 py-2 text-xs focus:outline-none">
+                </div>
+            </div>
+            {{-- PIX --}}
+            <div>
+                <label class="block text-[10px] uppercase tracking-widest mb-1">Chave PIX (opcional)</label>
+                <input type="text" id="editar-pix-key"
+                    class="w-full border border-black px-3 py-2 text-xs focus:outline-none">
+            </div>
+            <div class="flex gap-2 pt-2">
+                <button onclick="salvarEdicaoAfiliado()"
+                    class="flex-1 border border-black bg-black text-white py-2 text-[10px] uppercase tracking-widest hover:bg-white hover:text-black transition-colors">
+                    Salvar
+                </button>
+                <button onclick="fecharModalEditar()"
+                    class="flex-1 border border-black py-2 text-[10px] uppercase tracking-widest hover:bg-black hover:text-white transition-colors">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Modal: Confirmar Exclusão --}}
+<div id="modalConfirmarExclusao" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div class="bg-white border border-black p-6 w-full max-w-sm font-mono">
+        <h2 class="text-xs uppercase tracking-widest font-bold mb-2">Excluir Afiliado</h2>
+        <p class="text-xs mb-1">Você está prestes a excluir:</p>
+        <p id="confirmar-nome" class="text-xs font-bold mb-3"></p>
+        <p class="text-[10px] text-gray-500 mb-5">
+            Todas as indicações e comissões vinculadas serão removidas. Esta ação não pode ser desfeita.
+        </p>
+        <div class="flex gap-2">
+            <button onclick="confirmarExclusao()"
+                class="flex-1 border border-black bg-black text-white py-2 text-[10px] uppercase tracking-widest hover:bg-white hover:text-black transition-colors">
+                Excluir
+            </button>
+            <button onclick="fecharModalConfirmar()"
+                class="flex-1 border border-black py-2 text-[10px] uppercase tracking-widest hover:bg-black hover:text-white transition-colors">
+                Cancelar
+            </button>
+        </div>
+    </div>
+</div>
+
 <script src="{{ asset('js/afiliados-admin.js') }}?v={{ time() }}"></script>
 <script>
     window.routes = window.routes || {};
-    window.routes.adminAfiliadosComissao = '{{ route("admin.afiliados.comissao", ":id") }}';
-    window.routes.adminAfiliadosStream        = '{{ route("admin.afiliados.stream") }}';
+    window.routes.adminAfiliadosComissao       = '{{ route("admin.afiliados.comissao", ":id") }}';
+    window.routes.adminAfiliadosStream         = '{{ route("admin.afiliados.stream") }}';
     window.routes.adminAfiliadosBuscarUsuarios = '{{ route("admin.afiliados.buscarUsuarios") }}';
+    window.routes.adminAfiliadosUpdate         = '{{ route("admin.afiliados.update", ":id") }}';
+    window.routes.adminAfiliadosDestroy        = '{{ route("admin.afiliados.destroy", ":id") }}';
 </script>
 @endsection

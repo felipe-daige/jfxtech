@@ -143,5 +143,107 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // Add Escape key to close create modal
 document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') fecharModalCriar();
+    if (e.key === 'Escape') {
+        fecharModalCriar();
+        fecharModalEditar();
+        fecharModalConfirmar();
+    }
 });
+
+// Edit affiliate modal
+let _editarId = null;
+
+function abrirModalEditar(id, codigo, status, commType, commValue, pixKey) {
+    _editarId = id;
+    document.getElementById('editar-codigo').value           = codigo || '';
+    document.getElementById('editar-status').value           = status || 'ativo';
+    document.getElementById('editar-commission-type').value  = commType || 'percent';
+    document.getElementById('editar-commission-value').value = commValue || '';
+    document.getElementById('editar-pix-key').value         = pixKey || '';
+    document.getElementById('editar-erros').classList.add('hidden');
+    document.getElementById('editar-erros').innerHTML = '';
+    document.getElementById('modalEditarAfiliado').classList.remove('hidden');
+}
+
+function fecharModalEditar() {
+    _editarId = null;
+    document.getElementById('modalEditarAfiliado').classList.add('hidden');
+}
+
+function salvarEdicaoAfiliado() {
+    if (!_editarId) return;
+
+    const url = (window.routes.adminAfiliadosUpdate || '').replace(':id', _editarId);
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.content
+              || document.cookie.match(/XSRF-TOKEN=([^;]+)/)?.[1]?.replace(/%3D/g, '=') || '';
+
+    const data = {
+        codigo:           document.getElementById('editar-codigo').value,
+        status:           document.getElementById('editar-status').value,
+        commission_type:  document.getElementById('editar-commission-type').value,
+        commission_value: document.getElementById('editar-commission-value').value || '',
+        pix_key:          document.getElementById('editar-pix-key').value,
+    };
+
+    fetch(url, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrf,
+            'Accept':       'application/json',
+        },
+        body: JSON.stringify(data),
+    })
+    .then(r => r.json())
+    .then(json => {
+        if (json.success) {
+            fecharModalEditar();
+            window.location.reload();
+        } else if (json.errors) {
+            const errosDiv = document.getElementById('editar-erros');
+            errosDiv.innerHTML = Object.values(json.errors).flat().map(e => `<p>${e}</p>`).join('');
+            errosDiv.classList.remove('hidden');
+        }
+    })
+    .catch(() => {
+        const errosDiv = document.getElementById('editar-erros');
+        errosDiv.innerHTML = '<p>Erro ao salvar. Tente novamente.</p>';
+        errosDiv.classList.remove('hidden');
+    });
+}
+
+// Delete affiliate
+let _excluirId = null;
+
+function excluirAfiliado(id, nome) {
+    _excluirId = id;
+    document.getElementById('confirmar-nome').textContent = nome;
+    document.getElementById('modalConfirmarExclusao').classList.remove('hidden');
+}
+
+function fecharModalConfirmar() {
+    _excluirId = null;
+    document.getElementById('modalConfirmarExclusao').classList.add('hidden');
+}
+
+function confirmarExclusao() {
+    if (!_excluirId) return;
+
+    const url = (window.routes.adminAfiliadosDestroy || '').replace(':id', _excluirId);
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+    fecharModalConfirmar();
+
+    fetch(url, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': csrf,
+            'Accept':       'application/json',
+        },
+    })
+    .then(r => r.json())
+    .then(json => {
+        if (json.success) window.location.reload();
+    })
+    .catch(() => alert('Erro ao excluir. Tente novamente.'));
+}

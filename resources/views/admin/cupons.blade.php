@@ -1,18 +1,9 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Cupons — Admin JFX Tech</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
-<body class="min-h-screen bg-[var(--color-lab-bg)] text-[var(--color-lab-ink)] antialiased">
-@include('includes.header-admin')
+@extends('includes.header-admin')
 
-<div class="flex min-h-[calc(100vh-4rem)]">
-    <main class="flex-1 p-8">
-        <div class="flex items-center justify-between mb-8">
+@section('title', 'Cupons')
+
+@section('content')
+<div class="flex items-center justify-between mb-8">
             <h1 class="font-mono text-2xl font-bold uppercase tracking-widest">Cupons</h1>
             <button id="btn-novo-cupom" class="bg-black text-white px-5 py-2 font-mono text-xs uppercase tracking-widest hover:bg-gray-900 transition-colors">
                 + Novo Cupom
@@ -69,8 +60,6 @@
                 </tbody>
             </table>
         </div>
-    </main>
-</div>
 
 {{-- Modal criar/editar --}}
 <div id="modal-cupom" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center">
@@ -232,5 +221,4 @@ $(document).ready(function () {
 
 });
 </script>
-</body>
-</html>
+@endsection
