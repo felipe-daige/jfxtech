@@ -1,5 +1,5 @@
 FROM nginx:alpine
 
-COPY nginx/ /etc/nginx/conf.d/
+COPY nginx/conf.d/ /etc/nginx/conf.d/
 
 EXPOSE 80
