@@ -202,6 +202,10 @@ document.addEventListener('DOMContentLoaded', function() {
         var precoOriginalTexto = priceEl ? priceEl.textContent.trim() : null;
         var unitsEl = document.getElementById('stock-units');
         var stockUnitsOriginalTexto = unitsEl ? unitsEl.textContent.trim() : null;
+        var descricaoSectionInit = document.getElementById('descricao-section');
+        var initialDescricaoHtml = descricaoSectionInit ? descricaoSectionInit.innerHTML : null;
+        var specsGridContainerInit = document.getElementById('specs-grid-container');
+        var initialSpecsHtml = specsGridContainerInit ? specsGridContainerInit.innerHTML : null;
         var gruposIds = [];
 
         opcaoBtns.forEach(function(btn) {
@@ -233,6 +237,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     if (priceEl && precoOriginalTexto) priceEl.textContent = precoOriginalTexto;
                     if (unitsEl && stockUnitsOriginalTexto) unitsEl.textContent = stockUnitsOriginalTexto;
+                    var descSection = document.getElementById('descricao-section');
+                    if (descSection && initialDescricaoHtml !== null) { descSection.innerHTML = initialDescricaoHtml; descSection.style.display = ''; }
+                    var specsCont = document.getElementById('specs-grid-container');
+                    if (specsCont && initialSpecsHtml !== null) { specsCont.innerHTML = initialSpecsHtml; }
+                    var specsSection = document.getElementById('specs-section');
+                    if (specsSection) specsSection.style.display = '';
                     return;
                 }
 
@@ -347,7 +357,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (descricaoEfetiva) {
                         var descFull = descricaoSection.querySelector('[data-description-full]');
                         var descSummary = descricaoSection.querySelector('[data-description-summary] p:last-child');
-                        if (descFull) descFull.innerHTML = descricaoEfetiva;
+                        if (descFull) {
+                            descFull.innerHTML = descricaoEfetiva;
+                            // Reset expand/collapse toggle to collapsed state
+                            descFull.classList.add('hidden');
+                            var toggleBtn = descricaoSection.querySelector('[data-description-toggle]');
+                            if (toggleBtn) {
+                                toggleBtn.setAttribute('aria-expanded', 'false');
+                                var expandIcon = toggleBtn.querySelector('[data-expand-icon]');
+                                if (expandIcon) expandIcon.classList.remove('rotate-180');
+                                var expandLabel = toggleBtn.querySelector('[data-expand-label]');
+                                if (expandLabel) expandLabel.textContent = 'Ler descrição completa';
+                            }
+                            var summaryBlock = descricaoSection.querySelector('[data-description-summary]');
+                            if (summaryBlock) summaryBlock.classList.remove('hidden');
+                        }
                         if (descSummary) {
                             var textoLimpo = descricaoEfetiva.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
                             descSummary.textContent = textoLimpo.length > 420 ? textoLimpo.substring(0, 420) + '…' : textoLimpo;
@@ -359,10 +383,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 // Update specs section
+                var specsSection = document.getElementById('specs-section');
                 var specsGridContainer = document.getElementById('specs-grid-container');
                 if (specsGridContainer) {
                     var specsEfetivos = varianteEncontrada.specs_efetivos;
-                    if (specsEfetivos && Object.keys(specsEfetivos).length > 0) {
+                    var specsValidas = specsEfetivos ? Object.keys(specsEfetivos).filter(function(k) { return specsEfetivos[k] !== null && specsEfetivos[k] !== ''; }) : [];
+                    if (specsValidas.length > 0) {
                         var specLabels = {
                             'sensor': 'Sensor', 'dpi_maximo': 'DPI Máximo',
                             'switches': 'Switches', 'peso': 'Peso',
@@ -374,20 +400,22 @@ document.addEventListener('DOMContentLoaded', function() {
                             'frequencia': 'Frequência', 'microfone': 'Microfone',
                             'bateria': 'Bateria'
                         };
+                        function escHtml(s) { var d = document.createElement('div'); d.appendChild(document.createTextNode(String(s))); return d.innerHTML; }
                         var gridHtml = '<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border-t border-l border-white/10">';
-                        Object.keys(specsEfetivos).forEach(function(key) {
+                        specsValidas.forEach(function(key) {
                             var val = specsEfetivos[key];
-                            if (val === null || val === '') return;
                             var label = specLabels[key] || key.replace(/_/g, ' ');
                             gridHtml += '<div class="p-6 flex flex-col border-b border-r border-white/10 hover:bg-white/5 transition-colors">' +
-                                '<p class="text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-2">' + label + '</p>' +
-                                '<span class="font-bold text-white text-lg leading-tight">' + val + '</span>' +
+                                '<p class="text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-2">' + escHtml(label) + '</p>' +
+                                '<span class="font-bold text-white text-lg leading-tight">' + escHtml(val) + '</span>' +
                                 '</div>';
                         });
                         gridHtml += '</div>';
                         specsGridContainer.innerHTML = gridHtml;
+                        if (specsSection) specsSection.style.display = '';
                     } else {
                         specsGridContainer.innerHTML = '';
+                        if (specsSection) specsSection.style.display = 'none';
                     }
                 }
             });
