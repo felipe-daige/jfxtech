@@ -1,0 +1,51 @@
+# Segredos e ambiente local
+.env
+.env.*
+
+# Controle de versão
+.git/
+.gitignore
+.gitattributes
+
+# Dependências (instaladas em runtime via volume/bind mount)
+node_modules/
+vendor/
+
+# Storage e artefatos de build frontend
+storage/
+public/build/
+public/storage/
+public/hot/
+
+# Ferramentas de desenvolvimento local
+.claude/
+.superpowers/
+.worktrees/
+.codex
+
+# Código PHP da aplicação
+app/
+bootstrap/
+config/
+database/
+resources/
+routes/
+tests/
+docs/
+imports/
+
+# Arquivos de configuração da aplicação (não pertencem à imagem base)
+composer.json
+composer.lock
+package.json
+package-lock.json
+vite.config.js
+phpunit.xml
+artisan
+
+# Documentação
+*.md
+README.md
+AGENTS.md
+CLAUDE.md
+GEMINI.md
