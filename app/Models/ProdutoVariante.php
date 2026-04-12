@@ -77,7 +77,7 @@ class ProdutoVariante extends Model
      */
     public function getDescricaoEfetivaAttribute(): ?string
     {
-        return $this->descricao ?? $this->produto->descricao;
+        return $this->descricao ?? $this->produto?->descricao;
     }
 
     /**
@@ -85,6 +85,6 @@ class ProdutoVariante extends Model
      */
     public function getSpecsEfetivosAttribute(): ?array
     {
-        return $this->specs ?? $this->produto->specs;
+        return $this->specs ?? $this->produto?->specs;
     }
 }

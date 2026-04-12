@@ -17,6 +17,8 @@ class ProdutoVarianteFactory extends Factory
             'preco'      => null,
             'estoque'    => null,
             'ativo'      => true,
+            'descricao'  => null,
+            'specs'      => null,
         ];
     }
 }
