@@ -12,10 +12,11 @@ class ProdutoVariante extends Model
 
     protected $table = 'produto_variantes';
 
-    protected $fillable = ['produto_id', 'valores', 'preco', 'custo_compra', 'estoque', 'ativo'];
+    protected $fillable = ['produto_id', 'valores', 'preco', 'custo_compra', 'estoque', 'ativo', 'descricao', 'specs'];
 
     protected $casts = [
         'valores' => 'array',
+        'specs'   => 'array',
         'preco'   => 'decimal:2',
         'custo_compra' => 'decimal:2',
         'estoque' => 'integer',
@@ -69,5 +70,21 @@ class ProdutoVariante extends Model
         return $this->produto?->custo_compra !== null
             ? (float) $this->produto->custo_compra
             : null;
+    }
+
+    /**
+     * Descrição efetiva: própria ou do produto pai se não definida.
+     */
+    public function getDescricaoEfetivaAttribute(): ?string
+    {
+        return $this->descricao ?? $this->produto->descricao;
+    }
+
+    /**
+     * Specs efetivos: próprios ou do produto pai se não definidos.
+     */
+    public function getSpecsEfetivosAttribute(): ?array
+    {
+        return $this->specs ?? $this->produto->specs;
     }
 }
