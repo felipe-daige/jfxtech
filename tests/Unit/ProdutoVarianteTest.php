@@ -78,4 +78,69 @@ class ProdutoVarianteTest extends TestCase
 
         $this->assertEquals(5, $variante->estoque_efetivo);
     }
+
+    public function test_descricao_efetiva_retorna_propria_quando_preenchida(): void
+    {
+        $produto = Produto::factory()->create(['descricao' => 'Descrição do produto pai']);
+        $variante = ProdutoVariante::factory()->create([
+            'produto_id' => $produto->id,
+            'descricao' => 'Descrição própria da variante',
+            'valores' => [1],
+        ]);
+        $variante->setRelation('produto', $produto);
+
+        $this->assertEquals('Descrição própria da variante', $variante->descricao_efetiva);
+    }
+
+    public function test_descricao_efetiva_faz_fallback_para_produto_quando_null(): void
+    {
+        $produto = Produto::factory()->create(['descricao' => 'Descrição do produto pai']);
+        $variante = ProdutoVariante::factory()->create([
+            'produto_id' => $produto->id,
+            'descricao' => null,
+            'valores' => [1],
+        ]);
+        $variante->setRelation('produto', $produto);
+
+        $this->assertEquals('Descrição do produto pai', $variante->descricao_efetiva);
+    }
+
+    public function test_specs_efetivos_retorna_proprios_quando_preenchidos(): void
+    {
+        $produto = Produto::factory()->create(['specs' => ['cor' => 'azul']]);
+        $variante = ProdutoVariante::factory()->create([
+            'produto_id' => $produto->id,
+            'specs' => ['cor' => 'vermelho', 'tamanho' => 'M'],
+            'valores' => [1],
+        ]);
+        $variante->setRelation('produto', $produto);
+
+        $this->assertEquals(['cor' => 'vermelho', 'tamanho' => 'M'], $variante->specs_efetivos);
+    }
+
+    public function test_specs_efetivos_faz_fallback_para_produto_quando_null(): void
+    {
+        $produto = Produto::factory()->create(['specs' => ['cor' => 'azul']]);
+        $variante = ProdutoVariante::factory()->create([
+            'produto_id' => $produto->id,
+            'specs' => null,
+            'valores' => [1],
+        ]);
+        $variante->setRelation('produto', $produto);
+
+        $this->assertEquals(['cor' => 'azul'], $variante->specs_efetivos);
+    }
+
+    public function test_specs_efetivos_retorna_null_quando_ambos_sao_null(): void
+    {
+        $produto = Produto::factory()->create(['specs' => null]);
+        $variante = ProdutoVariante::factory()->create([
+            'produto_id' => $produto->id,
+            'specs' => null,
+            'valores' => [1],
+        ]);
+        $variante->setRelation('produto', $produto);
+
+        $this->assertNull($variante->specs_efetivos);
+    }
 }
