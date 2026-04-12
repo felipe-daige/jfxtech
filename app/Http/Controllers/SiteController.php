@@ -224,12 +224,14 @@ class SiteController extends Controller
         }
 
         $variantesData = $produto->variantesAtivas->map(fn($v) => [
-            'id'              => $v->id,
-            'valores'         => $v->valores,
-            'preco_efetivo'   => $v->preco_efetivo,
-            'estoque_efetivo' => $v->estoque_efetivo,
-            'ativo'           => $v->ativo,
-            'imagem_ids'      => $v->imagens->pluck('id')->all(),
+            'id'                => $v->id,
+            'valores'           => $v->valores,
+            'preco_efetivo'     => $v->preco_efetivo,
+            'estoque_efetivo'   => $v->estoque_efetivo,
+            'ativo'             => $v->ativo,
+            'imagem_ids'        => $v->imagens->pluck('id')->all(),
+            'descricao_efetiva' => $v->descricao_efetiva,   // own or inherited from product
+            'specs_efetivos'    => $v->specs_efetivos,       // own or inherited from product
         ])->values()->toArray();
 
         return view('site.produto-detalhes', compact('produto', 'produtos_relacionados', 'favoritado', 'produto_no_carrinho', 'quantidade_no_carrinho', 'variantesData'));

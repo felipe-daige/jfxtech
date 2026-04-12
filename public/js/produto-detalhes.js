@@ -339,6 +339,57 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Sem fotos associadas: mostra todas
                     thumbnailBtns.forEach(function(btn) { btn.style.display = ''; });
                 }
+
+                // Update description section
+                var descricaoSection = document.getElementById('descricao-section');
+                if (descricaoSection) {
+                    var descricaoEfetiva = varianteEncontrada.descricao_efetiva;
+                    if (descricaoEfetiva) {
+                        var descFull = descricaoSection.querySelector('[data-description-full]');
+                        var descSummary = descricaoSection.querySelector('[data-description-summary] p:last-child');
+                        if (descFull) descFull.innerHTML = descricaoEfetiva;
+                        if (descSummary) {
+                            var textoLimpo = descricaoEfetiva.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+                            descSummary.textContent = textoLimpo.length > 420 ? textoLimpo.substring(0, 420) + '…' : textoLimpo;
+                        }
+                        descricaoSection.style.display = '';
+                    } else {
+                        descricaoSection.style.display = 'none';
+                    }
+                }
+
+                // Update specs section
+                var specsGridContainer = document.getElementById('specs-grid-container');
+                if (specsGridContainer) {
+                    var specsEfetivos = varianteEncontrada.specs_efetivos;
+                    if (specsEfetivos && Object.keys(specsEfetivos).length > 0) {
+                        var specLabels = {
+                            'sensor': 'Sensor', 'dpi_maximo': 'DPI Máximo',
+                            'switches': 'Switches', 'peso': 'Peso',
+                            'conexao': 'Conexão', 'polling_rate': 'Polling Rate',
+                            'dimensoes': 'Dimensões', 'cabo': 'Cabo',
+                            'iluminacao': 'Iluminação', 'garantia': 'Garantia',
+                            'layout': 'Layout', 'superficie': 'Superfície',
+                            'base': 'Base', 'drivers': 'Drivers',
+                            'frequencia': 'Frequência', 'microfone': 'Microfone',
+                            'bateria': 'Bateria'
+                        };
+                        var gridHtml = '<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border-t border-l border-white/10">';
+                        Object.keys(specsEfetivos).forEach(function(key) {
+                            var val = specsEfetivos[key];
+                            if (val === null || val === '') return;
+                            var label = specLabels[key] || key.replace(/_/g, ' ');
+                            gridHtml += '<div class="p-6 flex flex-col border-b border-r border-white/10 hover:bg-white/5 transition-colors">' +
+                                '<p class="text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-2">' + label + '</p>' +
+                                '<span class="font-bold text-white text-lg leading-tight">' + val + '</span>' +
+                                '</div>';
+                        });
+                        gridHtml += '</div>';
+                        specsGridContainer.innerHTML = gridHtml;
+                    } else {
+                        specsGridContainer.innerHTML = '';
+                    }
+                }
             });
         });
     }

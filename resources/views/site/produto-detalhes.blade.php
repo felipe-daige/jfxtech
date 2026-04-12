@@ -228,10 +228,12 @@
             </div>
         </section>
 
-        <x-product-description :description="$produto->descricao" />
+        <div id="descricao-section">
+            <x-product-description :description="$produto->descricao" />
+        </div>
 
         {{-- Specs / Anatomy Section --}}
-        <section class="bg-black text-white py-24 relative overflow-hidden">
+        <section id="specs-section" class="bg-black text-white py-24 relative overflow-hidden">
             <div class="absolute inset-0 bg-tech-grid-dark pointer-events-none opacity-20"></div>
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 <div class="text-center mb-16">
@@ -258,6 +260,7 @@
                     ];
                 @endphp
 
+                <div id="specs-grid-container">
                 @if(count($specs_validas) > 0)
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border-t border-l border-white/10">
                     @foreach($specs_validas as $chave => $valor)
@@ -270,6 +273,7 @@
                     @endforeach
                 </div>
                 @endif
+                </div>
             </div>
         </section>
 
