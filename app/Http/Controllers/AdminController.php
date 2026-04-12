@@ -834,14 +834,16 @@ class AdminController extends Controller
             ->map(function ($v) use ($valorMap) {
                 $label = collect($v->valores)->map(fn($vid) => $valorMap[$vid]['valor'] ?? '?')->join(' / ');
                 return [
-                    'id'         => $v->id,
-                    'valores'    => $v->valores,
-                    'preco'      => $v->preco,
-                    'custo_compra' => $v->custo_compra,
-                    'estoque'    => $v->estoque,
-                    'ativo'      => $v->ativo,
-                    'label'      => $label,
-                    'imagem_ids' => $v->imagens->pluck('id')->all(),
+                    'id'          => $v->id,
+                    'valores'     => $v->valores,
+                    'preco'       => $v->preco,
+                    'custo_compra'=> $v->custo_compra,
+                    'estoque'     => $v->estoque,
+                    'ativo'       => $v->ativo,
+                    'descricao'   => $v->descricao,   // null if inheriting from product
+                    'specs'       => $v->specs,       // null if inheriting from product
+                    'label'       => $label,
+                    'imagem_ids'  => $v->imagens->pluck('id')->all(),
                 ];
             });
 
@@ -1036,6 +1038,9 @@ class AdminController extends Controller
             'variantes.*.ativo'          => 'nullable|boolean',
             'variantes.*.imagem_ids'     => 'nullable|array',
             'variantes.*.imagem_ids.*'   => 'integer',
+            'variantes.*.descricao'      => 'nullable|string',
+            'variantes.*.specs'          => 'nullable|array',
+            'variantes.*.specs.*'        => 'nullable|string',
         ]);
 
         \DB::transaction(function () use ($request, $produto) {
@@ -1054,6 +1059,20 @@ class AdminController extends Controller
                 if (array_key_exists('custo_compra', $varData)) $update['custo_compra'] = $varData['custo_compra'];
                 if (array_key_exists('estoque', $varData)) $update['estoque'] = $varData['estoque'];
                 if (array_key_exists('ativo', $varData))   $update['ativo']   = $varData['ativo'];
+
+                if (array_key_exists('descricao', $varData)) {
+                    $raw = $varData['descricao'];
+                    if ($raw === null || $raw === '' || \App\Support\ProdutoDescricaoFormatter::toPlainText((string)$raw) === '') {
+                        $update['descricao'] = null;
+                    } else {
+                        $update['descricao'] = \App\Support\ProdutoDescricaoFormatter::sanitize($raw);
+                    }
+                }
+
+                if (array_key_exists('specs', $varData)) {
+                    $filtered = array_filter((array)($varData['specs'] ?? []), fn($v) => $v !== null && $v !== '');
+                    $update['specs'] = !empty($filtered) ? $filtered : null;
+                }
 
                 if (!empty($update)) $variante->update($update);
 
