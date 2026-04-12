@@ -22,6 +22,15 @@ public/hot/
 .superpowers/
 .worktrees/
 .codex
+.phpunit.cache/
+.phpactor.json
+*.log
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/
+.nova/
+.zed/
 
 # Código PHP da aplicação
 app/
