@@ -1149,9 +1149,29 @@ function renderVariantesTabela(variantes, imagens) {
                 '<div class="variante-imagens-checks flex flex-wrap gap-1">' + checks + '</div>' +
                 '</div>';
         }
+        var conteudoHtml =
+            '<div class="w-full mt-3 pt-3 border-t border-gray-200">' +
+            '<span class="text-[10px] font-mono uppercase tracking-widest text-gray-400 block mb-1">CONTEÚDO DA VARIANTE <span class="text-gray-300">(opcional — herda do produto se vazio)</span></span>' +
+            '<textarea class="variante-descricao w-full border border-gray-200 px-2 py-1 text-xs font-mono resize-y min-h-[60px] mb-2" placeholder="Descrição (deixe vazio para herdar do produto)">' +
+                (v.descricao ? escapeHtml(v.descricao) : '') +
+            '</textarea>' +
+            '<div class="grid grid-cols-2 gap-1">' +
+            ['sensor','dpi_maximo','switches','peso','conexao','polling_rate','dimensoes','cabo','iluminacao','garantia','layout','superficie','base','drivers','frequencia','microfone','bateria'].map(function(k) {
+                var label = {'sensor':'Sensor','dpi_maximo':'DPI Máx','switches':'Switches','peso':'Peso','conexao':'Conexão','polling_rate':'Polling Rate','dimensoes':'Dimensões','cabo':'Cabo','iluminacao':'Iluminação','garantia':'Garantia','layout':'Layout','superficie':'Superfície','base':'Base','drivers':'Drivers','frequencia':'Frequência','microfone':'Microfone','bateria':'Bateria'}[k] || k;
+                var val = v.specs && v.specs[k] ? v.specs[k] : '';
+                return '<input type="text" class="variante-spec border border-gray-200 px-2 py-1 text-xs font-mono" ' +
+                       'data-spec-key="' + k + '" placeholder="' + escapeHtml(label) + '" value="' + escapeHtml(val) + '">';
+            }).join('') +
+            '</div>' +
+            '</div>';
         return '<div class="variante-row" data-variante-id="' + v.id + '" data-valores=\'' + JSON.stringify(v.valores) + '\'>' +
             '<div class="flex items-center gap-3 border border-gray-100 p-3">' +
             '<span class="flex-1 text-sm font-mono">' + escapeHtml(v.label) + '</span>' +
+            '<span class="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 ' +
+                (v.descricao !== null ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-400') +
+                ' variante-conteudo-badge">' +
+                (v.descricao !== null ? 'PRÓPRIA' : 'HERDA') +
+            '</span>' +
             '<button type="button" onclick="toggleVarianteEdit(this)" class="text-xs font-mono uppercase tracking-widest border border-gray-300 px-3 py-1 hover:border-black hover:bg-gray-50 transition-colors">✎ EDITAR</button>' +
             '</div>' +
             '<div class="variante-edit hidden border border-t-0 border-gray-200 bg-gray-50 p-3 flex flex-wrap items-center gap-3">' +
@@ -1162,6 +1182,7 @@ function renderVariantesTabela(variantes, imagens) {
             '<button type="button" onclick="toggleVarianteEdit(this)" class="text-xs font-mono uppercase tracking-widest bg-black text-white px-3 py-1 hover:bg-gray-800 transition-colors ml-auto">✔ OK</button>' +
             '<button type="button" onclick="toggleVarianteEdit(this)" class="text-xs font-mono uppercase tracking-widest border border-gray-300 px-2 py-1 hover:border-black transition-colors">✖</button>' +
             fotosHtml +
+            conteudoHtml +
             '</div>' +
             '</div>';
     }).join('');
@@ -1298,6 +1319,14 @@ function salvarTudo(produtoId) {
         row.querySelectorAll('.variante-imagem-check:checked').forEach(function(cb) {
             imagem_ids.push(parseInt(cb.value));
         });
+        var descricaoTextarea = row.querySelector('.variante-descricao');
+        var descricaoVal = descricaoTextarea ? descricaoTextarea.value.trim() : null;
+        var specsVal = {};
+        row.querySelectorAll('.variante-spec').forEach(function(inp) {
+            var key = inp.getAttribute('data-spec-key');
+            var val = inp.value.trim();
+            if (key && val !== '') specsVal[key] = val;
+        });
         variantesData.push({
             id: id,
             preco: preco !== '' ? parseFloat(preco) : null,
@@ -1305,6 +1334,8 @@ function salvarTudo(produtoId) {
             estoque: estoque !== '' ? parseInt(estoque) : null,
             ativo: ativo,
             imagem_ids: imagem_ids,
+            descricao: descricaoVal !== '' && descricaoVal !== null ? descricaoVal : null,
+            specs: Object.keys(specsVal).length > 0 ? specsVal : null,
         });
     });
 
