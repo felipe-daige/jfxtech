@@ -1062,10 +1062,10 @@ class AdminController extends Controller
 
                 if (array_key_exists('descricao', $varData)) {
                     $raw = $varData['descricao'];
-                    if ($raw === null || $raw === '' || \App\Support\ProdutoDescricaoFormatter::toPlainText((string)$raw) === '') {
+                    if ($raw === null || $raw === '' || ProdutoDescricaoFormatter::toPlainText((string)$raw) === '') {
                         $update['descricao'] = null;
                     } else {
-                        $update['descricao'] = \App\Support\ProdutoDescricaoFormatter::sanitize($raw);
+                        $update['descricao'] = ProdutoDescricaoFormatter::sanitize($raw);
                     }
                 }
 
