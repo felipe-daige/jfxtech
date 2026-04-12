@@ -1153,12 +1153,12 @@ function renderVariantesTabela(variantes, imagens) {
             '<div class="w-full mt-3 pt-3 border-t border-gray-200">' +
             '<span class="text-[10px] font-mono uppercase tracking-widest text-gray-400 block mb-1">CONTEÚDO DA VARIANTE <span class="text-gray-300">(opcional — herda do produto se vazio)</span></span>' +
             '<textarea class="variante-descricao w-full border border-gray-200 px-2 py-1 text-xs font-mono resize-y min-h-[60px] mb-2" placeholder="Descrição (deixe vazio para herdar do produto)">' +
-                (v.descricao ? escapeHtml(v.descricao) : '') +
+                (v.descricao != null ? escapeHtml(v.descricao) : '') +
             '</textarea>' +
             '<div class="grid grid-cols-2 gap-1">' +
             ['sensor','dpi_maximo','switches','peso','conexao','polling_rate','dimensoes','cabo','iluminacao','garantia','layout','superficie','base','drivers','frequencia','microfone','bateria'].map(function(k) {
                 var label = {'sensor':'Sensor','dpi_maximo':'DPI Máx','switches':'Switches','peso':'Peso','conexao':'Conexão','polling_rate':'Polling Rate','dimensoes':'Dimensões','cabo':'Cabo','iluminacao':'Iluminação','garantia':'Garantia','layout':'Layout','superficie':'Superfície','base':'Base','drivers':'Drivers','frequencia':'Frequência','microfone':'Microfone','bateria':'Bateria'}[k] || k;
-                var val = v.specs && v.specs[k] ? v.specs[k] : '';
+                var val = (v.specs && v.specs[k] != null) ? v.specs[k] : '';
                 return '<input type="text" class="variante-spec border border-gray-200 px-2 py-1 text-xs font-mono" ' +
                        'data-spec-key="' + k + '" placeholder="' + escapeHtml(label) + '" value="' + escapeHtml(val) + '">';
             }).join('') +
@@ -1186,6 +1186,19 @@ function renderVariantesTabela(variantes, imagens) {
             '</div>' +
             '</div>';
     }).join('');
+
+    // Live badge update when description textarea is edited
+    container.querySelectorAll('.variante-descricao').forEach(function(ta) {
+        ta.addEventListener('input', function() {
+            var badge = ta.closest('.variante-row').querySelector('.variante-conteudo-badge');
+            if (!badge) return;
+            var temConteudo = ta.value.trim() !== '';
+            badge.textContent = temConteudo ? 'PRÓPRIA' : 'HERDA';
+            badge.className = badge.className
+                .replace(/bg-\S+|text-(?:blue|gray)-\S+/g, '')
+                .trim() + ' ' + (temConteudo ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-400');
+        });
+    });
 
     // Toggle visual border on photo checkboxes
     container.querySelectorAll('.variante-imagem-check').forEach(function(cb) {
@@ -1262,12 +1275,21 @@ function gerarPreviewLocal() {
         if (!id) return;
         var labelEl = row.querySelector('.flex-1.text-sm.font-mono');
         if (!labelEl) return;
+        var savedSpecs = {};
+        row.querySelectorAll('.variante-spec').forEach(function(inp) {
+            var key = inp.getAttribute('data-spec-key');
+            var val = inp.value.trim();
+            if (key && val !== '') savedSpecs[key] = val;
+        });
+        var descricaoTa = row.querySelector('.variante-descricao');
         saved[labelEl.textContent.trim()] = {
             id: id,
             preco: row.querySelector('.variante-preco').value,
             custo_compra: row.querySelector('.variante-custo').value,
             estoque: row.querySelector('.variante-estoque').value,
-            ativo: row.querySelector('.variante-ativo').checked
+            ativo: row.querySelector('.variante-ativo').checked,
+            descricao: descricaoTa && descricaoTa.value.trim() !== '' ? descricaoTa.value.trim() : null,
+            specs: Object.keys(savedSpecs).length > 0 ? savedSpecs : null
         };
     });
 
@@ -1281,7 +1303,9 @@ function gerarPreviewLocal() {
             preco: s ? (s.preco !== '' ? parseFloat(s.preco) : null) : null,
             custo_compra: s ? (s.custo_compra !== '' ? parseFloat(s.custo_compra) : null) : null,
             estoque: s ? (s.estoque !== '' ? parseInt(s.estoque) : null) : null,
-            ativo: s ? s.ativo : true
+            ativo: s ? s.ativo : true,
+            descricao: s ? s.descricao : null,
+            specs: s ? s.specs : null
         };
     });
 
