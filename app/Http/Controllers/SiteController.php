@@ -11,6 +11,7 @@ use App\Models\Categoria;
 use App\Models\Endereco;
 use App\Models\Pedido;
 use App\Models\ItemPedido;
+use App\Enums\PedidoStatus;
 use App\Services\CouponPartnerProgressService;
 use App\Services\CheckoutOrderService;
 use Illuminate\Validation\ValidationException;
@@ -384,11 +385,12 @@ class SiteController extends Controller
         }
 
         $cupons = $usuario->cupons()->orderBy('codigo')->get();
+        // $codes é derivado dos mesmos cupons já carregados — evita segunda query ao service
+        $codes = $cupons->pluck('codigo')->filter()->values();
         $progress = $this->couponPartnerProgressService->progressForUser($usuario);
-        $codes = $this->couponPartnerProgressService->couponCodesForUser($usuario);
 
         $allSales = Pedido::query()
-            ->where('status', 'pago')
+            ->where('status', PedidoStatus::PAGO)
             ->whereIn('cupom_codigo', $codes->all())
             ->orderByDesc('created_at')
             ->get(['id', 'cupom_codigo', 'valor_total', 'valor_desconto', 'created_at']);
