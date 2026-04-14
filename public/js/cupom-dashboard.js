@@ -45,6 +45,13 @@
 
         headers.forEach(function (th) {
             th.style.cursor = 'pointer';
+            th.setAttribute('tabindex', '0');
+            th.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    th.click();
+                }
+            });
             th.addEventListener('click', function () {
                 const col = th.dataset.sort;
                 const isNumeric = th.dataset.numeric === 'true';

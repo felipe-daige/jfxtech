@@ -117,9 +117,15 @@
         .tier-row .tier-label { font-family: monospace; font-size: 10px; text-transform: uppercase; letter-spacing: .07em; }
         .tier-row .tier-rate  { font-family: monospace; font-size: 22px; font-weight: 700; }
 
-        /* ── Responsive ── */
+        /* ── Dashboard layout ── */
+        .dashboard-cols {
+            display: grid;
+            grid-template-columns: 65fr 35fr;
+            gap: 24px;
+            align-items: start;
+        }
         @media (max-width: 1023px) {
-            .dashboard-cols { display: block !important; }
+            .dashboard-cols { display: block; }
             .dashboard-cols > * + * { margin-top: 24px; }
         }
     </style>
@@ -238,7 +244,7 @@
                     </div>
 
                     {{-- ── Main two-column layout ── --}}
-                    <div class="dashboard-cols" style="display:grid;grid-template-columns:65fr 35fr;gap:24px;align-items:start;">
+                    <div class="dashboard-cols">
 
                         {{-- ── LEFT: Planilha de Vendas ── --}}
                         <div class="bg-white border border-[var(--color-lab-border)]">
@@ -256,7 +262,6 @@
                                     <table class="sheet-table" id="sales-table">
                                         <thead>
                                             <tr>
-                                                <th>#</th>
                                                 <th data-sort="id" data-numeric="true"># Pedido <span class="sort-icon">↕</span></th>
                                                 <th data-sort="cupom">Cupom <span class="sort-icon">↕</span></th>
                                                 <th data-sort="bruto" data-numeric="true">Valor Bruto <span class="sort-icon">↕</span></th>
@@ -281,7 +286,6 @@
                                                     data-liquido="{{ number_format($liquido, 2, '.', '') }}"
                                                     data-comissao="{{ number_format($comissao, 2, '.', '') }}"
                                                     data-data="{{ $sale->created_at->timestamp }}">
-                                                    <td class="text-gray-400">{{ $i + 1 }}</td>
                                                     <td class="font-bold">#{{ $sale->id }}</td>
                                                     <td><span class="badge badge-outline">{{ $sale->cupom_codigo }}</span></td>
                                                     <td>R$ {{ number_format($bruto, 2, ',', '.') }}</td>
@@ -301,7 +305,7 @@
                                                 $totalDesc  = $allSales->sum('valor_desconto');
                                             @endphp
                                             <tr>
-                                                <td colspan="3" class="text-gray-500 uppercase tracking-widest text-[10px]">Totais</td>
+                                                <td colspan="2" class="text-gray-500 uppercase tracking-widest text-[10px]">Totais</td>
                                                 <td>R$ {{ number_format($totalBruto, 2, ',', '.') }}</td>
                                                 <td class="text-red-600">-R$ {{ number_format($totalDesc, 2, ',', '.') }}</td>
                                                 <td>R$ {{ number_format($totalLiquido, 2, ',', '.') }}</td>
@@ -346,7 +350,7 @@
                                         <tbody>
                                             @foreach($cupons as $cupom)
                                                 @php
-                                                    $expirado = $cupom->valido_ate && \Carbon\Carbon::parse($cupom->valido_ate)->isPast();
+                                                    $expirado = $cupom->valido_ate && $cupom->valido_ate->isPast();
                                                     $ativo = $cupom->ativo && !$expirado;
                                                 @endphp
                                                 <tr>
@@ -366,7 +370,7 @@
                                                         @endif
                                                     </td>
                                                     <td>{{ $cupom->usos_realizados }}{{ $cupom->limite_usos ? '/'.$cupom->limite_usos : '' }}</td>
-                                                    <td>{{ $cupom->valido_ate ? \Carbon\Carbon::parse($cupom->valido_ate)->format('d/m/Y') : '—' }}</td>
+                                                    <td>{{ $cupom->valido_ate ? $cupom->valido_ate->format('d/m/Y') : '—' }}</td>
                                                     <td>
                                                         @if($ativo)
                                                             <span class="badge badge-green">Ativo</span>
