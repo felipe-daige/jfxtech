@@ -11,7 +11,7 @@ use App\Models\Categoria;
 use App\Models\Endereco;
 use App\Models\Pedido;
 use App\Models\ItemPedido;
-use App\Services\AffiliateService;
+use App\Services\CouponPartnerProgressService;
 use App\Services\CheckoutOrderService;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Http\JsonResponse;
@@ -20,7 +20,7 @@ class SiteController extends Controller
 {
     public function __construct(
         protected CheckoutOrderService $checkoutOrderService,
-        protected AffiliateService $affiliateService,
+        protected CouponPartnerProgressService $couponPartnerProgressService,
     ) {
     }
 
@@ -323,8 +323,6 @@ class SiteController extends Controller
 
         Auth::login($user);
 
-        $this->affiliateService->recordReferralOnRegister($user);
-
         return redirect()->route('site.index')
             ->with('success', 'Conta criada com sucesso! Bem-vindo à MX Racing!');
     }
@@ -366,8 +364,61 @@ class SiteController extends Controller
             ->get();
         $totalPedidos = $usuario->pedidos()->where('status', '!=', 'carrinho')->count();
         $totalFavoritos = $usuario->favoritos()->count();
+        $canAccessCouponPortal = $this->userCanAccessCouponPortal($usuario);
 
-        return view('site.perfil', compact('usuario', 'enderecos', 'pedidosRecentes', 'totalPedidos', 'totalFavoritos'));
+        return view('site.perfil', compact('usuario', 'enderecos', 'pedidosRecentes', 'totalPedidos', 'totalFavoritos', 'canAccessCouponPortal'));
+    }
+
+    public function cupom()
+    {
+        if (!Auth::check()) {
+            return redirect()->route('site.login');
+        }
+
+        /** @var User $usuario */
+        $usuario = Auth::user();
+
+        if (!$this->userCanAccessCouponPortal($usuario)) {
+            return redirect()->route('site.perfil')
+                ->with('error', 'Seu portal de cupom ainda não está liberado.');
+        }
+
+        $cupons = $usuario->cupons()->orderBy('codigo')->get();
+        $progress = $this->couponPartnerProgressService->progressForUser($usuario);
+
+        $allSales = Pedido::query()
+            ->where('status', 'pago')
+            ->whereIn('cupom_codigo', $cupons->pluck('codigo')->all())
+            ->orderByDesc('created_at')
+            ->get(['id', 'cupom_codigo', 'valor_total', 'valor_desconto', 'created_at']);
+
+        $taxa = $progress['current_rate'] / 100;
+        $totalLiquido = $allSales->sum(fn($p) => $p->valor_total - $p->valor_desconto);
+        $comissaoAcumulada = $totalLiquido * $taxa;
+        $mediaPorPedido = $allSales->count() > 0
+            ? $totalLiquido / $allSales->count()
+            : 0.0;
+
+        // Barra de progressão dentro do tier atual
+        $currentTier = collect($progress['tiers'])
+            ->first(fn($t) => $t['rate'] === $progress['current_rate']);
+        $tierMin = $currentTier['min'];
+        $tierMax = $currentTier['max'];
+
+        if ($tierMax === null) {
+            $progressPct = 100;
+        } else {
+            $range = $tierMax - $tierMin;
+            $progressPct = $range > 0
+                ? (int) round(($progress['total_sales'] - $tierMin) / $range * 100)
+                : 100;
+            $progressPct = min(100, max(0, $progressPct));
+        }
+
+        return view('site.cupom', compact(
+            'usuario', 'cupons', 'progress', 'allSales',
+            'taxa', 'totalLiquido', 'comissaoAcumulada', 'mediaPorPedido', 'progressPct'
+        ));
     }
 
     /**
@@ -606,5 +657,10 @@ class SiteController extends Controller
             'pais' => $endereco->pais,
             'endereco_completo' => $endereco->endereco_completo,
         ];
+    }
+
+    private function userCanAccessCouponPortal(User $user): bool
+    {
+        return $user->coupon_portal_enabled && $user->cupons()->exists();
     }
 }
