@@ -39,31 +39,31 @@ class CupomDashboardTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function dashboard_passes_correct_metrics_to_view(): void
     {
         $user = $this->makeUser();
         $cupom = $this->makeCupom($user, 'PARCEIRO10');
 
-        // 3 pedidos pagos: total=100 desconto=10 → líquido=90 cada
+        // 3 pedidos pagos: valor_total já é o líquido cobrado
         $this->makePaidOrder('PARCEIRO10', 100.00, 10.00);
         $this->makePaidOrder('PARCEIRO10', 200.00, 20.00);
         $this->makePaidOrder('PARCEIRO10', 150.00, 15.00);
 
-        // líquido total = 90+180+135 = 405
+        // totalLiquido = sum(valor_total) = 100+200+150 = 450
         // taxa tier = 5% (3 vendas → tier 0-14)
-        // comissão = 405 * 0.05 = 20.25
-        // média = 405 / 3 = 135
+        // comissão = 450 * 0.05 = 22.5
+        // média = 450 / 3 = 150
 
         $response = $this->actingAs($user)->get('/cupom');
 
         $response->assertStatus(200);
-        $response->assertViewHas('totalLiquido', 405.00);
-        $response->assertViewHas('comissaoAcumulada', 20.25);
-        $response->assertViewHas('mediaPorPedido', 135.00);
+        $response->assertViewHas('totalLiquido', 450.00);
+        $response->assertViewHas('comissaoAcumulada', 22.5);
+        $response->assertViewHas('mediaPorPedido', 150.00);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function dashboard_returns_all_sales_not_limited_to_ten(): void
     {
         $user = $this->makeUser();
@@ -80,13 +80,13 @@ class CupomDashboardTest extends TestCase
         $response->assertViewHas('allSales', fn($s) => $s->count() === 15);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function dashboard_computes_progress_bar_percentage(): void
     {
         $user = $this->makeUser();
         $this->makeCupom($user, 'TIER2');
 
-        // criar 20 vendas → tier 15-29 → progressPct = (20-15)/(29-15)*100 ≈ 36
+        // criar 20 vendas → tier 15-29 → progressPct = round((20-15)/(29-15)*100) = 36
         foreach (range(1, 20) as $_) {
             $this->makePaidOrder('TIER2', 100.00, 0.00);
         }
@@ -94,11 +94,10 @@ class CupomDashboardTest extends TestCase
         $response = $this->actingAs($user)->get('/cupom');
 
         $response->assertStatus(200);
-        // dentro do range 0–100
-        $response->assertViewHas('progressPct', fn($v) => $v >= 0 && $v <= 100);
+        $response->assertViewHas('progressPct', 36);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function dashboard_redirects_if_portal_not_enabled(): void
     {
         $user = User::factory()->create(['coupon_portal_enabled' => false]);

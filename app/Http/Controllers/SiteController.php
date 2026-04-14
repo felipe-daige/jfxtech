@@ -385,15 +385,16 @@ class SiteController extends Controller
 
         $cupons = $usuario->cupons()->orderBy('codigo')->get();
         $progress = $this->couponPartnerProgressService->progressForUser($usuario);
+        $codes = $this->couponPartnerProgressService->couponCodesForUser($usuario);
 
         $allSales = Pedido::query()
             ->where('status', 'pago')
-            ->whereIn('cupom_codigo', $cupons->pluck('codigo')->all())
+            ->whereIn('cupom_codigo', $codes->all())
             ->orderByDesc('created_at')
             ->get(['id', 'cupom_codigo', 'valor_total', 'valor_desconto', 'created_at']);
 
         $taxa = $progress['current_rate'] / 100;
-        $totalLiquido = $allSales->sum(fn($p) => $p->valor_total - $p->valor_desconto);
+        $totalLiquido = $allSales->sum('valor_total');
         $comissaoAcumulada = $totalLiquido * $taxa;
         $mediaPorPedido = $allSales->count() > 0
             ? $totalLiquido / $allSales->count()
@@ -401,7 +402,8 @@ class SiteController extends Controller
 
         // Barra de progressão dentro do tier atual
         $currentTier = collect($progress['tiers'])
-            ->first(fn($t) => $t['rate'] === $progress['current_rate']);
+            ->first(fn($t) => $t['rate'] === $progress['current_rate'])
+            ?? $progress['tiers'][0];
         $tierMin = $currentTier['min'];
         $tierMax = $currentTier['max'];
 
