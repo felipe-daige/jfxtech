@@ -159,4 +159,25 @@ class CupomCheckoutTest extends TestCase
         $this->assertNull($pedido->cupom_codigo);
         $this->assertEquals('0.00', $pedido->valor_desconto);
     }
+
+    public function test_cupom_vinculado_a_streamer_pode_ser_usado_por_outro_usuario(): void
+    {
+        $streamer = User::factory()->create();
+        $buyer = User::factory()->create();
+
+        $this->makeCart($buyer, 100.00);
+
+        $this->makeCupom([
+            'codigo' => 'STREAMER10',
+            'user_id' => $streamer->id,
+            'tipo' => 'percentual',
+            'valor' => 10,
+        ]);
+
+        $this->actingAs($buyer)
+            ->postJson(route('cupom.aplicar'), ['codigo' => 'STREAMER10'])
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('desconto', '10,00');
+    }
 }

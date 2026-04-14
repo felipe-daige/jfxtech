@@ -7,8 +7,6 @@ use App\Http\Controllers\FavoritosController;
 use App\Http\Controllers\CarrinhoController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\MercadoPagoCheckoutController;
-use App\Http\Controllers\AffiliadoController;
-use App\Http\Controllers\AdminAfiliadoController;
 
 Route::get('/', [SiteController::class, 'index'])->name('site.index');
 Route::get('/produtos', [SiteController::class, 'produtos'])->name('site.produtos');
@@ -32,6 +30,7 @@ Route::post('/logout', [SiteController::class, 'logout'])->name('site.logout');
 
 // Rota do perfil (apenas para usuários logados)
 Route::get('/perfil', [SiteController::class, 'perfil'])->name('site.perfil');
+Route::get('/cupom', [SiteController::class, 'cupom'])->middleware('auth')->name('site.cupom');
 Route::put('/perfil', [SiteController::class, 'perfil_update'])->name('site.perfil.update');
 Route::post('/enderecos', [SiteController::class, 'endereco_store'])->name('site.enderecos.store');
 Route::put('/enderecos/{endereco}', [SiteController::class, 'endereco_update'])->name('site.enderecos.update');
@@ -113,6 +112,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
     // Cupons
     Route::get('/cupons',              [App\Http\Controllers\AdminCupomController::class, 'index'])->name('cupons.index');
+    Route::get('/cupons/buscar-usuarios', [App\Http\Controllers\AdminCupomController::class, 'buscarUsuarios'])->name('cupons.buscarUsuarios');
     Route::post('/cupons',             [App\Http\Controllers\AdminCupomController::class, 'store'])->name('cupons.store');
     Route::put('/cupons/{id}',         [App\Http\Controllers\AdminCupomController::class, 'update'])->name('cupons.update');
     Route::delete('/cupons/{id}',      [App\Http\Controllers\AdminCupomController::class, 'destroy'])->name('cupons.destroy');
@@ -133,30 +133,3 @@ Route::get('/checkout/mercado-pago/status/{pedido}', [MercadoPagoCheckoutControl
 Route::post('/webhooks/mercado-pago', [MercadoPagoCheckoutController::class, 'webhook'])
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
     ->name('site.checkout.mercadopago.webhook');
-
-// ─── Painel do Afiliado (requires auth) ───────────────────────────────────────
-Route::middleware('auth')->group(function () {
-    Route::get('/afiliados', [AffiliadoController::class, 'painel'])->name('afiliados.painel');
-    Route::get('/afiliados/solicitar', [AffiliadoController::class, 'solicitar'])->name('afiliados.solicitar');
-    Route::post('/afiliados/solicitar', [AffiliadoController::class, 'registrar'])->name('afiliados.registrar');
-    Route::get('/afiliados/indicacoes', [AffiliadoController::class, 'indicacoes'])->name('afiliados.indicacoes');
-    Route::get('/afiliados/comissoes', [AffiliadoController::class, 'comissoes'])->name('afiliados.comissoes');
-});
-
-// ─── Admin: Afiliados ─────────────────────────────────────────────────────────
-Route::prefix('admin/afiliados')->name('admin.afiliados.')->group(function () {
-    Route::get('/',                [AdminAfiliadoController::class, 'index'])->name('index');
-    Route::get('/stream',          [AdminAfiliadoController::class, 'stream'])->name('stream');
-    Route::get('/comissoes',       [AdminAfiliadoController::class, 'comissoes'])->name('comissoes');
-    Route::post('/comissoes/bulk', [AdminAfiliadoController::class, 'bulkComissoes'])->name('comissoes.bulk');
-    Route::get('/configuracoes',   [AdminAfiliadoController::class, 'configuracoes'])->name('configuracoes');
-    Route::post('/configuracoes',  [AdminAfiliadoController::class, 'salvarConfiguracoes'])->name('configuracoes.salvar');
-    Route::get('/buscar-usuarios',  [AdminAfiliadoController::class, 'buscarUsuarios'])->name('buscarUsuarios');
-    Route::post('/',                [AdminAfiliadoController::class, 'store'])->name('store');
-    Route::get('/{id}',            [AdminAfiliadoController::class, 'show'])->name('show');
-    Route::post('/{id}/aprovar',   [AdminAfiliadoController::class, 'aprovar'])->name('aprovar');
-    Route::post('/{id}/suspender', [AdminAfiliadoController::class, 'suspender'])->name('suspender');
-    Route::post('/{id}/comissao',  [AdminAfiliadoController::class, 'editarComissao'])->name('comissao');
-    Route::put('/{id}',            [AdminAfiliadoController::class, 'update'])->name('update');
-    Route::delete('/{id}',         [AdminAfiliadoController::class, 'destroy'])->name('destroy');
-});

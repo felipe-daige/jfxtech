@@ -6,7 +6,6 @@ use App\Models\Endereco;
 use App\Models\Pagamento;
 use App\Enums\PedidoStatus;
 use App\Models\Pedido;
-use App\Services\AffiliateService;
 use App\Services\CheckoutOrderService;
 use App\Services\MercadoPagoService;
 use Illuminate\Http\Client\RequestException;
@@ -23,7 +22,6 @@ class MercadoPagoCheckoutController extends Controller
     public function __construct(
         protected MercadoPagoService $mercadoPagoService,
         protected CheckoutOrderService $checkoutOrderService,
-        protected AffiliateService $affiliateService,
     ) {
     }
 
@@ -382,8 +380,6 @@ class MercadoPagoCheckoutController extends Controller
         $pedido->update(['status' => $newStatus]);
 
         if ($newStatus === PedidoStatus::PAGO) {
-            $this->affiliateService->handleOrderPaid($pedido);
-
             if ($pedido->cupom_codigo) {
                 \App\Models\Cupom::whereRaw('UPPER(codigo) = ?', [strtoupper($pedido->cupom_codigo)])
                     ->increment('usos_realizados');

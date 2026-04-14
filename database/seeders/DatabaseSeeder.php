@@ -23,7 +23,6 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             ProductImporterSeeder::class,
-            AffiliateSettingsSeeder::class,
         ]);
     }
 }

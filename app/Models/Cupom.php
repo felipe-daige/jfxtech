@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Cupom extends Model
@@ -11,6 +12,7 @@ class Cupom extends Model
 
     protected $fillable = [
         'codigo',
+        'user_id',
         'tipo',
         'valor',
         'valor_minimo_pedido',
@@ -35,6 +37,11 @@ class Cupom extends Model
     public function usos(): HasMany
     {
         return $this->hasMany(CupomUso::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     /**

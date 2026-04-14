@@ -15,6 +15,8 @@
                 <thead class="bg-black text-white">
                     <tr>
                         <th class="px-4 py-3 text-left text-xs uppercase tracking-widest">Código</th>
+                        <th class="px-4 py-3 text-left text-xs uppercase tracking-widest">Streamer</th>
+                        <th class="px-4 py-3 text-left text-xs uppercase tracking-widest">Portal</th>
                         <th class="px-4 py-3 text-left text-xs uppercase tracking-widest">Tipo</th>
                         <th class="px-4 py-3 text-left text-xs uppercase tracking-widest">Valor</th>
                         <th class="px-4 py-3 text-left text-xs uppercase tracking-widest">Mínimo</th>
@@ -28,6 +30,23 @@
                 @forelse ($cupons as $cupom)
                     <tr class="border-t border-[var(--color-lab-border)] hover:bg-gray-50">
                         <td class="px-4 py-3 font-bold">{{ $cupom->codigo }}</td>
+                        <td class="px-4 py-3">
+                            @if($cupom->user)
+                                <div class="font-semibold">{{ $cupom->user->name }}</div>
+                                <div class="text-xs text-gray-500">{{ $cupom->user->email }}</div>
+                            @else
+                                —
+                            @endif
+                        </td>
+                        <td class="px-4 py-3">
+                            @if($cupom->user)
+                                <span class="inline-flex items-center px-2 py-1 text-[10px] uppercase tracking-widest border {{ $cupom->user->coupon_portal_enabled ? 'bg-black text-white border-black' : 'border-gray-300 text-gray-500' }}">
+                                    {{ $cupom->user->coupon_portal_enabled ? 'Liberado' : 'Bloqueado' }}
+                                </span>
+                            @else
+                                —
+                            @endif
+                        </td>
                         <td class="px-4 py-3">{{ $cupom->tipo === 'percentual' ? 'Percentual' : 'Fixo' }}</td>
                         <td class="px-4 py-3">
                             {{ $cupom->tipo === 'percentual' ? number_format($cupom->valor, 0) . '%' : 'R$ ' . number_format($cupom->valor, 2, ',', '.') }}
@@ -54,7 +73,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="px-4 py-8 text-center text-gray-500">Nenhum cupom cadastrado.</td>
+                        <td colspan="10" class="px-4 py-8 text-center text-gray-500">Nenhum cupom cadastrado.</td>
                     </tr>
                 @endforelse
                 </tbody>
@@ -70,10 +89,25 @@
         </div>
         <form id="form-cupom" class="space-y-4">
             <input type="hidden" id="cupom-id" value="">
+            <input type="hidden" id="f-user-id" name="user_id" value="">
             <div>
                 <label class="block text-xs font-mono uppercase tracking-widest mb-1">Código *</label>
                 <input type="text" id="f-codigo" name="codigo" class="w-full border border-[var(--color-lab-border)] px-3 py-2 font-mono uppercase focus:outline-none focus:border-black" maxlength="50" required>
             </div>
+            <div class="relative">
+                <label class="block text-xs font-mono uppercase tracking-widest mb-1">Streamer</label>
+                <input type="text" id="f-user-search" class="w-full border border-[var(--color-lab-border)] px-3 py-2 font-mono focus:outline-none focus:border-black" placeholder="Buscar por nome ou e-mail" autocomplete="off">
+                <div id="f-user-results" class="hidden absolute z-10 mt-1 max-h-40 w-full overflow-y-auto border border-[var(--color-lab-border)] bg-white"></div>
+                <div class="mt-1 flex items-center justify-between gap-3">
+                    <p id="f-user-selected" class="text-xs text-gray-500"></p>
+                    <button type="button" id="f-user-clear" class="hidden text-xs underline text-gray-500 hover:text-black">remover vínculo</button>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <input type="checkbox" id="f-coupon-portal-enabled" name="coupon_portal_enabled" value="1" class="w-4 h-4" disabled>
+                <label for="f-coupon-portal-enabled" class="text-xs font-mono uppercase tracking-widest">Liberar acesso ao portal /cupom</label>
+            </div>
+            <p id="f-coupon-portal-help" class="text-[10px] text-gray-500">Selecione um usuário para controlar o acesso ao portal.</p>
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-mono uppercase tracking-widest mb-1">Tipo *</label>
@@ -129,11 +163,60 @@
 function cuponsUpdateUrl(id)  { return '/admin/cupons/' + id; }
 function cuponsToggleUrl(id)  { return '/admin/cupons/' + id + '/toggle'; }
 function cuponsDeleteUrl(id)  { return '/admin/cupons/' + id; }
+function cuponsBuscarUsuariosUrl() { return '{{ route("admin.cupons.buscarUsuarios") }}'; }
+
+let couponUserSearchRequest = null;
+
+function renderUserSelection(user) {
+    if (user && user.id) {
+        $('#f-user-id').val(user.id);
+        $('#f-user-search').val(user.name || '');
+        $('#f-user-selected').text((user.name || '') + ' (' + (user.email || '') + ')');
+        $('#f-user-clear').removeClass('hidden');
+        $('#f-coupon-portal-enabled').prop('disabled', false).prop('checked', !!user.coupon_portal_enabled);
+        $('#f-coupon-portal-help').text('Este usuário poderá acessar o portal /cupom se a liberação estiver marcada.');
+        return;
+    }
+
+    $('#f-user-id').val('');
+    $('#f-user-search').val('');
+    $('#f-user-selected').text('');
+    $('#f-user-clear').addClass('hidden');
+    $('#f-coupon-portal-enabled').prop('disabled', true).prop('checked', false);
+    $('#f-coupon-portal-help').text('Selecione um usuário para controlar o acesso ao portal.');
+}
+
+function hideUserResults() {
+    $('#f-user-results').addClass('hidden').empty();
+}
+
+function showUserResults(users) {
+    const $results = $('#f-user-results');
+    $results.empty();
+
+    if (!users.length) {
+        $results.append('<div class="px-3 py-2 text-xs text-gray-500">Nenhum usuário encontrado.</div>');
+    } else {
+        users.forEach(function (user) {
+            const $button = $('<button type="button" class="block w-full border-b border-[var(--color-lab-border)] px-3 py-2 text-left text-xs hover:bg-gray-50"></button>');
+            $button.append($('<div class="font-semibold"></div>').text(user.name));
+            $button.append($('<div class="text-gray-500"></div>').text(user.email));
+            $button.on('click', function () {
+                renderUserSelection(user);
+                hideUserResults();
+            });
+            $results.append($button);
+        });
+    }
+
+    $results.removeClass('hidden');
+}
 
 function abrirModal(titulo, cupom) {
     $('#modal-titulo').text(titulo);
     $('#cupom-id').val(cupom ? cupom.id : '');
     $('#f-codigo').val(cupom ? cupom.codigo : '');
+    renderUserSelection(cupom ? cupom.user : null);
     $('#f-tipo').val(cupom ? cupom.tipo : 'percentual');
     $('#f-valor').val(cupom ? cupom.valor : '');
     $('#f-minimo').val(cupom ? (cupom.valor_minimo_pedido || '') : '');
@@ -141,10 +224,12 @@ function abrirModal(titulo, cupom) {
     $('#f-validade').val(cupom && cupom.valido_ate ? cupom.valido_ate.substring(0, 10) : '');
     $('#f-ativo').prop('checked', cupom ? !!cupom.ativo : true);
     $('#form-erro').addClass('hidden').text('');
+    hideUserResults();
     $('#modal-cupom').removeClass('hidden').addClass('flex');
 }
 
 function fecharModal() {
+    hideUserResults();
     $('#modal-cupom').addClass('hidden').removeClass('flex');
 }
 
@@ -157,6 +242,42 @@ $(document).ready(function () {
     $('#modal-fechar').on('click', fecharModal);
     $('#modal-cupom').on('click', function (e) {
         if ($(e.target).is('#modal-cupom')) fecharModal();
+    });
+
+    $('#f-user-search').on('input', function () {
+        const query = $(this).val().trim();
+
+        if (query.length < 2) {
+            hideUserResults();
+            if (!$('#f-user-id').val()) {
+                $('#f-user-selected').text('');
+                $('#f-user-clear').addClass('hidden');
+            }
+            return;
+        }
+
+        if (couponUserSearchRequest) {
+            couponUserSearchRequest.abort();
+        }
+
+        couponUserSearchRequest = $.get(cuponsBuscarUsuariosUrl(), { q: query })
+            .done(function (users) {
+                showUserResults(users);
+            })
+            .always(function () {
+                couponUserSearchRequest = null;
+            });
+    });
+
+    $('#f-user-clear').on('click', function () {
+        renderUserSelection(null);
+        hideUserResults();
+    });
+
+    $(document).on('click', function (e) {
+        if (!$(e.target).closest('#f-user-search, #f-user-results').length) {
+            hideUserResults();
+        }
     });
 
     $(document).on('click', '.btn-editar', function () {
@@ -175,6 +296,8 @@ $(document).ready(function () {
             data: {
                 _token:               $('meta[name="csrf-token"]').attr('content'),
                 codigo:               $('#f-codigo').val(),
+                user_id:              $('#f-user-id').val() || null,
+                coupon_portal_enabled: $('#f-coupon-portal-enabled').is(':checked') ? 1 : 0,
                 tipo:                 $('#f-tipo').val(),
                 valor:                $('#f-valor').val(),
                 valor_minimo_pedido:  $('#f-minimo').val() || null,

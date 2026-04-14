@@ -27,6 +27,18 @@
                         <h1 class="text-3xl font-bold uppercase tracking-wider text-black mt-1">Meu Perfil</h1>
                     </div>
 
+                    @if(session('success'))
+                        <div class="bg-white border border-black p-4 mb-6">
+                            <p class="font-mono text-sm text-black">{{ session('success') }}</p>
+                        </div>
+                    @endif
+
+                    @if(session('error'))
+                        <div class="bg-white border border-black p-4 mb-6">
+                            <p class="font-mono text-sm text-black">{{ session('error') }}</p>
+                        </div>
+                    @endif
+
                     <!-- Profile card -->
                     <div class="bg-white border border-[var(--color-lab-border)] p-8 mb-8">
                         <div class="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-8">
@@ -45,6 +57,11 @@
                                         <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                                         Membro desde {{ $usuario->created_at->format('m/Y') }}
                                     </span>
+                                    @if($canAccessCouponPortal)
+                                        <a href="{{ route('site.cupom') }}" class="inline-flex items-center px-3 py-1 bg-black text-white text-[10px] font-mono uppercase tracking-widest hover:bg-gray-900 transition-colors">
+                                            Meu Cupom
+                                        </a>
+                                    @endif
                                 </div>
                             </div>
                         </div>
