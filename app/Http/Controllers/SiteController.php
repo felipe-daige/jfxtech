@@ -14,6 +14,7 @@ use App\Models\ItemPedido;
 use App\Enums\PedidoStatus;
 use App\Services\CouponPartnerProgressService;
 use App\Services\CheckoutOrderService;
+use App\Services\CouponApplicationService;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Http\JsonResponse;
 
@@ -22,6 +23,7 @@ class SiteController extends Controller
     public function __construct(
         protected CheckoutOrderService $checkoutOrderService,
         protected CouponPartnerProgressService $couponPartnerProgressService,
+        protected CouponApplicationService $couponApplicationService,
     ) {
     }
 
@@ -277,9 +279,11 @@ class SiteController extends Controller
 
         $credentials = $request->only('email', 'password');
         $remember = $request->has('remember');
+        $guestCart = $this->checkoutOrderService->resolveGuestCart($request, ['itens.produto', 'itens.produtoVariante']);
 
         if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
+            $this->checkoutOrderService->mergeGuestCartIntoUser($request, Auth::id(), $guestCart);
             
             return redirect()->intended(route('site.index'))
                 ->with('success', 'Login realizado com sucesso!');
@@ -323,6 +327,7 @@ class SiteController extends Controller
         ]);
 
         Auth::login($user);
+        $this->checkoutOrderService->mergeGuestCartIntoUser($request, $user->id);
 
         return redirect()->route('site.index')
             ->with('success', 'Conta criada com sucesso! Bem-vindo à MX Racing!');
@@ -453,6 +458,18 @@ class SiteController extends Controller
             }
         }
 
+        // Pré-processamento de CPF: strip de não-dígitos + normalização antes da validação
+        if ($request->filled('cpf')) {
+            $cpfDigits = preg_replace('/\D/', '', $request->cpf);
+            if (strlen($cpfDigits) !== 11) {
+                return response()->json([
+                    'success' => false,
+                    'errors'  => ['cpf' => ['O CPF deve ter exatamente 11 dígitos numéricos.']],
+                ], 422);
+            }
+            $request->merge(['cpf' => $cpfDigits]);
+        }
+
         // Validação com regras específicas
         $request->validate([
             'name' => 'nullable|string|min:2|max:255',
@@ -462,12 +479,15 @@ class SiteController extends Controller
                 'regex:/^\(\d{2}\)\s\d{4,5}-\d{4}$/',
                 'unique:users,phone,' . $user->id
             ],
+            'cpf' => ['nullable', 'string', 'size:11', 'unique:users,cpf,' . $user->id],
             'current_password' => 'nullable|string',
             'new_password' => 'nullable|string|min:6|confirmed',
         ], [
             'name.min' => 'O nome deve ter pelo menos 2 caracteres.',
             'phone.regex' => 'O telefone deve estar no formato (XX) XXXXX-XXXX ou (XX) XXXX-XXXX.',
             'phone.unique' => 'Este número de telefone já está sendo usado por outro usuário.',
+            'cpf.size' => 'O CPF deve ter exatamente 11 dígitos.',
+            'cpf.unique' => 'Este CPF já está cadastrado em outra conta.',
             'new_password.min' => 'A nova senha deve ter pelo menos 6 caracteres.',
             'new_password.confirmed' => 'A confirmação da senha não confere.',
         ]);
@@ -503,6 +523,11 @@ class SiteController extends Controller
             $user->phone = $request->phone;
         }
 
+        // Atualizar CPF
+        if ($request->filled('cpf')) {
+            $user->cpf = $request->cpf; // já normalizado para 11 dígitos na pré-validação
+        }
+
         // Atualizar senha
         if ($request->filled('new_password')) {
             $user->password = Hash::make($request->new_password);
@@ -517,6 +542,7 @@ class SiteController extends Controller
             'user' => [
                 'name'  => $user->name,
                 'phone' => $user->phone,
+                'cpf'   => $user->cpf,
             ]
         ]);
     }
@@ -608,10 +634,22 @@ class SiteController extends Controller
      */
     public function checkout()
     {
-        $carrinho = $this->checkoutOrderService->resolveActiveOrder(request(), ['itens.produto.imagens']);
+        $request = request();
+        $carrinho = $this->checkoutOrderService->resolveActiveOrder($request, ['itens.produto.imagens']);
 
         if (!$carrinho || $carrinho->itens->isEmpty()) {
             return redirect()->route('site.produtos')->with('error', 'Seu carrinho está vazio.');
+        }
+
+        $pendingCoupon = $request->session()->get(CouponApplicationService::SESSION_PENDING_COUPON);
+
+        if ($pendingCoupon) {
+            $result = $this->couponApplicationService->applyToOrder($carrinho, $pendingCoupon, Auth::id());
+            $request->session()->forget(CouponApplicationService::SESSION_PENDING_COUPON);
+
+            if ($result['success']) {
+                $carrinho->refresh()->load('itens.produto.imagens');
+            }
         }
 
         $enderecos = Auth::check()

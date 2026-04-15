@@ -204,6 +204,23 @@ class MercadoPagoCheckoutController extends Controller
             ])->save();
         }
 
+        // Late capture: persistir CPF do usuário autenticado se ainda não tiver
+        $authenticatedUser = Auth::user();
+        if ($authenticatedUser && empty($authenticatedUser->cpf)) {
+            $cpfFromRequest = data_get($validated, 'payer.identification.number');
+            if (!empty($cpfFromRequest)) {
+                try {
+                    $authenticatedUser->update(['cpf' => $cpfFromRequest]);
+                } catch (\Illuminate\Database\QueryException) {
+                    // CPF já pertence a outro usuário — ignorar silenciosamente
+                    Log::info('cpf_capture.skipped', [
+                        'user_id' => $authenticatedUser->id,
+                        'reason'  => 'unique_conflict',
+                    ]);
+                }
+            }
+        }
+
         if (($validated['payment_method_id'] ?? null) === 'pix' && empty(data_get($validated, 'payer.identification.number'))) {
             return response()->json([
                 'success' => false,
