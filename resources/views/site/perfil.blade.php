@@ -107,6 +107,14 @@
                                         class="w-full border border-[var(--color-lab-border)] px-4 py-3 text-sm font-mono focus:outline-none focus:border-black transition-colors">
                                 </div>
 
+                                <div class="mb-6">
+                                    <label class="font-mono text-[10px] uppercase tracking-widest text-gray-500 block mb-2">CPF</label>
+                                    <input type="text" name="cpf" id="field-cpf"
+                                        value="{{ $usuario->cpf ?? '' }}"
+                                        placeholder="000.000.000-00"
+                                        class="w-full border border-[var(--color-lab-border)] px-4 py-3 text-sm font-mono focus:outline-none focus:border-black transition-colors">
+                                </div>
+
                                 <div class="flex justify-end">
                                     <button type="submit" id="btn-salvar-dados"
                                         class="bg-black text-white px-8 py-3 text-sm font-mono uppercase tracking-widest hover:bg-gray-900 transition-colors">

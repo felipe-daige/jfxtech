@@ -17,9 +17,9 @@
     @include('includes.header')
 
     <main class="flex-grow">
-    <div class="bg-white border-b border-[var(--color-lab-border)] py-12">
+    <div class="bg-white border-b border-[var(--color-lab-border)] py-4">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <nav class="flex text-xs font-mono text-gray-500 uppercase tracking-widest mb-6">
+            <nav class="flex text-xs font-mono text-gray-500 uppercase tracking-widest mb-2">
                 <a href="{{ route('site.index') }}" class="hover:text-black transition-colors">HOME</a>
                 <svg class="w-4 h-4 mx-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
                 <span class="text-black">FINALIZAR COMPRA</span>
@@ -42,9 +42,9 @@
     </div>
     @endif
 
-    <section class="py-12">
+    <section class="py-4">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- Address Form — columns 1-2 on desktop -->
                 <div class="lg:col-span-2">
                     <div class="bg-white border border-[var(--color-lab-border)] p-6">
@@ -190,6 +190,7 @@
                                     type="text"
                                     id="payer-document"
                                     name="payer_document"
+                                    value="{{ Auth::check() && Auth::user()->cpf ? Auth::user()->cpf : '' }}"
                                     placeholder="000.000.000-00"
                                     aria-describedby="payer-document-error"
                                     aria-invalid="false"
@@ -298,7 +299,9 @@
 
                             <div class="flex justify-between text-sm" id="frete-resumo">
                                 <span class="text-gray-600">Frete:</span>
-                                <span class="font-semibold" id="frete-valor">Calculando...</span>
+                                <span class="font-semibold" id="frete-valor">
+                                    {{ $carrinho->frete_valor !== null ? 'R$ ' . number_format((float) $carrinho->frete_valor, 2, ',', '.') : ($enderecos->count() > 0 ? 'Calculando...' : 'Informe o CEP') }}
+                                </span>
                             </div>
                             <div class="border-t pt-2">
                                 <div class="flex justify-between text-lg font-bold">
@@ -343,6 +346,8 @@
             const cep = $(this).val().replace(/\D/g, '');
             if (cep.length === 8) {
                 buscarCep(cep);
+            } else {
+                aguardarEnderecoParaFrete();
             }
         });
 
@@ -356,6 +361,10 @@
         const cepInicial = $('#cep').val().replace(/\D/g, '');
         if (cepInicial.length === 8) {
             calcularFrete(cepInicial);
+        } else if (savedFreteValue !== null) {
+            atualizarFreteSelecionado(savedFreteValue);
+        } else {
+            aguardarEnderecoParaFrete();
         }
         @endif
 
@@ -467,6 +476,14 @@
         return 'R$ ' + valor.toFixed(2).replace('.', ',');
     }
 
+    function aguardarEnderecoParaFrete() {
+        $('#opcoes-frete').addClass('hidden');
+        $('input[name="frete"]').prop('checked', false);
+        $('#frete-valor').text('Informe o CEP');
+        freteAtual = 0;
+        atualizarTotalComDesconto(0);
+    }
+
     function atualizarTotalComDesconto(frete) {
         const fv = (typeof frete === 'number') ? frete : freteAtual;
         const subtotal = parseFloat('{{ $subtotalProdutos }}');
@@ -576,7 +593,7 @@
         const payerDocument = ($('#payer-document').val() || '').trim();
 
         if (!freteTipo) {
-            alert('Selecione uma opção de frete antes de continuar.');
+            alert('Informe o CEP para calcular e selecionar o frete antes de continuar.');
             return;
         }
 

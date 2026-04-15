@@ -92,6 +92,11 @@ document.addEventListener('DOMContentLoaded', function () {
             $(phoneInput).mask('(00) 00000-0000');
         }
 
+        const cpfInput = document.getElementById('field-cpf');
+        if (cpfInput && typeof $ !== 'undefined' && $.fn.mask) {
+            $(cpfInput).mask('000.000.000-00');
+        }
+
         formDados.addEventListener('submit', async e => {
             e.preventDefault();
             const btn  = document.getElementById('btn-salvar-dados');
