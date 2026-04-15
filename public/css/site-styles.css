@@ -787,3 +787,237 @@ header {
     z-index: 9999;
     transform: translateX(-50%) translateY(-100%);
 }
+
+/* ========================================
+   PROMO BANNER — FRETE GRÁTIS
+   ======================================== */
+
+.promo-frete-gratis {
+    background: linear-gradient(135deg, #000000 0%, #1a1a2e 50%, #000000 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Animated shimmer overlay */
+.promo-frete-gratis::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.03) 25%,
+        rgba(255, 255, 255, 0.06) 50%,
+        rgba(255, 255, 255, 0.03) 75%,
+        transparent 100%
+    );
+    animation: promo-shimmer 4s ease-in-out infinite;
+}
+
+/* Top highlight line */
+.promo-frete-gratis::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #fff, transparent);
+    opacity: 0.15;
+}
+
+@keyframes promo-shimmer {
+    0%   { transform: translateX(-50%); }
+    100% { transform: translateX(50%); }
+}
+
+.promo-frete-inner {
+    max-width: 80rem;
+    margin: 0 auto;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+    z-index: 1;
+}
+
+.promo-frete-icon {
+    flex-shrink: 0;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+}
+
+.promo-frete-icon svg {
+    width: 1.125rem;
+    height: 1.125rem;
+}
+
+.promo-frete-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.promo-frete-badge {
+    flex-shrink: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5625rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #000;
+    background: #fff;
+    padding: 0.2rem 0.5rem;
+    line-height: 1.2;
+}
+
+.promo-frete-headline {
+    color: #fff;
+    font-size: 0.8125rem;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    line-height: 1.4;
+    margin: 0;
+}
+
+.promo-frete-headline strong {
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    background: none;
+    color: #fff;
+}
+
+.promo-frete-sub {
+    display: none;
+}
+
+.promo-frete-cta {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    background: #fff;
+    color: #000;
+    padding: 0.5rem 1.25rem;
+    font-size: 0.625rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.promo-frete-cta:hover {
+    background: rgba(255, 255, 255, 0.9);
+    transform: translateX(2px);
+}
+
+.promo-frete-cta-arrow {
+    width: 0.75rem;
+    height: 0.75rem;
+    transition: transform 0.2s ease;
+}
+
+.promo-frete-cta:hover .promo-frete-cta-arrow {
+    transform: translateX(2px);
+}
+
+.promo-frete-close {
+    flex-shrink: 0;
+    width: 1.75rem;
+    height: 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+}
+
+.promo-frete-close svg {
+    width: 0.75rem;
+    height: 0.75rem;
+}
+
+.promo-frete-close:hover {
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* ---- Desktop (md+) ---- */
+@media (min-width: 768px) {
+    .promo-frete-inner {
+        padding: 0.875rem 2rem;
+        gap: 1.25rem;
+    }
+
+    .promo-frete-sub {
+        display: block;
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 0.6875rem;
+        font-family: 'JetBrains Mono', monospace;
+        letter-spacing: 0.04em;
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    .promo-frete-text {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+
+    .promo-frete-headline {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+}
+
+/* ---- Mobile (< md) ---- */
+@media (max-width: 767px) {
+    .promo-frete-inner {
+        padding: 0.75rem 1rem;
+        gap: 0.625rem;
+    }
+
+    .promo-frete-icon {
+        width: 2rem;
+        height: 2rem;
+    }
+
+    .promo-frete-icon svg {
+        width: 0.875rem;
+        height: 0.875rem;
+    }
+
+    .promo-frete-badge {
+        font-size: 0.5rem;
+        padding: 0.15rem 0.375rem;
+    }
+
+    .promo-frete-headline {
+        font-size: 0.6875rem;
+    }
+
+    .promo-frete-cta {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.5625rem;
+    }
+}

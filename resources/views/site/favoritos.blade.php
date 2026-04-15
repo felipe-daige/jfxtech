@@ -17,6 +17,7 @@
 <body class="min-h-screen flex flex-col bg-[var(--color-lab-bg)] text-[var(--color-lab-ink)] antialiased">
 
     @include('includes.header')
+    @include('includes.banner-frete-gratis')
 
     <main class="flex-grow">
         <!-- Favoritos Section -->
