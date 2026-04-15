@@ -7,6 +7,7 @@ use App\Http\Controllers\FavoritosController;
 use App\Http\Controllers\CarrinhoController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\MercadoPagoCheckoutController;
+use App\Http\Controllers\PasswordResetController;
 
 Route::get('/', [SiteController::class, 'index'])->name('site.index');
 Route::get('/produtos', [SiteController::class, 'produtos'])->name('site.produtos');
@@ -26,7 +27,11 @@ Route::get('/login', [SiteController::class, 'login_view'])->name('site.login');
 Route::post('/login', [SiteController::class, 'login'])->name('site.login.post');
 Route::get('/register', [SiteController::class, 'register_view'])->name('site.register');
 Route::post('/register', [SiteController::class, 'register'])->name('site.register.post');
-Route::post('/logout', [SiteController::class, 'logout'])->name('site.logout');
+Route::get('/forgot-password', [PasswordResetController::class, 'requestForm'])->name('site.password.request');
+Route::post('/forgot-password', [PasswordResetController::class, 'sendLink'])->name('site.password.email');
+Route::get('/reset-password/{token}', [PasswordResetController::class, 'resetForm'])->name('site.password.reset');
+Route::post('/reset-password', [PasswordResetController::class, 'reset'])->name('site.password.update');
+Route::match(['GET', 'POST'], '/logout', [SiteController::class, 'logout'])->name('site.logout');
 
 // Rota do perfil (apenas para usuários logados)
 Route::get('/perfil', [SiteController::class, 'perfil'])->name('site.perfil');
@@ -133,3 +138,6 @@ Route::get('/checkout/mercado-pago/status/{pedido}', [MercadoPagoCheckoutControl
 Route::post('/webhooks/mercado-pago', [MercadoPagoCheckoutController::class, 'webhook'])
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
     ->name('site.checkout.mercadopago.webhook');
+
+// Mail preview routes (dev/testing only)
+require __DIR__ . '/mail-preview.php';
