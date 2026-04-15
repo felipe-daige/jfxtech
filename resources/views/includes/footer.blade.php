@@ -36,6 +36,7 @@
                 <li><a href="#" class="hover:text-black transition-colors">Garantia</a></li>
                 <li><a href="#" class="hover:text-black transition-colors">Trocas e Devoluções</a></li>
                 <li><a href="#" class="hover:text-black transition-colors">Rastreamento</a></li>
+                <li><a href="mailto:contato@jfxtech.com.br" class="hover:text-black transition-colors">contato@jfxtech.com.br</a></li>
             </ul>
         </div>
 

@@ -167,8 +167,7 @@
                                 <div>
                                     <h3 class="font-mono text-[10px] uppercase tracking-widest text-gray-500 mb-1">E-mail</h3>
                                     <p class="text-sm text-black">
-                                        contato@motoxtre.me<br>
-                                        vendas@motoxtre.me
+                                        contato@jfxtech.com.br
                                     </p>
                                 </div>
                             </div>
