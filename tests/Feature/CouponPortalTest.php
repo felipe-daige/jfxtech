@@ -29,7 +29,8 @@ class CouponPortalTest extends TestCase
             ->assertOk()
             ->assertSee('Meu Cupom')
             ->assertSee('PARTNER10')
-            ->assertSee('5%');
+            ->assertSee('5%')
+            ->assertSee(url('/?cupom=PARTNER10'), false);
     }
 
     public function test_user_without_portal_access_is_redirected_to_profile(): void

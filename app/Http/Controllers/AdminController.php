@@ -651,11 +651,18 @@ class AdminController extends Controller
     {
         $pedido = Pedido::findOrFail($id);
         
-        $request->validate([
-            'status' => ['required', Rule::in(PedidoStatus::adminValues())]
+        $validated = $request->validate([
+            'status' => ['required', Rule::in(PedidoStatus::adminValues())],
+            'codigo_rastreio' => ['nullable', 'string', 'max:50', Rule::requiredIf(fn () => $request->input('status') === PedidoStatus::ENVIADO)],
         ]);
 
-        $pedido->update(['status' => $request->status]);
+        $updates = ['status' => $validated['status']];
+
+        if ($validated['status'] === PedidoStatus::ENVIADO) {
+            $updates['codigo_rastreio'] = strtoupper(trim((string) $validated['codigo_rastreio']));
+        }
+
+        $pedido->update($updates);
         
         return redirect()->route('admin.pedidos')->with('success', 'Status do pedido atualizado com sucesso!');
     }
@@ -1399,15 +1406,23 @@ class AdminController extends Controller
 
         $pedido = Pedido::findOrFail($id);
 
-        $request->validate([
+        $validated = $request->validate([
             'status' => ['required', Rule::in(PedidoStatus::adminValues())],
+            'codigo_rastreio' => ['nullable', 'string', 'max:50', Rule::requiredIf(fn () => $request->input('status') === PedidoStatus::ENVIADO)],
         ]);
 
-        $pedido->update(['status' => $request->status]);
+        $updates = ['status' => $validated['status']];
+
+        if ($validated['status'] === PedidoStatus::ENVIADO) {
+            $updates['codigo_rastreio'] = strtoupper(trim((string) $validated['codigo_rastreio']));
+        }
+
+        $pedido->update($updates);
 
         return response()->json([
             'success' => true,
             'status'  => $pedido->status,
+            'codigo_rastreio' => $pedido->codigo_rastreio,
         ]);
     }
 

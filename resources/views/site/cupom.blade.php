@@ -345,6 +345,7 @@
                                                 <th>Usos</th>
                                                 <th>Validade</th>
                                                 <th>Status</th>
+                                                <th>Link</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -352,6 +353,7 @@
                                                 @php
                                                     $expirado = $cupom->valido_ate && $cupom->valido_ate->isPast();
                                                     $ativo = $cupom->ativo && !$expirado;
+                                                    $couponUrl = url('/?cupom=' . urlencode($cupom->codigo));
                                                 @endphp
                                                 <tr>
                                                     <td class="font-bold tracking-widest">{{ $cupom->codigo }}</td>
@@ -377,6 +379,24 @@
                                                         @else
                                                             <span class="badge badge-gray">{{ $expirado ? 'Expirado' : 'Inativo' }}</span>
                                                         @endif
+                                                    </td>
+                                                    <td>
+                                                        <div class="flex items-center gap-2 min-w-[260px]">
+                                                            <input
+                                                                type="text"
+                                                                readonly
+                                                                value="{{ $couponUrl }}"
+                                                                class="w-full border border-gray-200 px-2 py-1 font-mono text-[10px] text-gray-600"
+                                                                aria-label="Link do cupom {{ $cupom->codigo }}"
+                                                            >
+                                                            <button
+                                                                type="button"
+                                                                class="coupon-copy-btn border border-black px-2 py-1 font-mono text-[10px] uppercase tracking-widest hover:bg-black hover:text-white"
+                                                                data-coupon-url="{{ $couponUrl }}"
+                                                            >
+                                                                Copiar
+                                                            </button>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             @endforeach
@@ -422,5 +442,23 @@
 
     @include('includes.footer')
     <script src="{{ asset('js/cupom-dashboard.js') }}"></script>
+    <script>
+        document.querySelectorAll('.coupon-copy-btn').forEach((button) => {
+            button.addEventListener('click', async () => {
+                const url = button.dataset.couponUrl;
+
+                if (!url || !navigator.clipboard) {
+                    return;
+                }
+
+                await navigator.clipboard.writeText(url);
+                button.textContent = 'Copiado';
+
+                setTimeout(() => {
+                    button.textContent = 'Copiar';
+                }, 1600);
+            });
+        });
+    </script>
 </body>
 </html>

@@ -650,6 +650,8 @@
         };
         @endif
 
+        dadosEndereco.payer_document = payerDocument;
+
         // Disable button
         const continueBtn = $('#continue-btn');
         const originalContent = continueBtn.html();
@@ -695,10 +697,14 @@
 
     function renderMercadoPagoCheckout(checkout) {
         checkout.payer = checkout.payer || {};
-        checkout.payer.identification = {
-            type: 'CPF',
-            number: checkoutPayerDocument.replace(/\D/g, '')
-        };
+        const payerDocument = checkoutPayerDocument.replace(/\D/g, '');
+
+        if (payerDocument.length === 11) {
+            checkout.payer.identification = {
+                type: 'CPF',
+                number: payerDocument
+            };
+        }
 
         const paymentContent = `
             <div class="max-w-5xl mx-auto">

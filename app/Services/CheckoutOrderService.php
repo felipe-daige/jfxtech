@@ -3,7 +3,9 @@
 namespace App\Services;
 
 use App\Enums\PedidoStatus;
+use App\Models\ItemPedido;
 use App\Models\Pedido;
+use App\Models\ProdutoVariante;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -74,6 +76,92 @@ class CheckoutOrderService
         return $cart;
     }
 
+    public function resolveGuestCart(Request $request, array $with = []): ?Pedido
+    {
+        $pedidoId = $request->session()->get(self::SESSION_ORDER_ID);
+        $token = (string) $request->session()->get(self::SESSION_ORDER_TOKEN, '');
+
+        if (!$pedidoId || $token === '') {
+            return null;
+        }
+
+        $cart = Pedido::query()
+            ->when($with !== [], fn ($builder) => $builder->with($with))
+            ->where('id', $pedidoId)
+            ->whereNull('user_id')
+            ->where('status', PedidoStatus::CARRINHO)
+            ->first();
+
+        if (!$cart || !$cart->guest_token || !hash_equals($cart->guest_token, $token)) {
+            return null;
+        }
+
+        return $cart;
+    }
+
+    public function mergeGuestCartIntoUser(Request $request, int $userId, ?Pedido $guestCart = null): ?Pedido
+    {
+        $guestCart ??= $this->resolveGuestCart($request, ['itens.produto', 'itens.produtoVariante']);
+
+        if (!$guestCart) {
+            return null;
+        }
+
+        if ($guestCart->itens->isEmpty()) {
+            $this->clearGuestOrder($request);
+            return null;
+        }
+
+        $userCart = Pedido::query()
+            ->with(['itens.produto', 'itens.produtoVariante'])
+            ->where('user_id', $userId)
+            ->where('status', PedidoStatus::CARRINHO)
+            ->latest('id')
+            ->first();
+
+        if (!$userCart) {
+            $guestCart->forceFill([
+                'user_id' => $userId,
+                'guest_token' => null,
+                'checkout_mode' => 'authenticated',
+            ])->save();
+
+            $this->clearGuestOrder($request);
+
+            return $guestCart->fresh(['itens.produto', 'itens.produtoVariante']);
+        }
+
+        $guestCouponCode = $guestCart->cupom_codigo;
+
+        foreach ($guestCart->itens as $guestItem) {
+            $existing = $userCart->itens
+                ->first(fn ($item) => (int) $item->produto_id === (int) $guestItem->produto_id
+                    && (int) ($item->produto_variante_id ?? 0) === (int) ($guestItem->produto_variante_id ?? 0));
+
+            if ($existing) {
+                $existing->quantidade = min(
+                    $this->cartQuantityLimit($guestItem),
+                    (int) $existing->quantidade + (int) $guestItem->quantidade,
+                );
+                $existing->save();
+                $guestItem->delete();
+                continue;
+            }
+
+            $guestItem->update(['pedido_id' => $userCart->id]);
+        }
+
+        if (!$userCart->cupom_codigo && $guestCouponCode) {
+            $request->session()->put(CouponApplicationService::SESSION_PENDING_COUPON, $guestCouponCode);
+        }
+
+        $guestCart->delete();
+        $this->recalculateCartTotal($userCart);
+        $this->clearGuestOrder($request);
+
+        return $userCart->fresh(['itens.produto', 'itens.produtoVariante']);
+    }
+
     public function rememberGuestOrder(Request $request, Pedido $pedido): void
     {
         if ($pedido->user_id !== null) {
@@ -106,7 +194,7 @@ class CheckoutOrderService
             return true;
         }
 
-        if ($pedido->user_id !== null || !$pedido->guest_token) {
+        if (!$pedido->guest_token) {
             return false;
         }
 
@@ -125,11 +213,19 @@ class CheckoutOrderService
     {
         $url = route('site.pedidos.show', $pedido);
 
-        if ($pedido->user_id === null && $pedido->guest_token) {
+        if ($pedido->guest_token && !Auth::check()) {
             $url .= '?token=' . urlencode($pedido->guest_token);
         }
 
         return $url;
+    }
+
+    public function recalculateCartTotal(Pedido $cart): void
+    {
+        $subtotal = $cart->itens()->get()->sum(fn ($item) => (int) $item->quantidade * (float) $item->preco);
+        $desconto = (float) ($cart->valor_desconto ?? 0);
+
+        $cart->update(['valor_total' => max(0, $subtotal - $desconto)]);
     }
 
     protected function resolveLatestByStatuses($query, array $with, array $statuses): ?Pedido
@@ -153,5 +249,22 @@ class CheckoutOrderService
             ->whereIn('status', array_values(array_intersect($statuses, [PedidoStatus::PENDENTE, PedidoStatus::PROCESSANDO])))
             ->latest('id')
             ->first();
+    }
+
+    private function cartQuantityLimit(ItemPedido $item): int
+    {
+        $estoque = $item->produto?->estoque ?? 10;
+
+        if ($item->produto_variante_id) {
+            $variante = $item->produtoVariante ?: ProdutoVariante::with('produto')->find($item->produto_variante_id);
+
+            if ($variante && $item->produto) {
+                $variante->setRelation('produto', $item->produto);
+            }
+
+            $estoque = $variante ? $variante->estoque_efetivo : $estoque;
+        }
+
+        return max(1, min(10, (int) $estoque));
     }
 }

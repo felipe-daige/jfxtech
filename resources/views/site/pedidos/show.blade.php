@@ -12,6 +12,8 @@
 <body class="min-h-screen flex flex-col bg-[var(--color-lab-bg)] text-[var(--color-lab-ink)] antialiased">
     @php
         $isGuestOrder = $pedido->user_id === null;
+        $showConfirmDelivery = $pedido->status === 'enviado';
+        $confirmDeliveryHighlighted = request()->boolean('confirm_delivery');
     @endphp
     @include('includes.header')
 
@@ -101,7 +103,7 @@
                             <p class="font-mono text-[10px] uppercase tracking-[0.2em] text-gray-500 mb-1">Precisa de ajuda?</p>
                             <p class="text-sm text-gray-600">Entre em contato pelo WhatsApp para {{ $buttonLabel === 'Solicitar Reembolso' ? 'solicitar seu reembolso' : 'acionar a garantia de fábrica' }}.</p>
                         </div>
-                        <a href="{{ route('site.pedidos.reembolso', $pedido) }}"
+                        <a href="https://wa.me/{{ $whatsapp }}?text={{ rawurlencode($waMessage) }}" target="_blank"
                            class="shrink-0 inline-flex items-center gap-2 px-5 py-3 border border-black text-sm font-mono font-bold uppercase tracking-widest hover:bg-black hover:text-white transition-colors">
                             {{ $buttonLabel }}
                         </a>
@@ -109,40 +111,28 @@
                 </div>
                 @endif
 
-                @if($isGuestOrder && $pedido->status === 'pago')
-                <div class="bg-white border border-[var(--color-lab-border)] p-6 mb-6">
-                    <div class="max-w-2xl">
-                        <p class="font-mono text-[10px] uppercase tracking-[0.2em] text-gray-500 mb-3">Sua compra foi concluída</p>
-                        <h2 class="text-2xl font-bold tracking-tight">Crie sua senha para acompanhar pedidos mais rápido</h2>
-                        <p class="text-sm text-gray-600 mt-3">Sua compra já está confirmada. Se quiser, defina uma senha agora para transformar este pedido em uma conta e acessar seus próximos pedidos sem preencher tudo novamente.</p>
-                    </div>
+                @if($showConfirmDelivery)
+                <div id="confirmar-entrega" class="bg-white border {{ $confirmDeliveryHighlighted ? 'border-black' : 'border-[var(--color-lab-border)]' }} p-6 mb-6">
+                    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                        <div>
+                            <p class="font-mono text-[10px] uppercase tracking-[0.2em] text-gray-500 mb-1">Pedido entregue?</p>
+                            <p class="text-sm text-gray-600">Se você já recebeu o pedido, confirme a entrega para atualizar o status e liberar o fluxo pós-entrega.</p>
+                        </div>
 
-                    <form method="POST" action="{{ route('site.pedidos.create-account', $pedido) }}" class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                        @csrf
-                        <input type="hidden" name="guest_token" value="{{ $pedido->guest_token }}">
-                        <div class="md:col-span-2">
-                            <label class="block text-[10px] font-mono font-bold uppercase tracking-widest text-gray-500 mb-2">E-mail da compra</label>
-                            <input type="email" value="{{ $pedido->customer_email }}" readonly class="w-full px-4 py-3 border border-[var(--color-lab-border)] bg-[var(--color-lab-bg)] text-sm font-mono">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-mono font-bold uppercase tracking-widest text-gray-500 mb-2">Crie sua senha</label>
-                            <input type="password" name="password" required class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black transition-colors">
-                            @error('password')
-                                <p class="mt-2 text-xs text-red-600 font-mono">{{ $message }}</p>
-                            @enderror
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-mono font-bold uppercase tracking-widest text-gray-500 mb-2">Confirme a senha</label>
-                            <input type="password" name="password_confirmation" required class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black transition-colors">
-                        </div>
-                        <div class="md:col-span-2">
-                            <button type="submit" class="inline-flex items-center justify-center bg-black text-white px-5 py-3 text-[10px] font-mono uppercase tracking-widest hover:bg-gray-900 transition-colors">
-                                Criar conta com esta compra
+                        <form method="POST" action="{{ route('site.pedidos.confirmar-entrega', $pedido) }}" class="shrink-0">
+                            @csrf
+                            @if($isGuestOrder && $pedido->guest_token)
+                                <input type="hidden" name="guest_token" value="{{ request('token', $pedido->guest_token) }}">
+                            @endif
+                            <button type="submit"
+                                class="inline-flex items-center gap-2 border border-black px-5 py-3 text-sm font-mono font-bold uppercase tracking-widest text-black transition-colors hover:bg-black hover:text-white">
+                                Confirmar Entrega
                             </button>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
                 @endif
+
 
                 <!-- Dados do Cliente e Endereço -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">

@@ -138,11 +138,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            if (data.message && data.message.includes('logado')) {
-                window.location.href = '/login';
-                return;
-            }
-
             showNotification(data.message || 'Erro ao adicionar', 'error');
             restoreCardButton(button, originalContent);
         })

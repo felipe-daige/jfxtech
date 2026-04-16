@@ -413,7 +413,7 @@
                             {{ PedidoStatus::label($pedido->status) }}
                         </span>
                     </div>
-                    <div class="font-mono text-sm text-black">{{ $pedido->user->name ?? $pedido->customer_name ?? 'Guest' }}</div>
+                    <div class="font-mono text-sm text-black">{{ $pedido->user?->name ?? $pedido->customer_name ?? 'Guest' }}</div>
                     <div class="font-mono text-xs text-[var(--color-lab-muted)]">R$&nbsp;{{ number_format($pedido->valor_total, 2, ',', '.') }}</div>
                 </div>
                 <div class="sm:mt-0">
@@ -648,8 +648,8 @@
                             <span class="font-mono text-sm font-bold text-black">#{{ $pedido->id }}</span>
                             <span class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">{{ $pedido->created_at->format('d/m/Y H:i') }}</span>
                         </div>
-                        <div class="font-mono text-sm text-black break-words sm:truncate">{{ $pedido->user->name }}</div>
-                        <div class="font-mono text-xs text-[var(--color-lab-muted)] break-all sm:truncate">{{ $pedido->user->email }}</div>
+                        <div class="font-mono text-sm text-black break-words sm:truncate">{{ $pedido->user?->name ?? $pedido->customer_name ?? 'Guest' }}</div>
+                        <div class="font-mono text-xs text-[var(--color-lab-muted)] break-all sm:truncate">{{ $pedido->user?->email ?? $pedido->customer_email ?? 'E-mail não informado' }}</div>
                     </div>
                     <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2 sm:mt-0">
                         <div class="font-mono text-sm font-bold text-black text-right">R$&nbsp;{{ number_format($pedido->valor_total, 2, ',', '.') }}</div>
@@ -885,11 +885,31 @@
         btn.textContent = '...';
 
         try {
+            var payload = { status: novoStatus };
+
+            if (novoStatus === 'enviado') {
+                var trackingCode = window.prompt('Informe o código de rastreio para marcar o pedido como enviado:', '');
+
+                if (trackingCode === null) {
+                    btn.disabled = false;
+                    btn.textContent = original;
+                    return;
+                }
+
+                trackingCode = trackingCode.trim().toUpperCase();
+
+                if (!trackingCode) {
+                    throw new Error('codigo_rastreio_obrigatorio');
+                }
+
+                payload.codigo_rastreio = trackingCode;
+            }
+
             var url = (window.routes.adminPedidosQuickStatus || '').replace(':id', pedidoId);
             var res = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
-                body: JSON.stringify({ status: novoStatus }),
+                body: JSON.stringify(payload),
             });
             var data = await res.json();
             if (!data.success) throw new Error('Falha');
@@ -920,7 +940,11 @@
         } catch (err) {
             btn.disabled    = false;
             btn.textContent = original;
-            alert('Erro ao atualizar status.');
+            if (err && err.message === 'codigo_rastreio_obrigatorio') {
+                alert('O código de rastreio é obrigatório para marcar o pedido como enviado.');
+            } else {
+                alert('Erro ao atualizar status.');
+            }
         }
     };
 

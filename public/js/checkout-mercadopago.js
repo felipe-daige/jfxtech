@@ -104,6 +104,10 @@
         return normalized;
     }
 
+    function paymentMethodRequiresDocument(paymentMethodId) {
+        return ['pix', 'bolbradesco', 'pec', 'ticket'].indexOf(paymentMethodId) !== -1;
+    }
+
     function normalizePayer(rawFormData, checkout) {
         const nestedFormData = rawFormData.formData || null;
         const payer = {
@@ -154,8 +158,18 @@
             ...(payer.identification || {}),
         };
 
-        if (identification.number) {
-            identification.number = String(identification.number).replace(/\D/g, '');
+        const identificationNumber = firstFilled([
+            identification.number,
+            readValue(rawFormData, ['payer.identification.number', 'payer.identificationNumber', 'payer_document']),
+            readValue(nestedFormData, ['payer.identification.number', 'payer.identificationNumber', 'payer_document']),
+        ]);
+
+        if (identificationNumber) {
+            identification.number = String(identificationNumber).replace(/\D/g, '');
+        }
+
+        if (!identification.type && identification.number) {
+            identification.type = 'CPF';
         }
 
         if (identification.type && identification.number) {
@@ -608,6 +622,15 @@
                             '<p class="text-sm text-red-600">O Brick não retornou o método de pagamento. Recarregue a página e tente novamente.</p>'
                         );
                         throw new Error('Payment method id ausente no submit do Brick.');
+                    }
+
+                    if (paymentMethodRequiresDocument(payload.payment_method_id) && !readPath(payload, 'payer.identification.number')) {
+                        const paymentLabel = payload.payment_method_id === 'pix' ? 'Pix' : 'boleto';
+                        showFeedback(
+                            'error',
+                            '<div class="space-y-3"><p class="font-mono text-[10px] uppercase tracking-[0.2em] text-red-500">CPF obrigatório</p><p class="text-sm text-red-600">Informe um CPF válido do pagador antes de concluir o pagamento via ' + paymentLabel + '.</p></div>'
+                        );
+                        throw new Error('CPF obrigatório ausente para método offline do Mercado Pago.');
                     }
 
                     const response = await fetch(checkout.urls.pay, {

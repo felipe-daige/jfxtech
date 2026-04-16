@@ -252,7 +252,11 @@ class SiteController extends Controller
      * Exibir formulário de login
      */
     public function login_view(){
-        return view('site.login');
+        return response()
+            ->view('site.login')
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', 'Fri, 01 Jan 1990 00:00:00 GMT');
     }
 
     /**

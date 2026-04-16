@@ -8,6 +8,7 @@ use App\Models\ItemPedido;
 use App\Models\Pedido;
 use App\Models\Produto;
 use App\Models\User;
+use App\Services\CouponApplicationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -179,5 +180,98 @@ class CupomCheckoutTest extends TestCase
             ->assertOk()
             ->assertJsonPath('success', true)
             ->assertJsonPath('desconto', '10,00');
+    }
+
+    public function test_link_com_cupom_salva_codigo_pendente_na_sessao(): void
+    {
+        $this->get('/?cupom=streamer10')
+            ->assertOk()
+            ->assertSessionHas(CouponApplicationService::SESSION_PENDING_COUPON, 'STREAMER10');
+    }
+
+    public function test_cupom_pendente_do_link_aplica_automaticamente_no_checkout(): void
+    {
+        $user = User::factory()->create();
+        $pedido = $this->makeCart($user, 100.00);
+
+        $this->makeCupom([
+            'codigo' => 'STREAMER10',
+            'tipo' => 'percentual',
+            'valor' => 10,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession([CouponApplicationService::SESSION_PENDING_COUPON => 'STREAMER10'])
+            ->get(route('site.checkout'))
+            ->assertOk()
+            ->assertSessionMissing(CouponApplicationService::SESSION_PENDING_COUPON);
+
+        $pedido->refresh();
+
+        $this->assertSame('STREAMER10', $pedido->cupom_codigo);
+        $this->assertEquals('10.00', $pedido->valor_desconto);
+    }
+
+    public function test_cupom_pendente_invalido_e_descartado_sem_bloquear_checkout(): void
+    {
+        $user = User::factory()->create();
+        $pedido = $this->makeCart($user, 100.00);
+
+        $this->actingAs($user)
+            ->withSession([CouponApplicationService::SESSION_PENDING_COUPON => 'INEXISTENTE'])
+            ->get(route('site.checkout'))
+            ->assertOk()
+            ->assertSessionMissing(CouponApplicationService::SESSION_PENDING_COUPON);
+
+        $pedido->refresh();
+
+        $this->assertNull($pedido->cupom_codigo);
+        $this->assertEquals('0.00', $pedido->valor_desconto);
+    }
+
+    public function test_cupom_pendente_respeita_valor_minimo_do_pedido(): void
+    {
+        $user = User::factory()->create();
+        $pedido = $this->makeCart($user, 30.00);
+
+        $this->makeCupom([
+            'codigo' => 'MINIMO',
+            'valor_minimo_pedido' => 50.00,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession([CouponApplicationService::SESSION_PENDING_COUPON => 'MINIMO'])
+            ->get(route('site.checkout'))
+            ->assertOk()
+            ->assertSessionMissing(CouponApplicationService::SESSION_PENDING_COUPON);
+
+        $pedido->refresh();
+
+        $this->assertNull($pedido->cupom_codigo);
+        $this->assertEquals('0.00', $pedido->valor_desconto);
+    }
+
+    public function test_cupom_pendente_nao_aplica_quando_usuario_ja_usou(): void
+    {
+        $user = User::factory()->create();
+        $pedido = $this->makeCart($user, 100.00);
+        $cupom = $this->makeCupom(['codigo' => 'USADO10']);
+
+        CupomUso::create([
+            'cupom_id' => $cupom->id,
+            'user_id' => $user->id,
+            'pedido_id' => $pedido->id,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession([CouponApplicationService::SESSION_PENDING_COUPON => 'USADO10'])
+            ->get(route('site.checkout'))
+            ->assertOk()
+            ->assertSessionMissing(CouponApplicationService::SESSION_PENDING_COUPON);
+
+        $pedido->refresh();
+
+        $this->assertNull($pedido->cupom_codigo);
+        $this->assertEquals('0.00', $pedido->valor_desconto);
     }
 }

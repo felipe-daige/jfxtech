@@ -48,6 +48,7 @@ final class PedidoStatus
         self::PROCESSANDO,
         self::ENVIADO,
         self::ENTREGUE,
+        self::CANCELADO,
     ];
 
     private const BADGE_CLASSES = [

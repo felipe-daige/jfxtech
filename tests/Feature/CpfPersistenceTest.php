@@ -107,6 +107,99 @@ class CpfPersistenceTest extends TestCase
         });
     }
 
+    private function preparePayload(array $overrides = []): array
+    {
+        return array_merge([
+            'customer_name' => 'Cliente Teste',
+            'customer_email' => 'cliente@example.com',
+            'customer_phone' => '(43) 99999-9999',
+            'payer_document' => '123.456.789-09',
+            'cep' => '86010-000',
+            'rua' => 'Rua Teste',
+            'numero' => '123',
+            'complemento' => 'Sala 1',
+            'bairro' => 'Centro',
+            'cidade' => 'Londrina',
+            'estado' => 'PR',
+            'pais' => 'BR',
+            'frete_tipo' => 'pac',
+        ], $overrides);
+    }
+
+    public function test_prepare_salva_cpf_quando_usuario_logado_nao_tem_cpf(): void
+    {
+        $user = User::factory()->create(['cpf' => null]);
+        $pedido = $this->makePedidoPendente($user);
+
+        $this->actingAs($user)
+            ->postJson(route('site.checkout.mercadopago.prepare'), $this->preparePayload())
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('checkout.pedido_id', $pedido->id)
+            ->assertJsonPath('checkout.payer.identification.type', 'CPF')
+            ->assertJsonPath('checkout.payer.identification.number', '12345678909');
+
+        $this->assertDatabaseHas('users', ['id' => $user->id, 'cpf' => '12345678909']);
+    }
+
+    public function test_prepare_nao_sobrescreve_cpf_existente(): void
+    {
+        $user = User::factory()->create(['cpf' => '99988877766']);
+        $this->makePedidoPendente($user);
+
+        $this->actingAs($user)
+            ->postJson(route('site.checkout.mercadopago.prepare'), $this->preparePayload())
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('checkout.payer.identification.number', '12345678909');
+
+        $this->assertDatabaseHas('users', ['id' => $user->id, 'cpf' => '99988877766']);
+    }
+
+    public function test_prepare_nao_falha_quando_cpf_pertence_a_outro_usuario(): void
+    {
+        User::factory()->create(['cpf' => '12345678909']);
+        $user = User::factory()->create(['cpf' => null]);
+        $this->makePedidoPendente($user);
+
+        $this->actingAs($user)
+            ->postJson(route('site.checkout.mercadopago.prepare'), $this->preparePayload())
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('checkout.payer.identification.number', '12345678909');
+
+        $this->assertDatabaseHas('users', ['id' => $user->id, 'cpf' => null]);
+    }
+
+    public function test_prepare_nao_salva_cpf_para_guest(): void
+    {
+        $guestToken = 'guest-prepare-abc-123';
+        $pedido = \App\Models\Pedido::create([
+            'status' => 'pendente',
+            'valor_total' => 100.00,
+            'frete_tipo' => 'pac',
+            'frete_valor' => 0.00,
+            'customer_email' => 'guest@example.com',
+            'guest_token' => $guestToken,
+            'checkout_mode' => 'guest',
+        ]);
+        $produto = \App\Models\Produto::factory()->create(['preco' => 100.00, 'peso' => 0.5, 'estoque' => 5, 'ativo' => true]);
+        \App\Models\ItemPedido::create(['pedido_id' => $pedido->id, 'produto_id' => $produto->id, 'quantidade' => 1, 'preco' => 100.00]);
+
+        $this->withSession([
+                \App\Services\CheckoutOrderService::SESSION_ORDER_ID => $pedido->id,
+                \App\Services\CheckoutOrderService::SESSION_ORDER_TOKEN => $guestToken,
+            ])
+            ->postJson(route('site.checkout.mercadopago.prepare'), $this->preparePayload([
+                'customer_email' => 'guest@example.com',
+            ]))
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('checkout.payer.identification.number', '12345678909');
+
+        $this->assertDatabaseMissing('users', ['cpf' => '12345678909']);
+    }
+
     public function test_pay_salva_cpf_quando_usuario_logado_nao_tem_cpf(): void
     {
         $user   = User::factory()->create(['cpf' => null]);

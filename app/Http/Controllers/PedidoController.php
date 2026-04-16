@@ -213,6 +213,29 @@ class PedidoController extends Controller
         return view('site.pedidos.reembolso', compact('pedido'));
     }
 
+    public function confirmarEntrega(Request $request, Pedido $pedido)
+    {
+        if (!$this->checkoutOrderService->canAccessOrder($request, $pedido)) {
+            if (Auth::check()) {
+                return redirect()->route('site.pedidos.index')->with('error', 'Pedido não encontrado.');
+            }
+
+            return redirect()->route('site.login')->with('error', 'Pedido não encontrado.');
+        }
+
+        if ($pedido->status !== PedidoStatus::ENVIADO) {
+            return redirect($this->checkoutOrderService->orderUrl($pedido))
+                ->with('error', 'A entrega só pode ser confirmada quando o pedido estiver enviado.');
+        }
+
+        $pedido->update([
+            'status' => PedidoStatus::ENTREGUE,
+        ]);
+
+        return redirect($this->checkoutOrderService->orderUrl($pedido))
+            ->with('success', 'Entrega confirmada com sucesso.');
+    }
+
     public function createAccount(Request $request, Pedido $pedido)
     {
         if (!$this->checkoutOrderService->canAccessOrder($request, $pedido)) {

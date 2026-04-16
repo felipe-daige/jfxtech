@@ -614,6 +614,7 @@ function verDetalhes(pedidoId) {
 function alterarStatus(pedidoId, statusAtual) {
     document.getElementById('formStatus').action = window.routes.adminPedidosStatus.replace(':id', pedidoId);
     document.getElementById('novoStatus').value = statusAtual;
+    alternarCampoCodigoRastreio(statusAtual);
     document.getElementById('modalStatus').classList.remove('hidden');
 }
 
@@ -623,6 +624,24 @@ function fecharModalDetalhes() {
 
 function fecharModalStatus() {
     document.getElementById('modalStatus').classList.add('hidden');
+}
+
+function alternarCampoCodigoRastreio(status) {
+    const wrapper = document.getElementById('codigoRastreioWrapper');
+    const input = document.getElementById('codigoRastreioStatus');
+
+    if (!wrapper || !input) {
+        return;
+    }
+
+    const requiresTracking = status === 'enviado';
+
+    wrapper.classList.toggle('hidden', !requiresTracking);
+    input.required = requiresTracking;
+
+    if (!requiresTracking) {
+        input.value = '';
+    }
 }
 
 // ===== EVENT LISTENERS GLOBAIS =====
@@ -661,6 +680,34 @@ document.addEventListener('DOMContentLoaded', function () {
         modalStatus.addEventListener('click', function (e) {
             if (e.target === this) {
                 fecharModalStatus();
+            }
+        });
+    }
+
+    const novoStatus = document.getElementById('novoStatus');
+    const formStatus = document.getElementById('formStatus');
+    const codigoRastreioStatus = document.getElementById('codigoRastreioStatus');
+
+    if (novoStatus) {
+        alternarCampoCodigoRastreio(novoStatus.value);
+
+        novoStatus.addEventListener('change', function () {
+            alternarCampoCodigoRastreio(this.value);
+        });
+    }
+
+    if (formStatus && novoStatus && codigoRastreioStatus) {
+        formStatus.addEventListener('submit', function (e) {
+            if (novoStatus.value !== 'enviado') {
+                return;
+            }
+
+            codigoRastreioStatus.value = codigoRastreioStatus.value.trim().toUpperCase();
+
+            if (!codigoRastreioStatus.value) {
+                e.preventDefault();
+                alert('O código de rastreio é obrigatório para marcar o pedido como enviado.');
+                codigoRastreioStatus.focus();
             }
         });
     }

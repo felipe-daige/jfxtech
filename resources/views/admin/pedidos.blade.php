@@ -51,8 +51,8 @@
                         </div>
                     </div>
                     <div class="space-y-0.5">
-                        <div class="font-mono text-sm text-black break-words sm:truncate">{{ $pedido->user->name }}</div>
-                        <div class="font-mono text-[10px] text-[var(--color-lab-muted)] break-all sm:truncate">{{ $pedido->user->email }}</div>
+                        <div class="font-mono text-sm text-black break-words sm:truncate">{{ $pedido->user?->name ?? $pedido->customer_name ?? 'Guest' }}</div>
+                        <div class="font-mono text-[10px] text-[var(--color-lab-muted)] break-all sm:truncate">{{ $pedido->user?->email ?? $pedido->customer_email ?? 'E-mail não informado' }}</div>
                     </div>
                 </div>
                 <div class="flex space-x-1 ml-2 flex-shrink-0">
@@ -143,6 +143,14 @@
                                 <option value="{{ $status }}">{{ PedidoStatus::label($status) }}</option>
                             @endforeach
                         </select>
+                    </div>
+
+                    <div id="codigoRastreioWrapper" class="mt-4 hidden">
+                        <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Código de Rastreio</label>
+                        <input type="text" name="codigo_rastreio" id="codigoRastreioStatus" maxlength="50"
+                            class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono uppercase focus:outline-none focus:border-black bg-white"
+                            placeholder="Ex: BR123456789BR">
+                        <p class="mt-2 font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Obrigatório para marcar como enviado.</p>
                     </div>
                 </div>
 

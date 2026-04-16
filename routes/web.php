@@ -31,6 +31,7 @@ Route::get('/forgot-password', [PasswordResetController::class, 'requestForm'])-
 Route::post('/forgot-password', [PasswordResetController::class, 'sendLink'])->name('site.password.email');
 Route::get('/reset-password/{token}', [PasswordResetController::class, 'resetForm'])->name('site.password.reset');
 Route::post('/reset-password', [PasswordResetController::class, 'reset'])->name('site.password.update');
+
 Route::match(['GET', 'POST'], '/logout', [SiteController::class, 'logout'])->name('site.logout');
 
 // Rota do perfil (apenas para usuários logados)
@@ -72,6 +73,7 @@ Route::post('/pedidos', [App\Http\Controllers\PedidoController::class, 'store'])
 Route::get('/meus-pedidos', [App\Http\Controllers\PedidoController::class, 'index'])->name('site.pedidos.index');
 Route::post('/pedidos/{pedido}/criar-conta', [App\Http\Controllers\PedidoController::class, 'createAccount'])->name('site.pedidos.create-account');
 Route::get('/pedidos/{pedido}', [App\Http\Controllers\PedidoController::class, 'show'])->name('site.pedidos.show');
+Route::post('/pedidos/{pedido}/confirmar-entrega', [App\Http\Controllers\PedidoController::class, 'confirmarEntrega'])->name('site.pedidos.confirmar-entrega');
 Route::get('/pedidos/{pedido}/reembolso', [App\Http\Controllers\PedidoController::class, 'reembolso'])->name('site.pedidos.reembolso');
 
 // Rotas administrativas (apenas para admins)

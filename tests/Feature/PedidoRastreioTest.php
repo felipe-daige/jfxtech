@@ -6,6 +6,7 @@ use App\Models\Pedido;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use App\Enums\PedidoStatus;
 
 class PedidoRastreioTest extends TestCase
 {
@@ -68,5 +69,40 @@ class PedidoRastreioTest extends TestCase
             'codigo_rastreio' => 'BR123456789BR',
         ])
             ->assertUnauthorized();
+    }
+
+    public function test_admin_cannot_mark_order_as_shipped_without_tracking_code_on_quick_status(): void
+    {
+        $pedido = Pedido::factory()->create(['status' => PedidoStatus::PROCESSANDO, 'codigo_rastreio' => null]);
+
+        $this->actingAs($this->admin)
+            ->postJson(route('admin.pedidos.quick-status', $pedido), [
+                'status' => PedidoStatus::ENVIADO,
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['codigo_rastreio']);
+    }
+
+    public function test_admin_can_mark_order_as_shipped_with_tracking_code(): void
+    {
+        $pedido = Pedido::factory()->create(['status' => PedidoStatus::PROCESSANDO, 'codigo_rastreio' => null]);
+
+        $this->actingAs($this->admin)
+            ->postJson(route('admin.pedidos.quick-status', $pedido), [
+                'status' => PedidoStatus::ENVIADO,
+                'codigo_rastreio' => 'br123456789br',
+            ])
+            ->assertOk()
+            ->assertJson([
+                'success' => true,
+                'status' => PedidoStatus::ENVIADO,
+                'codigo_rastreio' => 'BR123456789BR',
+            ]);
+
+        $this->assertDatabaseHas('pedidos', [
+            'id' => $pedido->id,
+            'status' => PedidoStatus::ENVIADO,
+            'codigo_rastreio' => 'BR123456789BR',
+        ]);
     }
 }

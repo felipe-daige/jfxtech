@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use App\Models\Produto;
-use App\Models\Pedido;
 use App\Models\ItemPedido;
+use App\Services\CheckoutOrderService;
 
 class CarrinhoController extends Controller
 {
+    public function __construct(private CheckoutOrderService $checkoutOrderService) {}
+
     /**
      * Adicionar produto ao carrinho
      */
@@ -67,26 +68,7 @@ class CarrinhoController extends Controller
             ], 400);
         }
 
-        // Verificar se o usuário está logado
-        if (!Auth::check()) {
-            return response()->json([
-                'success'  => false,
-                'message'  => 'Você precisa estar logado para adicionar produtos ao carrinho.',
-                'redirect' => route('site.login')
-            ], 401);
-        }
-
-        $carrinho = Pedido::where('user_id', Auth::id())
-            ->where('status', 'carrinho')
-            ->first();
-
-        if (!$carrinho) {
-            $carrinho = Pedido::create([
-                'user_id'     => Auth::id(),
-                'status'      => 'carrinho',
-                'valor_total' => 0
-            ]);
-        }
+        $carrinho = $this->checkoutOrderService->ensureCart($request);
 
         // Composite key lookup: (produto_id, produto_variante_id) — null is a valid key value
         $itemExistente = ItemPedido::where('pedido_id', $carrinho->id)
@@ -138,7 +120,7 @@ class CarrinhoController extends Controller
             ]);
         }
 
-        $this->recalcularValorTotal($carrinho);
+        $this->checkoutOrderService->recalculateCartTotal($carrinho);
         $carrinho->refresh();
 
         return response()->json([
@@ -166,16 +148,7 @@ class CarrinhoController extends Controller
             'produto_variante_id' => 'nullable|exists:produto_variantes,id',
         ]);
 
-        if (!Auth::check()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Usuário não autenticado.'
-            ], 401);
-        }
-
-        $carrinho = Pedido::where('user_id', Auth::id())
-            ->where('status', 'carrinho')
-            ->first();
+        $carrinho = $this->checkoutOrderService->resolveActiveOrder($request, [], ['carrinho']);
 
         if (!$carrinho) {
             return response()->json([
@@ -191,7 +164,7 @@ class CarrinhoController extends Controller
 
         if ($item) {
             $item->delete();
-            $this->recalcularValorTotal($carrinho);
+            $this->checkoutOrderService->recalculateCartTotal($carrinho);
         }
 
         return response()->json([
@@ -210,13 +183,6 @@ class CarrinhoController extends Controller
             'quantidade'          => 'required|integer|min:1|max:10',
             'produto_variante_id' => 'nullable|exists:produto_variantes,id',
         ]);
-
-        if (!Auth::check()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Usuário não autenticado.'
-            ], 401);
-        }
 
         $produto = Produto::find($request->produto_id);
 
@@ -243,9 +209,7 @@ class CarrinhoController extends Controller
             ], 400);
         }
 
-        $carrinho = Pedido::where('user_id', Auth::id())
-            ->where('status', 'carrinho')
-            ->first();
+        $carrinho = $this->checkoutOrderService->resolveActiveOrder($request, [], ['carrinho']);
 
         if (!$carrinho) {
             return response()->json([
@@ -262,7 +226,7 @@ class CarrinhoController extends Controller
         if ($item) {
             $item->quantidade = $request->quantidade;
             $item->save();
-            $this->recalcularValorTotal($carrinho);
+            $this->checkoutOrderService->recalculateCartTotal($carrinho);
         }
 
         return response()->json([
@@ -274,17 +238,9 @@ class CarrinhoController extends Controller
     /**
      * Exibir carrinho
      */
-    public function carrinho()
+    public function carrinho(Request $request)
     {
-        if (!Auth::check()) {
-            return redirect()->route('site.login')
-                ->with('error', 'Você precisa estar logado para acessar o carrinho.');
-        }
-
-        $carrinho = Pedido::where('user_id', Auth::id())
-            ->where('status', 'carrinho')
-            ->with(['itens.produto.imagens'])
-            ->first();
+        $carrinho = $this->checkoutOrderService->resolveActiveOrder($request, ['itens.produto.imagens'], ['carrinho']);
 
         return view('site.carrinho', compact('carrinho'));
     }
@@ -292,18 +248,9 @@ class CarrinhoController extends Controller
     /**
      * Obter contador do carrinho
      */
-    public function contador()
+    public function contador(Request $request)
     {
-        if (!Auth::check()) {
-            return response()->json([
-                'success' => false,
-                'total_itens' => 0
-            ]);
-        }
-
-        $carrinho = Pedido::where('user_id', Auth::id())
-            ->where('status', 'carrinho')
-            ->first();
+        $carrinho = $this->checkoutOrderService->resolveActiveOrder($request, [], ['carrinho']);
 
         $totalItens = $carrinho ? $carrinho->itens()->sum('quantidade') : 0;
 
@@ -316,19 +263,9 @@ class CarrinhoController extends Controller
     /**
      * Obter itens do carrinho
      */
-    public function itens()
+    public function itens(Request $request)
     {
-        if (!Auth::check()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Usuário não autenticado.'
-            ], 401);
-        }
-
-        $carrinho = Pedido::where('user_id', Auth::id())
-            ->where('status', 'carrinho')
-            ->with(['itens.produto.imagens', 'itens.produtoVariante'])
-            ->first();
+        $carrinho = $this->checkoutOrderService->resolveActiveOrder($request, ['itens.produto.imagens', 'itens.produtoVariante'], ['carrinho']);
 
         if (!$carrinho) {
             return response()->json([
@@ -365,21 +302,12 @@ class CarrinhoController extends Controller
      */
     public function verificar_produto(Request $request)
     {
-        if (!Auth::check()) {
-            return response()->json([
-                'success'     => false,
-                'no_carrinho' => false
-            ]);
-        }
-
         $request->validate([
             'produto_id'          => 'required|exists:produtos,id',
             'produto_variante_id' => 'nullable|exists:produto_variantes,id',
         ]);
 
-        $carrinho = Pedido::where('user_id', Auth::id())
-            ->where('status', 'carrinho')
-            ->first();
+        $carrinho = $this->checkoutOrderService->resolveActiveOrder($request, [], ['carrinho']);
 
         if (!$carrinho) {
             return response()->json([
@@ -401,13 +329,4 @@ class CarrinhoController extends Controller
         ]);
     }
 
-    /**
-     * Recalcular valor total do carrinho
-     */
-    private function recalcularValorTotal($carrinho)
-    {
-        $subtotal = $carrinho->itens()->get()->sum(fn ($item) => $item->quantidade * $item->preco);
-        $desconto = (float) ($carrinho->valor_desconto ?? 0);
-        $carrinho->update(['valor_total' => max(0, $subtotal - $desconto)]);
-    }
 }

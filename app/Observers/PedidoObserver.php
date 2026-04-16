@@ -5,6 +5,7 @@ namespace App\Observers;
 use App\Enums\PedidoStatus;
 use App\Jobs\CartAbandonedNotificationJob;
 use App\Models\Pedido;
+use App\Services\OrderEmailNotificationService;
 use App\Services\OrderStatusNotificationService;
 
 class PedidoObserver
@@ -25,6 +26,11 @@ class PedidoObserver
             return;
         }
 
+        if (in_array($pedido->status, [PedidoStatus::PAGO, PedidoStatus::PROCESSANDO, PedidoStatus::ENVIADO, PedidoStatus::ENTREGUE], true)) {
+            app(\App\Services\GuestToUserConversionService::class)->convert($pedido);
+        }
+
         app(OrderStatusNotificationService::class)->send($pedido);
+        app(OrderEmailNotificationService::class)->send($pedido);
     }
 }

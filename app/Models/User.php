@@ -28,6 +28,7 @@ class User extends Authenticatable
         'password',
         'admin',
         'coupon_portal_enabled',
+        'must_change_password',
     ];
 
     /**
@@ -52,6 +53,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'admin' => 'boolean',
             'coupon_portal_enabled' => 'boolean',
+            'must_change_password' => 'boolean',
         ];
     }
 

@@ -130,13 +130,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     }, 180);
                     setTimeout(function() { btn.innerHTML = originalContent; btn.disabled = false; }, 2000);
                 } else {
-                    if (data.message && data.message.includes('logado')) {
-                        window.location.href = '/login';
-                    } else {
-                        if (window.showNotification) window.showNotification(data.message || 'Erro ao adicionar', 'error');
-                        btn.innerHTML = originalContent;
-                        btn.disabled = false;
-                    }
+                    if (window.showNotification) window.showNotification(data.message || 'Erro ao adicionar', 'error');
+                    btn.innerHTML = originalContent;
+                    btn.disabled = false;
                 }
             })
             .catch(function() {

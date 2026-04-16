@@ -27,10 +27,17 @@ class MercadoPagoCheckoutController extends Controller
 
     public function prepare(Request $request)
     {
+        if ($request->filled('payer_document')) {
+            $request->merge([
+                'payer_document' => preg_replace('/\D/', '', (string) $request->input('payer_document')),
+            ]);
+        }
+
         $validated = $request->validate([
             'customer_name' => 'nullable|string|max:255',
             'customer_email' => 'nullable|email|max:255',
             'customer_phone' => 'nullable|string|max:20',
+            'payer_document' => 'nullable|string|size:11',
             'cep' => 'required|string|max:9',
             'rua' => 'required|string|max:255',
             'numero' => 'required|string|max:10',
@@ -69,6 +76,7 @@ class MercadoPagoCheckoutController extends Controller
         $customerName = $validated['customer_name'] ?? $pedido->customer_name ?? $user?->name ?? '';
         $customerEmail = $validated['customer_email'] ?? $pedido->customer_email ?? $user?->email ?? '';
         $customerPhone = $validated['customer_phone'] ?? $pedido->customer_phone ?? $user?->phone ?? '';
+        $payerDocument = $validated['payer_document'] ?? $user?->cpf;
 
         $subtotal = $pedido->itens->sum(fn ($item) => (float) $item->preco * (int) $item->quantidade);
         $desconto = (float) ($pedido->valor_desconto ?? 0);
@@ -92,6 +100,8 @@ class MercadoPagoCheckoutController extends Controller
             $this->checkoutOrderService->rememberGuestOrder($request, $pedido);
         });
 
+        $this->captureAuthenticatedUserCpf($validated['payer_document'] ?? null);
+
         return response()->json([
             'success' => true,
             'checkout' => [
@@ -106,6 +116,10 @@ class MercadoPagoCheckoutController extends Controller
                     'first_name' => $this->firstName($customerName),
                     'last_name' => $this->lastName($customerName),
                     'entityType' => 'individual',
+                    'identification' => $payerDocument ? [
+                        'type' => 'CPF',
+                        'number' => $payerDocument,
+                    ] : null,
                 ],
                 'customer' => [
                     'name' => $customerName,
@@ -137,9 +151,20 @@ class MercadoPagoCheckoutController extends Controller
             ?? data_get($request->input('formData'), 'email')
             ?? Auth::user()?->email;
         $normalizedIdentificationType = $request->input('payer.identification.type')
+            ?? $request->input('payer.identificationType')
             ?? data_get($request->input('formData'), 'payer.identification.type');
         $normalizedIdentificationNumber = $request->input('payer.identification.number')
+            ?? $request->input('payer.identificationNumber')
+            ?? $request->input('payer_document')
             ?? data_get($request->input('formData'), 'payer.identification.number');
+
+        if ($normalizedIdentificationNumber !== null) {
+            $normalizedIdentificationNumber = preg_replace('/\D/', '', (string) $normalizedIdentificationNumber);
+        }
+
+        if ($normalizedIdentificationType === null && $normalizedIdentificationNumber !== null && $normalizedIdentificationNumber !== '') {
+            $normalizedIdentificationType = 'CPF';
+        }
 
         if ($normalizedPaymentMethodId !== null || $normalizedPayerEmail !== null || $normalizedIdentificationType !== null || $normalizedIdentificationNumber !== null) {
             $request->merge(array_filter([
@@ -204,29 +229,26 @@ class MercadoPagoCheckoutController extends Controller
             ])->save();
         }
 
-        // Late capture: persistir CPF do usuário autenticado se ainda não tiver
-        $authenticatedUser = Auth::user();
-        if ($authenticatedUser && empty($authenticatedUser->cpf)) {
-            $cpfFromRequest = data_get($validated, 'payer.identification.number');
-            if (!empty($cpfFromRequest)) {
-                try {
-                    $authenticatedUser->update(['cpf' => $cpfFromRequest]);
-                } catch (\Illuminate\Database\QueryException) {
-                    // CPF já pertence a outro usuário — ignorar silenciosamente
-                    Log::info('cpf_capture.skipped', [
-                        'user_id' => $authenticatedUser->id,
-                        'reason'  => 'unique_conflict',
-                    ]);
-                }
-            }
+        $payerDocument = $this->resolvePayerDocument($validated);
+
+        if ($payerDocument !== null && empty(data_get($validated, 'payer.identification.number'))) {
+            data_set($validated, 'payer.identification.number', $payerDocument);
         }
 
-        if (($validated['payment_method_id'] ?? null) === 'pix' && empty(data_get($validated, 'payer.identification.number'))) {
+        if (!data_get($validated, 'payer.identification.type') && data_get($validated, 'payer.identification.number')) {
+            data_set($validated, 'payer.identification.type', 'CPF');
+        }
+
+        $this->captureAuthenticatedUserCpf(data_get($validated, 'payer.identification.number'));
+
+        if ($this->paymentMethodRequiresDocument($validated['payment_method_id'] ?? null) && empty(data_get($validated, 'payer.identification.number'))) {
+            $paymentMethodLabel = $this->paymentMethodDocumentLabel($validated['payment_method_id'] ?? null);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Informe um CPF válido para concluir o pagamento via Pix.',
+                'message' => 'Informe um CPF válido para concluir o pagamento via ' . $paymentMethodLabel . '.',
                 'errors' => [
-                    'payer.identification.number' => ['O CPF do pagador é obrigatório para Pix.'],
+                    'payer.identification.number' => ['O CPF do pagador é obrigatório para ' . $paymentMethodLabel . '.'],
                 ],
             ], 422);
         }
@@ -523,6 +545,24 @@ class MercadoPagoCheckoutController extends Controller
         return Endereco::create($payload);
     }
 
+    protected function captureAuthenticatedUserCpf(?string $cpf): void
+    {
+        $authenticatedUser = Auth::user();
+
+        if (!$authenticatedUser || !empty($authenticatedUser->cpf) || empty($cpf)) {
+            return;
+        }
+
+        try {
+            $authenticatedUser->update(['cpf' => preg_replace('/\D/', '', $cpf)]);
+        } catch (\Illuminate\Database\QueryException) {
+            Log::info('cpf_capture.skipped', [
+                'user_id' => $authenticatedUser->id,
+                'reason' => 'unique_conflict',
+            ]);
+        }
+    }
+
     protected function extractInstructions(array $gatewayResponse): array
     {
         $transactionData = $gatewayResponse['point_of_interaction']['transaction_data'] ?? [];
@@ -563,6 +603,34 @@ class MercadoPagoCheckoutController extends Controller
             'bank_transfer', 'bankTransfer' => 'pix',
             'ticket' => 'bolbradesco',
             default => $normalized,
+        };
+    }
+
+    protected function resolvePayerDocument(array $validated): ?string
+    {
+        $document = data_get($validated, 'payer.identification.number')
+            ?: Auth::user()?->cpf;
+
+        if (!is_string($document) || $document === '') {
+            return null;
+        }
+
+        $document = preg_replace('/\D/', '', $document);
+
+        return strlen($document) === 11 ? $document : null;
+    }
+
+    protected function paymentMethodRequiresDocument(?string $paymentMethodId): bool
+    {
+        return in_array($paymentMethodId, ['pix', 'bolbradesco', 'pec', 'ticket'], true);
+    }
+
+    protected function paymentMethodDocumentLabel(?string $paymentMethodId): string
+    {
+        return match ($paymentMethodId) {
+            'pix' => 'Pix',
+            'bolbradesco', 'pec', 'ticket' => 'boleto',
+            default => 'este método de pagamento',
         };
     }
 

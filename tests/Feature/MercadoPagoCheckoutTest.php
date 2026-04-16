@@ -365,6 +365,89 @@ class MercadoPagoCheckoutTest extends TestCase
             ->assertJsonValidationErrors(['payer.identification.number']);
     }
 
+    public function test_pay_requires_payer_identification_for_boleto(): void
+    {
+        $user = User::factory()->create();
+        $pedido = $this->makeCart($user, 50.00, 1, 'pendente');
+        $pedido->update([
+            'valor_total' => 68.00,
+            'frete_tipo' => 'pac',
+            'frete_valor' => 18.00,
+        ]);
+
+        $response = $this->actingAs($user)->postJson(route('site.checkout.mercadopago.pay'), [
+            'pedido_id' => $pedido->id,
+            'payment_method_id' => 'bolbradesco',
+            'transaction_amount' => 68.00,
+            'payer' => [
+                'email' => $user->email,
+            ],
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('message', 'Informe um CPF válido para concluir o pagamento via boleto.')
+            ->assertJsonValidationErrors(['payer.identification.number']);
+    }
+
+    public function test_pay_uses_authenticated_user_cpf_as_payer_fallback_for_boleto(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'boleto@example.com',
+            'cpf' => '12345678901',
+        ]);
+        $pedido = $this->makeCart($user, 50.00, 1, 'pendente');
+        $pedido->update([
+            'valor_total' => 68.00,
+            'frete_tipo' => 'pac',
+            'frete_valor' => 18.00,
+        ]);
+
+        $this->mock(MercadoPagoService::class, function ($mock) use ($pedido): void {
+            $mock->shouldReceive('createPayment')
+                ->once()
+                ->with(\Mockery::on(function (array $payload): bool {
+                    return $payload['payment_method_id'] === 'bolbradesco'
+                        && data_get($payload, 'payer.email') === 'boleto@example.com'
+                        && data_get($payload, 'payer.identification.type') === 'CPF'
+                        && data_get($payload, 'payer.identification.number') === '12345678901';
+                }))
+                ->andReturn([
+                    'id' => 456789123,
+                    'status' => 'pending',
+                    'status_detail' => 'pending_waiting_payment',
+                    'transaction_amount' => 68.00,
+                    'payment_method_id' => 'bolbradesco',
+                    'payment_type_id' => 'ticket',
+                    'external_reference' => (string) $pedido->id,
+                    'transaction_details' => [
+                        'external_resource_url' => 'https://example.test/boleto/123',
+                    ],
+                ]);
+        });
+
+        $response = $this->actingAs($user)->postJson(route('site.checkout.mercadopago.pay'), [
+            'pedido_id' => $pedido->id,
+            'payment_method_id' => 'bolbradesco',
+            'transaction_amount' => 68.00,
+            'payer' => [
+                'email' => $user->email,
+            ],
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('payment.status', 'pending')
+            ->assertJsonPath('payment.instructions.ticket_url', 'https://example.test/boleto/123');
+
+        $this->assertDatabaseHas('pagamentos', [
+            'pedido_id' => $pedido->id,
+            'gateway' => 'mercado_pago',
+            'gateway_payment_id' => '456789123',
+            'status' => 'pendente',
+            'metodo' => 'boleto',
+        ]);
+    }
+
     public function test_pay_maps_selected_payment_method_bank_transfer_to_pix(): void
     {
         $user = User::factory()->create([

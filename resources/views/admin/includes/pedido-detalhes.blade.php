@@ -2,8 +2,8 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="border border-[var(--color-lab-border)] bg-[var(--color-lab-bg)] p-4 sm:p-5">
             <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-3">Dados do Cliente</p>
-            <p class="font-mono text-sm text-black break-words"><span class="text-[var(--color-lab-muted)]">Nome:</span> {{ $pedido->user->name }}</p>
-            <p class="font-mono text-sm text-black break-all"><span class="text-[var(--color-lab-muted)]">E-mail:</span> {{ $pedido->user->email }}</p>
+            <p class="font-mono text-sm text-black break-words"><span class="text-[var(--color-lab-muted)]">Nome:</span> {{ $pedido->user?->name ?? $pedido->customer_name ?? 'Guest' }}</p>
+            <p class="font-mono text-sm text-black break-all"><span class="text-[var(--color-lab-muted)]">E-mail:</span> {{ $pedido->user?->email ?? $pedido->customer_email ?? 'E-mail não informado' }}</p>
         </div>
         <div class="border border-[var(--color-lab-border)] bg-[var(--color-lab-bg)] p-4 sm:p-5">
             <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-3">Endereco de Entrega</p>
