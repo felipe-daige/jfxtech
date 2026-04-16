@@ -42,7 +42,7 @@
     </div>
     @endif
 
-    <section class="py-4">
+    <section id="checkout-section" class="py-4">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- Address Form — columns 1-2 on desktop -->
@@ -741,7 +741,7 @@
             </div>
         `;
 
-        $('section.py-12 .max-w-7xl').html(paymentContent);
+        $('#checkout-section .max-w-7xl').html(paymentContent);
         $('#checkout-title').text('FINALIZAR PAGAMENTO');
         $('#checkout-subtitle').text('PAGUE COM O PAYMENT BRICK DO MERCADO PAGO');
 
