@@ -95,14 +95,14 @@
 
 
         {{-- Price & Action --}}
-        <div class="flex items-center justify-between pt-4 border-t border-[var(--color-lab-border)] mt-auto">
-            <div>
+        <div class="flex flex-col items-start gap-2 pt-4 border-t border-[var(--color-lab-border)] mt-auto sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+            <div class="min-w-0">
                 @if($produto->em_promocao && $produto->preco_original && $produto->preco_original > $produto->preco)
                     <span class="text-xs text-gray-400 line-through block font-mono">R$ {{ number_format($produto->preco_original, 2, ',', '.') }}</span>
                 @endif
-                <span class="font-mono font-bold text-lg">R$ {{ number_format($produto->preco, 2, ',', '.') }}</span>
+                <span class="font-mono font-bold text-lg whitespace-nowrap">R$ {{ number_format($produto->preco, 2, ',', '.') }}</span>
             </div>
-            <a href="{{ route('site.produto.detalhes', $produto->slug) }}" class="text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-black transition-colors flex items-center gap-1">
+            <a href="{{ route('site.produto.detalhes', $produto->slug) }}" class="text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-black transition-colors flex items-center gap-1 sm:self-center">
                 DETALHES
                 <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
             </a>
