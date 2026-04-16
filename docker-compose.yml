@@ -7,8 +7,10 @@ services:
       dockerfile: Dockerfile
     container_name: laravel-app
     restart: unless-stopped
+    environment:
+      APP_ENV: production
     volumes:
-      - ./:/var/www/html
+      - storage-public:/var/www/html/storage/app/public
     networks:
       - laravel-network
       - proxy-network
@@ -20,8 +22,10 @@ services:
     container_name: laravel-worker
     restart: unless-stopped
     command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+    environment:
+      APP_ENV: production
     volumes:
-      - ./:/var/www/html
+      - storage-public:/var/www/html/storage/app/public
     networks:
       - laravel-network
       - proxy-network
@@ -29,15 +33,18 @@ services:
       - app
 
   webserver:
-    image: nginx:alpine
+    build:
+      context: .
+      dockerfile: Dockerfile.webserver
     container_name: laravel-webserver
     restart: unless-stopped
     volumes:
-      - ./:/var/www/html
-      - ./nginx/conf.d:/etc/nginx/conf.d
+      - storage-public:/var/www/html/storage/app/public:ro
     networks:
       - laravel-network
       - proxy-network
+    depends_on:
+      - app
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.laravel.rule=Host(`jfxtech.com.br`)"
@@ -50,3 +57,6 @@ networks:
     driver: bridge
   proxy-network:
     external: true
+
+volumes:
+  storage-public:

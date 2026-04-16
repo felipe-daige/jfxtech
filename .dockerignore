@@ -1,60 +1,31 @@
-# Segredos e ambiente local
 .env
 .env.*
-
-# Controle de versão
-.git/
+.git
 .gitignore
 .gitattributes
-
-# Dependências (instaladas em runtime via volume/bind mount)
-node_modules/
-vendor/
-
-# Storage e artefatos de build frontend
-storage/
-public/build/
-public/storage/
-public/hot/
-
-# Ferramentas de desenvolvimento local
-.claude/
-.superpowers/
-.worktrees/
+.worktrees
+.claude
+.superpowers
 .codex
-.phpunit.cache/
+.vscode
+.idea
+.nova
+.zed
+.phpunit.cache
 .phpactor.json
+node_modules
+vendor
+storage
+public/storage
+public/hot
 *.log
 Thumbs.db
 .DS_Store
-.vscode/
-.idea/
-.nova/
-.zed/
-
-# Código PHP da aplicação
-app/
-bootstrap/
-config/
-database/
-resources/
-routes/
-tests/
-docs/
-imports/
-
-# Arquivos de configuração da aplicação (não pertencem à imagem base)
-composer.json
-composer.lock
-package.json
-package-lock.json
-vite.config.js
-phpunit.xml
-artisan
-
-# Documentação
-*.md
+tests
+docs
+imports
 README.md
 AGENTS.md
 CLAUDE.md
 GEMINI.md
+integracao-gateway-mercadopago.md
