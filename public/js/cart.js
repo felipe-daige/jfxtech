@@ -417,7 +417,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function showNotification(message, type) {
         type = type || 'info';
         var notification = document.createElement('div');
-        notification.className = 'fixed top-4 right-4 z-[60] pointer-events-none px-6 py-3 shadow-lg text-white text-sm font-mono font-bold uppercase tracking-wider transition-all duration-300 transform translate-x-full';
+        notification.className = 'site-toast fixed z-[60] pointer-events-none px-6 py-3 shadow-lg text-white text-sm font-mono font-bold uppercase tracking-wider transition-all duration-300 transform translate-x-full';
 
         var colors = { success: 'bg-black', error: 'bg-red-600', info: 'bg-gray-800', warning: 'bg-yellow-600' };
         notification.classList.add(colors[type] || colors.info);

@@ -64,7 +64,7 @@
 </footer>
 
 {{-- Scroll to Top Button --}}
-<button id="scrollToTop" class="fixed bottom-8 right-8 bg-black text-white w-10 h-10 flex items-center justify-center shadow-lg hover:bg-gray-800 transition-all duration-300 opacity-0 pointer-events-none z-50">
+<button id="scrollToTop" class="fixed right-8 {{ request()->routeIs('site.produto.detalhes') ? 'bottom-24 sm:bottom-8' : 'bottom-8' }} bg-black text-white w-10 h-10 flex items-center justify-center shadow-lg hover:bg-gray-800 transition-all duration-300 opacity-0 pointer-events-none z-50">
     <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
 </button>
 

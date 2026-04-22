@@ -123,7 +123,9 @@ function editarProduto(id) {
             // Preencher formulário com os dados
             document.getElementById('produtoId').value = data.id;
             document.getElementById('nome').value = data.nome;
+            document.getElementById('marca').value = data.marca || '';
             document.getElementById('descricao').value = data.descricao;
+            document.getElementById('descricao_curta').value = data.descricao_curta || '';
             syncDescriptionPreview(data.descricao || '');
             document.getElementById('preco').value = 'R$ ' + data.preco;
             document.getElementById('custo_compra').value = data.custo_compra ? 'R$ ' + data.custo_compra : '';
@@ -251,7 +253,7 @@ function mostrarImagensExistentes(imagens) {
                     </div>
                     <div id="substituir-form-${imagem.id}" class="hidden border-t border-gray-200 p-2 bg-gray-50">
                         <input type="file" id="substituir-file-${imagem.id}"
-                               accept="image/jpeg,image/png,image/jpg,image/gif"
+                               accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
                                onchange="mostrarPreviewSubstituir(${imagem.id}, this)"
                                class="w-full text-[10px] font-mono mb-1.5
                                       file:mr-2 file:py-0.5 file:px-2 file:border-0
@@ -590,9 +592,31 @@ function verDetalhes(pedidoId) {
     if (!conteudo || !modal || !window.routes || !window.routes.adminPedidosDetalhes) return;
 
     conteudo.innerHTML = `
-        <div class="text-center py-8">
-            <div class="text-sm font-mono font-bold uppercase tracking-widest text-gray-400 mb-4">CARREGANDO...</div>
-            <p class="text-gray-500">Carregando detalhes do pedido...</p>
+        <div class="border border-[var(--color-lab-border)] bg-white overflow-hidden animate-pulse">
+            <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.3fr)_minmax(320px,0.9fr)]">
+                <div class="p-6 border-b xl:border-b-0 xl:border-r border-[var(--color-lab-border)] space-y-4">
+                    <div class="h-3 w-28 bg-gray-200"></div>
+                    <div class="h-10 w-64 bg-gray-200"></div>
+                    <div class="h-4 w-full max-w-2xl bg-gray-100"></div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                        <div class="h-28 border border-[var(--color-lab-border)] bg-gray-50"></div>
+                        <div class="h-28 border border-[var(--color-lab-border)] bg-gray-50"></div>
+                        <div class="h-28 border border-[var(--color-lab-border)] bg-gray-50"></div>
+                    </div>
+                </div>
+                <div class="p-6 bg-[var(--color-lab-bg)]">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="h-24 border border-[var(--color-lab-border)] bg-white"></div>
+                        <div class="h-24 border border-[var(--color-lab-border)] bg-white"></div>
+                        <div class="h-24 border border-[var(--color-lab-border)] bg-white"></div>
+                        <div class="h-24 border border-[var(--color-lab-border)] bg-white"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="h-32 border border-[var(--color-lab-border)] bg-gray-50"></div>
+                <div class="h-32 border border-[var(--color-lab-border)] bg-gray-50"></div>
+            </div>
         </div>
     `;
     modal.classList.remove('hidden');

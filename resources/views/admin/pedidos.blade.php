@@ -53,6 +53,7 @@
                     <div class="space-y-0.5">
                         <div class="font-mono text-sm text-black break-words sm:truncate">{{ $pedido->user?->name ?? $pedido->customer_name ?? 'Guest' }}</div>
                         <div class="font-mono text-[10px] text-[var(--color-lab-muted)] break-all sm:truncate">{{ $pedido->user?->email ?? $pedido->customer_email ?? 'E-mail não informado' }}</div>
+                        <div class="font-mono text-[10px] text-[var(--color-lab-muted)] break-words sm:truncate">{{ $pedido->user?->phone ?? $pedido->customer_phone ?? 'Telefone não informado' }}</div>
                     </div>
                 </div>
                 <div class="flex space-x-1 ml-2 flex-shrink-0">
@@ -102,7 +103,7 @@
 <!-- Modal de Detalhes do Pedido -->
 <div id="modalDetalhes" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-50">
     <div class="flex items-center justify-center min-h-screen p-2 sm:p-4">
-        <div class="bg-white border border-[var(--color-lab-border)] w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
+        <div class="bg-white border border-[var(--color-lab-border)] w-full max-w-6xl max-h-[95vh] sm:max-h-[92vh] overflow-y-auto shadow-[0_24px_80px_rgba(0,0,0,0.16)]">
             <div class="p-6 border-b border-[var(--color-lab-border)]">
                 <div class="flex justify-between items-center">
                     <h3 class="font-mono text-sm font-bold uppercase tracking-widest text-black">Detalhes do Pedido</h3>

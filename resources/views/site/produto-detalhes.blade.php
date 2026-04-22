@@ -122,7 +122,6 @@
                         @endif
                     </div>
 
-                    <p class="text-gray-600 mb-8 leading-relaxed">{{ $produto->descricao_curta ?? Str::limit(strip_tags($produto->descricao), 200) }}</p>
 
                     {{-- Variant Selector --}}
                     @if($produto->tem_variantes && $produto->variantesAtivas->count() > 0)

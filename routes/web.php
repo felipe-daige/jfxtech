@@ -6,6 +6,7 @@ use App\Http\Controllers\PedidosController;
 use App\Http\Controllers\FavoritosController;
 use App\Http\Controllers\CarrinhoController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\MercadoPagoCheckoutController;
 use App\Http\Controllers\PasswordResetController;
 
@@ -77,9 +78,17 @@ Route::post('/pedidos/{pedido}/confirmar-entrega', [App\Http\Controllers\PedidoC
 Route::get('/pedidos/{pedido}/reembolso', [App\Http\Controllers\PedidoController::class, 'reembolso'])->name('site.pedidos.reembolso');
 
 // Rotas administrativas (apenas para admins)
-Route::prefix('admin')->name('admin.')->group(function () {
+Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(function () {
     // Dashboard
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/analytics', [AdminController::class, 'analytics'])->name('analytics');
+    Route::get('/analytics/produtos/busca', [AdminController::class, 'analyticsProductSearch'])->name('analytics.products.search');
+    Route::get('/analytics/produtos/{produto}', [AdminController::class, 'analyticsProductShow'])->name('analytics.products.show');
+    Route::post('/dashboard/simulador-promocao', [AdminController::class, 'simulatePromotion'])->name('dashboard.simulator');
+
+    // Usuarios
+    Route::get('/usuarios', [AdminUserController::class, 'index'])->name('usuarios.index');
+    Route::put('/usuarios/{id}', [AdminUserController::class, 'update'])->name('usuarios.update');
     
     // Produtos
     Route::get('/produtos', [AdminController::class, 'produtos'])->name('produtos');

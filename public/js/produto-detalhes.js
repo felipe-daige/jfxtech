@@ -14,6 +14,8 @@ document.addEventListener('DOMContentLoaded', function() {
     var toggleFavoriteBtn = document.getElementById('toggle-favorite');
     var canHoverZoom = !window.matchMedia || window.matchMedia('(hover: hover) and (pointer: fine)').matches;
     var defaultMainImageSrc = mainImage ? mainImage.src : null;
+    var mobileGalleryModal = null;
+    var mobileGalleryCleanup = null;
 
     function resetMainImageZoom() {
         if (!mainImage || !mainImageFrame) return;
@@ -27,6 +29,274 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!mainImage || !imageSrc) return;
         mainImage.src = imageSrc;
         resetMainImageZoom();
+    }
+
+    function escapeHtml(value) {
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function syncActiveThumbnail(imageSrc) {
+        if (!thumbnailBtns.length) return;
+
+        thumbnailBtns.forEach(function(btn) {
+            var isActive = btn.getAttribute('data-image') === imageSrc;
+            btn.classList.toggle('border-black', isActive);
+            btn.classList.toggle('border-[var(--color-lab-border)]', !isActive);
+        });
+    }
+
+    function getVisibleGalleryImages() {
+        var images = [];
+
+        thumbnailBtns.forEach(function(btn) {
+            if (btn.style.display === 'none') return;
+
+            images.push({
+                src: btn.getAttribute('data-image'),
+                alt: (btn.querySelector('img') || {}).alt || (mainImage ? mainImage.alt : 'Imagem do produto')
+            });
+        });
+
+        if (!images.length && mainImage && mainImage.src) {
+            images.push({
+                src: mainImage.src,
+                alt: mainImage.alt || 'Imagem do produto'
+            });
+        }
+
+        return images;
+    }
+
+    function closeMobileGallery() {
+        if (typeof mobileGalleryCleanup === 'function') {
+            mobileGalleryCleanup();
+        }
+    }
+
+    function openMobileGallery() {
+        if (canHoverZoom || !mainImage) return;
+
+        var images = getVisibleGalleryImages();
+        if (!images.length) return;
+
+        closeMobileGallery();
+
+        var activeIndex = images.findIndex(function(image) {
+            return image.src === mainImage.src;
+        });
+
+        if (activeIndex < 0) activeIndex = 0;
+
+        var originalOverflow = document.body.style.overflow;
+        var currentTranslateX = 0;
+        var lastDeltaX = 0;
+        var startX = 0;
+        var startY = 0;
+        var pointerActive = false;
+        var activePointerId = null;
+        var isSwiping = false;
+        var suppressClickUntil = 0;
+
+        mobileGalleryModal = document.createElement('div');
+        mobileGalleryModal.className = 'mobile-product-gallery fixed inset-0 z-50 bg-black/95 text-white';
+
+        var slidesHtml = images.map(function(image) {
+            return '<div class="mobile-product-gallery__slide">' +
+                '<img src="' + escapeHtml(image.src) + '" alt="' + escapeHtml(image.alt) + '" class="mobile-product-gallery__image">' +
+                '</div>';
+        }).join('');
+
+        var dotsHtml = images.map(function(_, index) {
+            return '<button type="button" class="mobile-product-gallery__dot' + (index === activeIndex ? ' is-active' : '') + '" data-gallery-dot="' + index + '" aria-label="Ir para imagem ' + (index + 1) + '"></button>';
+        }).join('');
+
+        mobileGalleryModal.innerHTML =
+            '<div class="mobile-product-gallery__backdrop" data-gallery-close></div>' +
+            '<div class="mobile-product-gallery__chrome">' +
+                '<div class="mobile-product-gallery__counter" data-gallery-counter>' + (activeIndex + 1) + ' / ' + images.length + '</div>' +
+                '<button type="button" class="mobile-product-gallery__close" data-gallery-close aria-label="Fechar galeria">' +
+                    '<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>' +
+                '</button>' +
+            '</div>' +
+            '<div class="mobile-product-gallery__viewport">' +
+                '<div class="mobile-product-gallery__track" data-gallery-track>' + slidesHtml + '</div>' +
+            '</div>' +
+            (images.length > 1 ? '<div class="mobile-product-gallery__dots">' + dotsHtml + '</div>' : '');
+
+        document.body.appendChild(mobileGalleryModal);
+        document.body.style.overflow = 'hidden';
+
+        var viewport = mobileGalleryModal.querySelector('.mobile-product-gallery__viewport');
+        var track = mobileGalleryModal.querySelector('[data-gallery-track]');
+        var counter = mobileGalleryModal.querySelector('[data-gallery-counter]');
+        var dotButtons = mobileGalleryModal.querySelectorAll('[data-gallery-dot]');
+
+        function renderGallery(animate) {
+            if (!track) return;
+
+            track.classList.toggle('is-animating', animate !== false);
+            track.style.transform = 'translate3d(calc(' + (-activeIndex * 100) + '% + ' + currentTranslateX + 'px), 0, 0)';
+
+            if (counter) {
+                counter.textContent = (activeIndex + 1) + ' / ' + images.length;
+            }
+
+            dotButtons.forEach(function(btn, index) {
+                btn.classList.toggle('is-active', index === activeIndex);
+            });
+
+            updateMainImage(images[activeIndex].src);
+            syncActiveThumbnail(images[activeIndex].src);
+        }
+
+        function goToIndex(nextIndex) {
+            if (nextIndex < 0 || nextIndex >= images.length) {
+                currentTranslateX = 0;
+                renderGallery(true);
+                return;
+            }
+
+            activeIndex = nextIndex;
+            currentTranslateX = 0;
+            renderGallery(true);
+        }
+
+        function handlePointerDown(event) {
+            if (images.length <= 1 || !viewport) return;
+
+            pointerActive = true;
+            activePointerId = event.pointerId;
+            isSwiping = false;
+            currentTranslateX = 0;
+            lastDeltaX = 0;
+            startX = event.clientX;
+            startY = event.clientY;
+            if (viewport) {
+                viewport.classList.add('is-dragging');
+                if (track) {
+                    track.classList.remove('is-animating');
+                }
+                if (typeof viewport.setPointerCapture === 'function') {
+                    viewport.setPointerCapture(event.pointerId);
+                }
+            }
+        }
+
+        function handlePointerMove(event) {
+            if (activePointerId !== null && event.pointerId !== activePointerId) return;
+            if (!pointerActive || !track) return;
+
+            var deltaX = event.clientX - startX;
+            var deltaY = event.clientY - startY;
+
+            if (!isSwiping) {
+                if (Math.abs(deltaX) < 8) return;
+                if (Math.abs(deltaY) > Math.abs(deltaX)) {
+                    pointerActive = false;
+                    currentTranslateX = 0;
+                    renderGallery(false);
+                    return;
+                }
+
+                isSwiping = true;
+            }
+
+            event.preventDefault();
+            currentTranslateX = deltaX;
+            lastDeltaX = deltaX;
+            renderGallery(false);
+        }
+
+        function handlePointerEnd(event) {
+            if (activePointerId !== null && event && event.pointerId !== activePointerId) return;
+
+            if (viewport && activePointerId !== null && typeof viewport.releasePointerCapture === 'function' && viewport.hasPointerCapture && viewport.hasPointerCapture(activePointerId)) {
+                viewport.releasePointerCapture(activePointerId);
+            }
+
+            if (viewport) {
+                viewport.classList.remove('is-dragging');
+            }
+
+            if (!pointerActive && !isSwiping) return;
+
+            var finalDeltaX = event ? event.clientX - startX : lastDeltaX;
+            pointerActive = false;
+            activePointerId = null;
+
+            if (!isSwiping) {
+                currentTranslateX = 0;
+                renderGallery(true);
+                return;
+            }
+
+            var threshold = Math.min(window.innerWidth * 0.18, 90);
+            suppressClickUntil = Date.now() + 250;
+
+            if (finalDeltaX <= -threshold) {
+                goToIndex(activeIndex + 1);
+            } else if (finalDeltaX >= threshold) {
+                goToIndex(activeIndex - 1);
+            } else {
+                currentTranslateX = 0;
+                renderGallery(true);
+            }
+
+            isSwiping = false;
+            lastDeltaX = 0;
+        }
+
+        function handleKeydown(event) {
+            if (event.key === 'Escape') closeMobileGallery();
+        }
+
+        mobileGalleryModal.addEventListener('click', function(event) {
+            if (Date.now() < suppressClickUntil) {
+                return;
+            }
+
+            if (event.target.closest('[data-gallery-close]')) {
+                closeMobileGallery();
+                return;
+            }
+
+            if (!event.target.closest('.mobile-product-gallery__image') && !event.target.closest('.mobile-product-gallery__dot')) {
+                closeMobileGallery();
+            }
+        });
+
+        dotButtons.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                goToIndex(parseInt(this.getAttribute('data-gallery-dot'), 10));
+            });
+        });
+
+        if (viewport && images.length > 1) {
+            viewport.addEventListener('pointerdown', handlePointerDown);
+            viewport.addEventListener('pointermove', handlePointerMove);
+            viewport.addEventListener('pointerup', handlePointerEnd);
+            viewport.addEventListener('pointercancel', handlePointerEnd);
+        }
+
+        document.addEventListener('keydown', handleKeydown);
+        renderGallery(false);
+
+        mobileGalleryCleanup = function() {
+            document.removeEventListener('keydown', handleKeydown);
+            document.body.style.overflow = originalOverflow;
+
+            if (mobileGalleryModal) {
+                mobileGalleryModal.remove();
+            }
+
+            mobileGalleryModal = null;
+            mobileGalleryCleanup = null;
+        };
     }
 
     document.querySelectorAll('.js-product-description').forEach(function(section) {
@@ -61,12 +331,7 @@ document.addEventListener('DOMContentLoaded', function() {
             btn.addEventListener('click', function() {
                 var imageSrc = this.getAttribute('data-image');
                 updateMainImage(imageSrc);
-                thumbnailBtns.forEach(function(b) {
-                    b.classList.remove('border-black');
-                    b.classList.add('border-[var(--color-lab-border)]');
-                });
-                this.classList.remove('border-[var(--color-lab-border)]');
-                this.classList.add('border-black');
+                syncActiveThumbnail(imageSrc);
             });
         });
     }
@@ -334,12 +599,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                     if (primeiroBtn && mainImage) {
                         updateMainImage(primeiroBtn.getAttribute('data-image'));
-                        thumbnailBtns.forEach(function(b) {
-                            b.classList.remove('border-black');
-                            b.classList.add('border-[var(--color-lab-border)]');
-                        });
-                        primeiroBtn.classList.add('border-black');
-                        primeiroBtn.classList.remove('border-[var(--color-lab-border)]');
+                        syncActiveThumbnail(primeiroBtn.getAttribute('data-image'));
                     }
                 } else {
                     // Sem fotos associadas: mostra todas
@@ -448,22 +708,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         mainImage.addEventListener('click', function() {
-            if (canHoverZoom) return;
-
-            var modal = document.createElement('div');
-            modal.className = 'fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4';
-            modal.innerHTML = '<div class="relative max-w-4xl max-h-full">' +
-                '<img src="' + this.src + '" alt="' + this.alt + '" class="max-w-full max-h-full object-contain">' +
-                '<button class="absolute top-4 right-4 text-white w-10 h-10 flex items-center justify-center border border-white/30 hover:bg-white/10 transition-colors">' +
-                '<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>' +
-                '</button></div>';
-            document.body.appendChild(modal);
-            modal.addEventListener('click', function(e) {
-                if (e.target === modal || e.target.closest('button')) modal.remove();
-            });
-            document.addEventListener('keydown', function handler(e) {
-                if (e.key === 'Escape') { modal.remove(); document.removeEventListener('keydown', handler); }
-            });
+            openMobileGallery();
         });
     }
 });

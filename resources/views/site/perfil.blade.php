@@ -48,6 +48,9 @@
                             <div class="flex-1 text-center md:text-left">
                                 <h2 id="profile-name-display" class="text-2xl font-bold text-black mb-1">{{ $usuario->name }}</h2>
                                 <p class="text-[var(--color-lab-muted)] text-sm font-mono mb-4">{{ $usuario->email }}</p>
+                                @if($usuario->phone)
+                                    <p class="text-[var(--color-lab-muted)] text-sm font-mono mb-4">Celular: {{ $usuario->phone }}</p>
+                                @endif
                                 <div class="flex flex-wrap justify-center md:justify-start gap-3">
                                     <span class="inline-flex items-center px-3 py-1 border border-[var(--color-lab-border)] text-[10px] font-mono uppercase tracking-widest text-gray-500">
                                         <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>

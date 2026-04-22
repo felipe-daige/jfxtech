@@ -7,38 +7,40 @@ return new class extends Migration
 {
     public function up(): void
     {
+        $artisanDimensions = 'L: 420 × 330 × 4 mm / XL: 490 × 420 × 4 mm / XXL: 500 × 490 × 4 mm';
+
         $mousepads = [
             160 => [ // Artisan FX Hien
                 'superficie' => 'Cloth FX — Velocidade Média (SOFT)',
-                'dimensoes'  => '490 × 420 × 4 mm',
+                'dimensoes'  => $artisanDimensions,
                 'base'       => 'Borracha antiderrapante',
                 'peso'       => '470 g',
                 'garantia'   => '1 ano',
             ],
             159 => [ // Artisan FX Key-83
                 'superficie' => 'Cloth FX — Velocidade Média',
-                'dimensoes'  => '490 × 420 × 4 mm',
+                'dimensoes'  => $artisanDimensions,
                 'base'       => 'Borracha antiderrapante',
                 'peso'       => '470 g',
                 'garantia'   => '1 ano',
             ],
             161 => [ // Artisan FX Raiden
                 'superficie' => 'Cloth FX — Alta Velocidade (HARD)',
-                'dimensoes'  => '490 × 420 × 4 mm',
+                'dimensoes'  => $artisanDimensions,
                 'base'       => 'Borracha antiderrapante',
                 'peso'       => '470 g',
                 'garantia'   => '1 ano',
             ],
             155 => [ // Artisan FX Type-99
                 'superficie' => 'Cloth FX — Balanceado',
-                'dimensoes'  => '490 × 420 × 4 mm',
+                'dimensoes'  => $artisanDimensions,
                 'base'       => 'Borracha antiderrapante',
                 'peso'       => '470 g',
                 'garantia'   => '1 ano',
             ],
             154 => [ // Artisan NINJA FX Zero
                 'superficie' => 'Cloth FX — Alta Controle (XSOFT)',
-                'dimensoes'  => '490 × 420 × 4 mm',
+                'dimensoes'  => $artisanDimensions,
                 'base'       => 'Borracha antiderrapante',
                 'peso'       => '470 g',
                 'garantia'   => '1 ano',

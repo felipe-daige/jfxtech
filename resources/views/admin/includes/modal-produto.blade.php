@@ -55,6 +55,13 @@
                             <input type="text" name="nome" id="nome" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black" required>
                         </div>
                         <div>
+                            <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Marca</label>
+                            <input type="text" name="marca" id="marca" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black" maxlength="100" placeholder="ex: Logitech">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div>
                             <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Categoria</label>
                             <select name="categoria_id" id="categoria_id" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black bg-white" required>
                                 <option value="">Selecione uma categoria</option>
@@ -62,6 +69,10 @@
                                     <option value="{{ $categoria->id }}">{{ $categoria->nome }}</option>
                                 @endforeach
                             </select>
+                        </div>
+                        <div>
+                            <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Descrição Curta</label>
+                            <textarea name="descricao_curta" id="descricao_curta" rows="4" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black" placeholder="Resumo curto para card, SEO e metadados"></textarea>
                         </div>
                     </div>
 

@@ -24,7 +24,7 @@ class AdminDashboardAnalyticsExportTest extends TestCase
 
     public function test_dashboard_analytics_csv_export_downloads_summary_and_product_rows(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['admin' => true]);
         [$produtoPrincipal, $produtoSemCusto] = $this->seedAnalyticsData($user);
 
         $response = $this->actingAs($user)->get(route('admin.dashboard.exportar.csv'));
@@ -47,7 +47,7 @@ class AdminDashboardAnalyticsExportTest extends TestCase
 
     public function test_dashboard_analytics_pdf_export_downloads_pdf_file(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['admin' => true]);
         $this->seedAnalyticsData($user);
 
         $response = $this->actingAs($user)->get(route('admin.dashboard.exportar.pdf'));

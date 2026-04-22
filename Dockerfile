@@ -93,4 +93,6 @@ RUN mkdir -p storage/app/public storage/framework/cache storage/framework/sessio
 
 USER www-data
 
+RUN rm -f bootstrap/cache/*.php
+
 RUN php artisan package:discover --ansi

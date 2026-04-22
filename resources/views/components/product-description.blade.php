@@ -30,8 +30,8 @@
         <div class="grid lg:grid-cols-[240px_minmax(0,1fr)]">
             <div class="border-b lg:border-b-0 lg:border-r border-[var(--color-lab-border)] bg-[var(--color-lab-bg)] p-6 sm:p-8">
                 <p class="font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-gray-500 mb-3">Descrição</p>
-                <h3 class="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">Diferenciais em blocos rápidos.</h3>
-                <p class="mt-4 text-sm leading-7 text-gray-600">A leitura fica mais leve, com destaques visuais, tópicos úteis e contexto sem aquele paredão de texto corrido.</p>
+                <h3 class="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">Detalhes do produto</h3>
+                <p class="mt-4 text-sm leading-7 text-gray-600">Informações, características e observações relevantes sobre este item.</p>
             </div>
 
             <div class="p-6 sm:p-8 lg:p-10 js-product-description">

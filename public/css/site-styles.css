@@ -273,6 +273,109 @@ header {
     }
 }
 
+.mobile-product-gallery {
+    touch-action: pan-y;
+}
+
+.mobile-product-gallery__backdrop {
+    position: absolute;
+    inset: 0;
+}
+
+.mobile-product-gallery__chrome {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+}
+
+.mobile-product-gallery__counter {
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(17, 17, 17, 0.55);
+    padding: 0.45rem 0.75rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+}
+
+.mobile-product-gallery__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(17, 17, 17, 0.55);
+    color: inherit;
+}
+
+.mobile-product-gallery__viewport {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.mobile-product-gallery__track {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    will-change: transform;
+}
+
+.mobile-product-gallery__track.is-animating {
+    transition: transform 0.24s ease;
+}
+
+.mobile-product-gallery__slide {
+    flex: 0 0 100%;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4.5rem 1rem 5.5rem;
+    user-select: none;
+}
+
+.mobile-product-gallery__image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+.mobile-product-gallery__dots {
+    position: absolute;
+    left: 50%;
+    bottom: 1.5rem;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transform: translateX(-50%);
+}
+
+.mobile-product-gallery__dot {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.28);
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.mobile-product-gallery__dot.is-active {
+    background: #fff;
+    transform: scale(1.18);
+}
+
 /* ========================================
    PRODUCT DESCRIPTION
    ======================================== */
@@ -786,6 +889,17 @@ header {
     transition: opacity 0.12s;
     z-index: 9999;
     transform: translateX(-50%) translateY(-100%);
+}
+
+.site-toast {
+    top: 5.5rem;
+    right: 1rem;
+}
+
+@media (min-width: 768px) {
+    .site-toast {
+        top: 6.25rem;
+    }
 }
 
 /* ========================================

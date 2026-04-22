@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use App\Http\Middleware\AdminAuth;
 use App\Http\Middleware\CaptureCouponCode;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -18,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->alias([
             'auth' => \App\Http\Middleware\Authenticate::class,
+            'admin' => AdminAuth::class,
         ]);
         $middleware->validateCsrfTokens(except: ['logout']);
         if (env('APP_ENV') === 'testing') {

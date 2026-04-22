@@ -14,10 +14,12 @@ use App\Models\ProdutoVariante;
 use App\Models\ProdutoOpcaoGrupo;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ProdutosExport;
 use App\Support\ProdutoDescricaoFormatter;
+use App\Services\PromotionSimulationService;
 
 class AdminController extends Controller
 {
@@ -29,6 +31,100 @@ class AdminController extends Controller
         }
 
         return view('admin.dashboard', $this->getDashboardAnalyticsData());
+    }
+
+    public function analytics()
+    {
+        if (!Auth::check()) {
+            return redirect()->route('site.login');
+        }
+
+        return view('admin.analytics', $this->getDashboardAnalyticsData());
+    }
+
+    public function analyticsProductSearch(Request $request)
+    {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $term = trim((string) $request->query('q', ''));
+        if ($term === '') {
+            return response()->json(['products' => []]);
+        }
+
+        $normalizedTerm = Str::lower($term);
+        $prefix = $normalizedTerm . '%';
+        $contains = '%' . $normalizedTerm . '%';
+
+        $products = Produto::query()
+            ->select(['id', 'nome', 'marca', 'slug', 'ativo'])
+            ->where(function ($query) use ($contains) {
+                $query
+                    ->whereRaw('LOWER(nome) LIKE ?', [$contains])
+                    ->orWhereRaw('LOWER(COALESCE(marca, \'\')) LIKE ?', [$contains])
+                    ->orWhereRaw('LOWER(slug) LIKE ?', [$contains]);
+            })
+            ->orderByRaw(
+                "CASE
+                    WHEN LOWER(nome) LIKE ? THEN 0
+                    WHEN LOWER(COALESCE(marca, '')) LIKE ? THEN 1
+                    WHEN LOWER(slug) LIKE ? THEN 2
+                    ELSE 3
+                END",
+                [$prefix, $prefix, $prefix]
+            )
+            ->orderBy('nome')
+            ->limit(8)
+            ->get()
+            ->map(fn (Produto $produto) => [
+                'id' => $produto->id,
+                'name' => $produto->nome,
+                'brand' => $produto->marca,
+                'slug' => $produto->slug,
+                'active' => (bool) $produto->ativo,
+                'url' => route('admin.analytics.products.show', $produto),
+            ])
+            ->values();
+
+        return response()->json(['products' => $products]);
+    }
+
+    public function analyticsProductShow(Request $request, Produto $produto)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('site.login');
+        }
+
+        $period = $this->resolveAnalyticsPeriod((string) $request->query('period', '30'));
+
+        return view('admin.analytics-produto', $this->getProductAnalyticsData($produto, $period));
+    }
+
+    public function simulatePromotion(Request $request, PromotionSimulationService $simulationService)
+    {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $validated = $request->validate([
+            'product_ids' => ['required', 'array', 'min:1'],
+            'product_ids.*' => ['integer', 'exists:produtos,id'],
+            'period_days' => ['required', Rule::in([30, 90, 365])],
+            'discount_percent' => ['required', 'numeric', 'min:0', 'max:100'],
+            'extra_unit_cost' => ['nullable', 'numeric', 'min:0'],
+            'extra_order_cost' => ['nullable', 'numeric', 'min:0'],
+        ]);
+
+        $simulation = $simulationService->simulate(
+            $validated['product_ids'],
+            (int) $validated['period_days'],
+            (float) $validated['discount_percent'],
+            (float) ($validated['extra_unit_cost'] ?? 0),
+            (float) ($validated['extra_order_cost'] ?? 0),
+        );
+
+        return response()->json($simulation);
     }
 
     // Gerenciar produtos
@@ -153,7 +249,9 @@ class AdminController extends Controller
         return response()->json([
             'id' => $produto->id,
             'nome' => $produto->nome,
+            'marca' => $produto->marca,
             'descricao' => $produto->descricao,
+            'descricao_curta' => $produto->descricao_curta,
             'preco' => $produto->em_promocao && $produto->preco_original ? 
                        number_format($produto->preco_original, 2, ',', '.') : 
                        number_format($produto->preco, 2, ',', '.'),
@@ -183,7 +281,9 @@ class AdminController extends Controller
     {
         $request->validate([
             'nome' => 'required|string|max:255',
+            'marca' => 'nullable|string|max:100',
             'descricao' => 'required|string',
+            'descricao_curta' => 'nullable|string',
             'preco' => 'required|string',
             'custo_compra' => 'nullable|string',
             'peso' => 'nullable|numeric|min:0',
@@ -194,7 +294,7 @@ class AdminController extends Controller
             'destaque' => 'nullable|boolean',
             'tags' => 'nullable|array|max:2',
             'tags.*' => 'string|max:50',
-            'imagens.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048'
+            'imagens.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:2048'
         ]);
 
         // Converter preço do formato brasileiro para decimal
@@ -240,7 +340,9 @@ class AdminController extends Controller
 
         $produto = Produto::create([
             'nome' => $request->nome,
+            'marca' => $request->filled('marca') ? trim((string) $request->marca) : null,
             'descricao' => $descricao,
+            'descricao_curta' => $request->filled('descricao_curta') ? trim((string) $request->descricao_curta) : null,
             'preco' => $precoFinal, // Preço final (com desconto se aplicável)
             'custo_compra' => $request->filled('custo_compra') ? $custoCompra : null,
             'peso' => $request->peso, // Peso em KG
@@ -279,7 +381,9 @@ class AdminController extends Controller
         
         $request->validate([
             'nome' => 'required|string|max:255',
+            'marca' => 'nullable|string|max:100',
             'descricao' => 'required|string',
+            'descricao_curta' => 'nullable|string',
             'preco' => 'required|string',
             'custo_compra' => 'nullable|string',
             'peso' => 'nullable|numeric|min:0',
@@ -290,7 +394,7 @@ class AdminController extends Controller
             'destaque' => 'nullable|boolean',
             'tags' => 'nullable|array|max:2',
             'tags.*' => 'string|max:50',
-            'imagens.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'imagens.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'imagem_capa_id' => 'nullable|exists:produto_imagens,id'
         ]);
 
@@ -337,7 +441,9 @@ class AdminController extends Controller
 
         $produto->update([
             'nome' => $request->nome,
+            'marca' => $request->filled('marca') ? trim((string) $request->marca) : null,
             'descricao' => $descricao,
+            'descricao_curta' => $request->filled('descricao_curta') ? trim((string) $request->descricao_curta) : null,
             'preco' => $precoFinal, // Preço final (com desconto se aplicável)
             'custo_compra' => $request->filled('custo_compra') ? $custoCompra : null,
             'peso' => $request->peso, // Peso em KG
@@ -487,7 +593,7 @@ class AdminController extends Controller
         }
 
         $request->validate([
-            'imagem' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
+            'imagem' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048'
         ]);
 
         $imagem = ProdutoImagem::findOrFail($id);
@@ -639,10 +745,13 @@ class AdminController extends Controller
             'user',
             'endereco',
             'itens.produto.imagens',
+            'itens.produtoVariante',
             'pagamentos'
         ])->findOrFail($id);
 
-        $html = view('admin.includes.pedido-detalhes', compact('pedido'))->render();
+        $analytics = $this->buildOrderDetailAnalytics($pedido);
+
+        $html = view('admin.includes.pedido-detalhes', compact('pedido', 'analytics'))->render();
         return response()->json(['html' => $html]);
     }
 
@@ -1123,6 +1232,99 @@ class AdminController extends Controller
         return null;
     }
 
+    private function resolveAnalyticsPeriod(string $period): string
+    {
+        return in_array($period, ['30', '90', '365', 'total'], true) ? $period : '30';
+    }
+
+    private function analyticsPeriodOptions(): array
+    {
+        return [
+            ['value' => '30', 'label' => '30 dias'],
+            ['value' => '90', 'label' => '90 dias'],
+            ['value' => '365', 'label' => '365 dias'],
+            ['value' => 'total', 'label' => 'Total'],
+        ];
+    }
+
+    private function getProductAnalyticsData(Produto $produto, string $period): array
+    {
+        $performanceStatuses = PedidoStatus::performanceValues();
+        $periodStart = match ($period) {
+            '30' => now()->subDays(30),
+            '90' => now()->subDays(90),
+            '365' => now()->subDays(365),
+            default => null,
+        };
+
+        $itensQuery = ItemPedido::query()
+            ->with([
+                'pedido:id,status,created_at',
+                'produto:id,custo_compra',
+                'produtoVariante:id,produto_id,custo_compra',
+            ])
+            ->where('produto_id', $produto->id)
+            ->whereHas('pedido', function ($query) use ($performanceStatuses, $periodStart) {
+                $query->whereIn('status', $performanceStatuses);
+
+                if ($periodStart) {
+                    $query->where('created_at', '>=', $periodStart);
+                }
+            });
+
+        $itens = $itensQuery->get();
+        $receitaTotal = 0.0;
+        $custoTotal = 0.0;
+        $unidadesVendidas = 0;
+        $itensSemCusto = 0;
+
+        foreach ($itens as $item) {
+            $receitaTotal += (float) $item->preco * (int) $item->quantidade;
+            $unidadesVendidas += (int) $item->quantidade;
+
+            $custoUnitario = $this->resolveItemCost($item);
+            if ($custoUnitario === null) {
+                $itensSemCusto += (int) $item->quantidade;
+                $custoUnitario = 0.0;
+            }
+
+            $custoTotal += $custoUnitario * (int) $item->quantidade;
+        }
+
+        $pedidosCount = $itens->pluck('pedido_id')->unique()->count();
+        $lucroBrutoTotal = round($receitaTotal - $custoTotal, 2);
+        $margemBrutaPercentual = $receitaTotal > 0
+            ? round(($lucroBrutoTotal / $receitaTotal) * 100, 2)
+            : 0.0;
+        $ticketMedioProduto = $pedidosCount > 0
+            ? round($receitaTotal / $pedidosCount, 2)
+            : 0.0;
+        $ultimoPedidoEm = $itens
+            ->pluck('pedido.created_at')
+            ->filter()
+            ->max();
+
+        return [
+            'produto' => $produto->loadMissing(['categoria:id,nome', 'imagemCapa:id,produto_id,caminho']),
+            'categorias' => Categoria::orderBy('nome')->get(),
+            'selected_period' => $period,
+            'period_options' => $this->analyticsPeriodOptions(),
+            'period_label' => collect($this->analyticsPeriodOptions())->firstWhere('value', $period)['label'] ?? '30 dias',
+            'period_start' => $periodStart,
+            'product_metrics' => [
+                'receita_total' => round($receitaTotal, 2),
+                'custo_total' => round($custoTotal, 2),
+                'lucro_bruto_total' => $lucroBrutoTotal,
+                'margem_bruta_percentual' => $margemBrutaPercentual,
+                'unidades_vendidas' => $unidadesVendidas,
+                'pedidos_count' => $pedidosCount,
+                'ticket_medio_produto' => $ticketMedioProduto,
+                'itens_sem_custo' => $itensSemCusto,
+                'ultimo_pedido_em' => $ultimoPedidoEm,
+            ],
+        ];
+    }
+
     private function getDashboardAnalyticsData(): array
     {
         $performanceStatuses = PedidoStatus::performanceValues();
@@ -1136,7 +1338,9 @@ class AdminController extends Controller
         $pedidos_entregues   = Pedido::where('status', PedidoStatus::ENTREGUE)->count();
         $pedidos_cancelados  = Pedido::where('status', PedidoStatus::CANCELADO)->count();
         $pedidos_performance = Pedido::whereIn('status', $performanceStatuses);
-        $receita_total       = (float) (clone $pedidos_performance)->sum('valor_total');
+        $receita_total       = (float) (clone $pedidos_performance)
+            ->selectRaw('COALESCE(SUM(valor_total - COALESCE(frete_valor, 0)), 0) as receita')
+            ->value('receita');
 
         $itensPerformance = ItemPedido::with([
             'produto:id,custo_compra',
@@ -1173,9 +1377,15 @@ class AdminController extends Controller
             'custo_compra',
             'desconto_percentual',
             'em_promocao',
+            'destaque',
             'estoque',
-            'ativo'
-        )->with('imagemCapa:id,produto_id')->orderBy('nome')->get();
+            'ativo',
+            'categoria_id',
+            'tags'
+        )->with([
+            'imagemCapa:id,produto_id',
+            'categoria:id,nome',
+        ])->orderBy('nome')->get();
 
         $margemMinima = 20;
         $produtosSemCusto = $produtos_analytics->whereNull('custo_compra');
@@ -1280,6 +1490,10 @@ class AdminController extends Controller
             'color' => $statusPalette[$status] ?? 'bg-gray-300',
         ], PedidoStatus::adminValues()));
 
+        $promotion_simulator_periods = [30, 90, 365];
+        $promotion_simulator_default_period = 30;
+        $profit_exclusivity_insights = $this->buildProfitExclusivityInsights($produtos_analytics);
+
         return compact(
             'total_produtos',
             'total_pedidos',
@@ -1306,6 +1520,9 @@ class AdminController extends Controller
             'pedidos_acao',
             'categorias',
             'pedidos_por_status',
+            'profit_exclusivity_insights',
+            'promotion_simulator_periods',
+            'promotion_simulator_default_period',
             'sla_pago_sem_processar',
             'sla_processando_sem_enviar',
             'sla_enviado_sem_entregar'
@@ -1327,6 +1544,104 @@ class AdminController extends Controller
             ['Total de Unidades', (string) $analytics['total_unidades']],
             ['Total de Ativos', (string) $analytics['total_ativos']],
             ['Itens Sem Custo', (string) $analytics['itens_sem_custo']],
+        ];
+    }
+
+    private function buildProfitExclusivityInsights($produtosAnalytics): array
+    {
+        $eligible = $produtosAnalytics
+            ->filter(fn($produto) => $produto->ativo
+                && $produto->custo_compra !== null
+                && $produto->lucro_bruto_unitario !== null
+                && $produto->margem_bruta_percentual !== null)
+            ->map(function ($produto) {
+                $exclusive = $this->resolveExclusiveSignal($produto);
+
+                return [
+                    'id' => $produto->id,
+                    'nome' => $produto->nome,
+                    'marca' => $produto->marca,
+                    'categoria' => $produto->categoria?->nome,
+                    'preco_com_desconto' => (float) $produto->preco_com_desconto,
+                    'custo_compra' => (float) $produto->custo_compra,
+                    'lucro_bruto_unitario' => (float) $produto->lucro_bruto_unitario,
+                    'margem_bruta_percentual' => (float) $produto->margem_bruta_percentual,
+                    'estoque' => (int) $produto->estoque,
+                    'destaque' => (bool) $produto->destaque,
+                    'tags' => $produto->tags ?? [],
+                    'exclusive_signal' => $exclusive['signal'],
+                    'exclusive_reason' => $exclusive['reason'],
+                ];
+            })
+            ->values();
+
+        return [
+            'top_lucro_unitario' => $eligible
+                ->sort(function (array $a, array $b) {
+                    return [$b['lucro_bruto_unitario'], $b['margem_bruta_percentual'], $a['nome']]
+                        <=> [$a['lucro_bruto_unitario'], $a['margem_bruta_percentual'], $b['nome']];
+                })
+                ->take(10)
+                ->values(),
+            'top_margem_percentual' => $eligible
+                ->sort(function (array $a, array $b) {
+                    return [$b['margem_bruta_percentual'], $b['lucro_bruto_unitario'], $a['nome']]
+                        <=> [$a['margem_bruta_percentual'], $a['lucro_bruto_unitario'], $b['nome']];
+                })
+                ->take(10)
+                ->values(),
+            'top_menor_margem' => $eligible
+                ->sort(function (array $a, array $b) {
+                    return [$a['margem_bruta_percentual'], $a['lucro_bruto_unitario'], $a['nome']]
+                        <=> [$b['margem_bruta_percentual'], $b['lucro_bruto_unitario'], $b['nome']];
+                })
+                ->take(10)
+                ->values(),
+            'top_exclusivos_lucrativos' => $eligible
+                ->filter(fn(array $produto) => $produto['exclusive_signal'] !== 'none')
+                ->sort(function (array $a, array $b) {
+                    return [$b['lucro_bruto_unitario'], $b['margem_bruta_percentual'], $a['nome']]
+                        <=> [$a['lucro_bruto_unitario'], $a['margem_bruta_percentual'], $b['nome']];
+                })
+                ->take(10)
+                ->values(),
+        ];
+    }
+
+    private function resolveExclusiveSignal(Produto $produto): array
+    {
+        $tags = collect($produto->tags ?? [])
+            ->filter(fn($tag) => is_string($tag))
+            ->map(fn(string $tag) => Str::lower(trim($tag)));
+
+        if ($tags->contains('exclusivo')) {
+            return [
+                'signal' => 'explicit',
+                'reason' => 'Tag Exclusivo',
+            ];
+        }
+
+        $brand = Str::lower(trim((string) ($produto->marca ?? '')));
+        if (in_array($brand, ['artisan', 'wooting', 'wlmouse', 'benq zowie'], true)) {
+            return [
+                'signal' => 'premium_brand',
+                'reason' => 'Marca premium',
+            ];
+        }
+
+        $name = Str::lower($produto->nome);
+        foreach (['counter strike 2 edition', '600hz', '540hz', 'qd-oled'] as $keyword) {
+            if (Str::contains($name, $keyword)) {
+                return [
+                    'signal' => 'premium_keyword',
+                    'reason' => 'Linha/edição premium',
+                ];
+            }
+        }
+
+        return [
+            'signal' => 'none',
+            'reason' => null,
         ];
     }
 
@@ -1352,6 +1667,135 @@ class AdminController extends Controller
             ['Estoque zerado', (string) $analytics['alertas']['estoque_zerado']],
             ['Sem custo', (string) $analytics['alertas']['sem_custo']],
             ['Inativos', (string) $analytics['alertas']['inativos']],
+        ];
+    }
+
+    private function buildOrderDetailAnalytics(Pedido $pedido): array
+    {
+        $items = $pedido->itens->map(function (ItemPedido $item) {
+            $receita = round((float) $item->preco * (int) $item->quantidade, 2);
+            $custoUnitario = $this->resolveItemCost($item);
+            $custoTotal = $custoUnitario !== null ? round($custoUnitario * (int) $item->quantidade, 2) : null;
+            $lucroUnitario = $custoUnitario !== null ? round((float) $item->preco - $custoUnitario, 2) : null;
+            $lucroTotal = $custoTotal !== null ? round($receita - $custoTotal, 2) : null;
+            $margemPercentual = ($custoUnitario !== null && $receita > 0)
+                ? round((($receita - $custoTotal) / $receita) * 100, 2)
+                : null;
+            $opcoes = collect($item->opcoes_snapshot ?? [])
+                ->filter(fn ($value, $key) => filled($key) && filled($value))
+                ->map(fn ($value, $key) => $key . ': ' . (is_array($value) ? implode(', ', $value) : $value))
+                ->values();
+
+            $health = 'healthy';
+            if ($custoUnitario === null) {
+                $health = 'missing_cost';
+            } elseif ($margemPercentual < 0) {
+                $health = 'negative';
+            } elseif ($margemPercentual < 20) {
+                $health = 'low';
+            }
+
+            return [
+                'id' => $item->id,
+                'produto_id' => $item->produto_id,
+                'produto_nome' => $item->produto?->nome ?? 'Produto removido',
+                'quantidade' => (int) $item->quantidade,
+                'preco_unitario' => round((float) $item->preco, 2),
+                'receita' => $receita,
+                'custo_unitario' => $custoUnitario,
+                'custo_total' => $custoTotal,
+                'lucro_unitario' => $lucroUnitario,
+                'lucro_total' => $lucroTotal,
+                'margem_percentual' => $margemPercentual,
+                'cost_source' => $item->produtoVariante?->custo_compra !== null ? 'variante' : ($item->produto?->custo_compra !== null ? 'produto' : 'sem_custo'),
+                'variant_label' => $opcoes->isNotEmpty() ? $opcoes->implode(' · ') : null,
+                'variant_lines' => $opcoes,
+                'image_path' => optional($item->produto?->imagens?->firstWhere('capa', true) ?: $item->produto?->imagens?->first())->caminho,
+                'health' => $health,
+            ];
+        })->values();
+
+        $receitaItens = round((float) $items->sum('receita'), 2);
+        $custoConhecido = round((float) $items->sum(fn (array $item) => $item['custo_total'] ?? 0), 2);
+        $lucroConhecido = round((float) $items->sum(fn (array $item) => $item['lucro_total'] ?? 0), 2);
+        $totalUnidades = (int) $items->sum('quantidade');
+        $itensSemCusto = (int) $items->where('cost_source', 'sem_custo')->count();
+
+        $rankByProfit = $items
+            ->sortByDesc(fn (array $item) => $item['lucro_total'] ?? PHP_FLOAT_MIN)
+            ->pluck('id')
+            ->values();
+
+        $rankByRevenue = $items
+            ->sortByDesc('receita')
+            ->pluck('id')
+            ->values();
+
+        $rankByMargin = $items
+            ->sortBy(fn (array $item) => $item['margem_percentual'] ?? PHP_FLOAT_MAX)
+            ->pluck('id')
+            ->values();
+
+        $topProfitItemId = $rankByProfit->first();
+        $worstMarginItemId = $rankByMargin->first();
+
+        $items = $items->map(function (array $item) use ($receitaItens, $lucroConhecido, $rankByRevenue, $rankByMargin, $topProfitItemId, $worstMarginItemId) {
+            $receitaShare = $receitaItens > 0 ? round(($item['receita'] / $receitaItens) * 100, 2) : 0;
+            $lucroShare = ($lucroConhecido != 0 && $item['lucro_total'] !== null)
+                ? round(($item['lucro_total'] / $lucroConhecido) * 100, 2)
+                : null;
+
+            $item['receita_share_percentual'] = $receitaShare;
+            $item['lucro_share_percentual'] = $lucroShare;
+            $item['rank_receita'] = $rankByRevenue->search($item['id']) + 1;
+            $item['rank_margem'] = $rankByMargin->search($item['id']) + 1;
+            $item['is_top_profit'] = $item['id'] === $topProfitItemId;
+            $item['is_worst_margin'] = $item['id'] === $worstMarginItemId;
+            $item['margin_bar_percent'] = $item['margem_percentual'] === null
+                ? 0
+                : max(6, min(100, round(abs($item['margem_percentual']))));
+
+            return $item;
+        })->values();
+
+        $frete = round((float) ($pedido->frete_valor ?? 0), 2);
+        $desconto = round((float) ($pedido->valor_desconto ?? 0), 2);
+        $margemPedido = ($receitaItens > 0 && $itensSemCusto === 0)
+            ? round(($lucroConhecido / $receitaItens) * 100, 2)
+            : null;
+        $paymentMix = $pedido->pagamentos
+            ->groupBy(fn ($pagamento) => $pagamento->metodo ?? 'desconhecido')
+            ->map(fn ($group, $method) => [
+                'label' => match ($method) {
+                    'pix' => 'Pix',
+                    'cartao' => 'Cartão',
+                    'boleto' => 'Boleto',
+                    default => ucfirst((string) $method),
+                },
+                'count' => $group->count(),
+                'value' => round((float) $group->sum('valor'), 2),
+            ])
+            ->values();
+
+        return [
+            'summary' => [
+                'receita_itens' => $receitaItens,
+                'valor_total_pedido' => round((float) $pedido->valor_total, 2),
+                'frete' => $frete,
+                'desconto' => $desconto,
+                'custo_total_estimado' => $custoConhecido,
+                'lucro_total_estimado' => $lucroConhecido,
+                'margem_percentual_estimada' => $margemPedido,
+                'unidades' => $totalUnidades,
+                'linhas' => $items->count(),
+                'itens_sem_custo' => $itensSemCusto,
+            ],
+            'items' => $items,
+            'highlights' => [
+                'top_profit_item_id' => $topProfitItemId,
+                'worst_margin_item_id' => $worstMarginItemId,
+            ],
+            'payment_mix' => $paymentMix,
         ];
     }
 

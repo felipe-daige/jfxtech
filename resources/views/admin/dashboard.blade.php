@@ -15,7 +15,7 @@
                     <div>
                         <h1 class="text-3xl sm:text-4xl font-bold text-black tracking-tight">Dashboard</h1>
                         <p class="mt-2 max-w-2xl text-sm text-[var(--color-lab-muted)]">
-                            Monitore vendas, alertas operacionais e exporte os analytics do painel em poucos cliques.
+                            Monitore vendas, operação e fulfillment. Os analytics detalhados agora ficam em uma tela própria.
                         </p>
                     </div>
                     <div class="inline-flex w-fit flex-col border border-[var(--color-lab-border)] bg-white px-4 py-3">
@@ -37,32 +37,10 @@
                         Novo Produto
                     </button>
 
-                    <div class="relative sm:col-span-1" data-export-menu>
-                        <button type="button"
-                                id="export-menu-button"
-                                aria-haspopup="true"
-                                aria-expanded="false"
-                                aria-controls="export-menu-panel"
-                                class="inline-flex min-h-12 w-full items-center justify-center gap-2 px-4 py-3 border border-[var(--color-lab-border)] bg-white font-mono text-[10px] uppercase tracking-widest text-black hover:border-black transition-colors text-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-                            Baixar Analytics
-                            <span id="export-menu-chevron" class="text-xs transition-transform duration-200">&#9662;</span>
-                        </button>
-
-                        <div id="export-menu-panel"
-                             class="hidden absolute left-0 right-0 top-[calc(100%+0.5rem)] z-20 border border-[var(--color-lab-border)] bg-white shadow-xl">
-                            <a href="{{ route('admin.dashboard.exportar.pdf') }}"
-                               class="flex items-center justify-between gap-3 px-4 py-3 font-mono text-[10px] uppercase tracking-widest text-black hover:bg-gray-50 border-b border-[var(--color-lab-border)]">
-                                <span>Exportar PDF</span>
-                                <span class="text-[var(--color-lab-muted)]">.pdf</span>
-                            </a>
-                            <a href="{{ route('admin.dashboard.exportar.csv') }}"
-                               class="flex items-center justify-between gap-3 px-4 py-3 font-mono text-[10px] uppercase tracking-widest text-black hover:bg-gray-50">
-                                <span>Exportar CSV</span>
-                                <span class="text-[var(--color-lab-muted)]">.csv</span>
-                            </a>
-                        </div>
-                    </div>
+                    <a href="{{ route('admin.analytics') }}"
+                       class="inline-flex min-h-12 items-center justify-center gap-2 px-4 py-3 border border-[var(--color-lab-border)] bg-white font-mono text-[10px] uppercase tracking-widest text-black hover:border-black transition-colors text-center">
+                        Analytics
+                    </a>
 
                     <a href="{{ route('admin.pedidos') }}"
                        class="inline-flex min-h-12 items-center justify-center gap-2 px-4 py-3 border font-mono text-[10px] uppercase tracking-widest hover:border-black transition-colors text-center {{ $pedidos_nao_finalizados > 0 ? 'border-yellow-400 bg-yellow-50 text-yellow-700' : 'border-[var(--color-lab-border)] bg-white text-black' }}">
@@ -96,9 +74,9 @@
             <p class="font-mono text-[10px] text-[var(--color-lab-muted)] mt-1">vendas confirmadas e em andamento</p>
         </div>
         <div class="border border-[var(--color-lab-border)] bg-white p-5 sm:p-6">
-            <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-2">Lucro Bruto</p>
+            <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-2">Lucro Líquido</p>
             <p class="text-lg sm:text-2xl font-bold font-mono {{ $lucro_bruto_total >= 0 ? 'text-black' : 'text-red-600' }}">R$&nbsp;{{ number_format($lucro_bruto_total, 2, ',', '.') }}</p>
-            <p class="font-mono text-[10px] text-[var(--color-lab-muted)] mt-1">receita &minus; custo</p>
+            <p class="font-mono text-[10px] text-[var(--color-lab-muted)] mt-1">receita de produtos &minus; custo</p>
         </div>
         <div class="border border-[var(--color-lab-border)] bg-white p-5 sm:p-6">
             <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-2">Margem Bruta</p>
@@ -112,184 +90,19 @@
         </div>
     </div>
 
-    {{-- SECTION: ALERTAS + STATUS --}}
-    <div data-section="alertas" data-default-open="true" class="border border-[var(--color-lab-border)] bg-white">
+    {{-- SECTION: STATUS + AÇÕES --}}
+    <div data-section="status" data-default-open="false" class="border border-[var(--color-lab-border)] bg-white">
         <div data-section-toggle class="flex items-center justify-between gap-3 px-4 sm:px-6 py-4 cursor-pointer hover:bg-gray-50 border-b border-[var(--color-lab-border)] select-none">
             <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">
-                <span data-section-arrow>&#9660;</span>&nbsp; Alertas &amp; Status
+                <span data-section-arrow>&#9660;</span>&nbsp; Status e Ações
             </p>
         </div>
         <div data-section-content class="p-4 sm:p-6">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-                {{-- Alertas --}}
-                <div>
-                    <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-4">Alertas</p>
-                    @php
-                        $temCritico  = $alertas['margem_negativa'] > 0 || $alertas['margem_zero'] > 0;
-                        $temAtencao  = $alertas['margem_baixa'] > 0 || $alertas['estoque_zerado'] > 0;
-                        $temSemCusto = $alertas['sem_custo'] > 0;
-                        $temInfo     = $alertas['inativos'] > 0;
-                    @endphp
-
-                    @if(!$temCritico && !$temAtencao && !$temSemCusto)
-                    <div class="flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 mb-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-600 shrink-0"><path d="M20 6 9 17l-5-5"/></svg>
-                        <span class="font-mono text-[10px] uppercase tracking-widest text-green-700">Tudo OK</span>
-                    </div>
-                    @endif
-
-                    <div class="space-y-1">
-                        @if($temCritico)
-                        <p class="font-mono text-[10px] uppercase tracking-widest text-red-500 mt-3 mb-1">Cr&iacute;tico</p>
-                        @endif
-
-                        @if($alertas['margem_negativa'] > 0)
-                        <div>
-                            <div data-expandable="alert-margem-neg" class="flex items-center justify-between py-2 border-l-2 border-red-500 pl-3 cursor-pointer hover:bg-red-50 select-none">
-                                <div class="flex items-center gap-2">
-                                    <span data-expand-arrow class="font-mono text-[10px] text-red-400">&#9654;</span>
-                                    <span class="font-mono text-xs text-black">Margem negativa</span>
-                                </div>
-                                <span class="font-mono text-xs font-bold text-red-600">{{ $alertas['margem_negativa'] }}</span>
-                            </div>
-                            <div id="alert-margem-neg" class="hidden ml-3 mt-1 space-y-1">
-                                @foreach($alertas['produtos_margem_negativa'] as $ap)
-                                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between py-2 px-3 bg-red-50" data-alert-produto="{{ $ap->id }}">
-                                    <span class="font-mono text-xs text-black break-words sm:truncate sm:max-w-[140px]">{{ $ap->nome }}</span>
-                                    <button onclick="abrirQuickFix({{ $ap->id }}, '{{ addslashes($ap->nome) }}', '{{ $ap->custo_compra }}', {{ $ap->estoque }})"
-                                            class="font-mono text-[10px] uppercase tracking-widest px-2 py-1 border border-red-300 text-red-600 hover:bg-red-100 shrink-0">
-                                        &#9998; Editar
-                                    </button>
-                                </div>
-                                @endforeach
-                            </div>
-                        </div>
-                        @endif
-
-                        @if($alertas['margem_zero'] > 0)
-                        <div>
-                            <div data-expandable="alert-margem-zero" class="flex items-center justify-between py-2 border-l-2 border-red-500 pl-3 cursor-pointer hover:bg-red-50 select-none">
-                                <div class="flex items-center gap-2">
-                                    <span data-expand-arrow class="font-mono text-[10px] text-red-400">&#9654;</span>
-                                    <span class="font-mono text-xs text-black">Margem zero</span>
-                                </div>
-                                <span class="font-mono text-xs font-bold text-red-600">{{ $alertas['margem_zero'] }}</span>
-                            </div>
-                            <div id="alert-margem-zero" class="hidden ml-3 mt-1 space-y-1">
-                                @foreach($alertas['produtos_margem_zero'] as $ap)
-                                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between py-2 px-3 bg-red-50" data-alert-produto="{{ $ap->id }}">
-                                    <span class="font-mono text-xs text-black break-words sm:truncate sm:max-w-[140px]">{{ $ap->nome }}</span>
-                                    <button onclick="abrirQuickFix({{ $ap->id }}, '{{ addslashes($ap->nome) }}', '{{ $ap->custo_compra }}', {{ $ap->estoque }})"
-                                            class="font-mono text-[10px] uppercase tracking-widest px-2 py-1 border border-red-300 text-red-600 hover:bg-red-100 shrink-0">
-                                        &#9998; Editar
-                                    </button>
-                                </div>
-                                @endforeach
-                            </div>
-                        </div>
-                        @endif
-
-                        @if($temAtencao)
-                        <p class="font-mono text-[10px] uppercase tracking-widest text-yellow-600 mt-3 mb-1">Aten&ccedil;&atilde;o</p>
-                        @endif
-
-                        @if($alertas['margem_baixa'] > 0)
-                        <div>
-                            <div data-expandable="alert-margem-baixa" class="flex items-center justify-between py-2 border-l-2 border-yellow-400 pl-3 cursor-pointer hover:bg-yellow-50 select-none">
-                                <div class="flex items-center gap-2">
-                                    <span data-expand-arrow class="font-mono text-[10px] text-yellow-400">&#9654;</span>
-                                    <span class="font-mono text-xs text-black">Margem abaixo de 20%</span>
-                                </div>
-                                <span class="font-mono text-xs font-bold text-yellow-600">{{ $alertas['margem_baixa'] }}</span>
-                            </div>
-                            <div id="alert-margem-baixa" class="hidden ml-3 mt-1 space-y-1">
-                                @foreach($alertas['produtos_margem_baixa'] as $ap)
-                                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between py-2 px-3 bg-yellow-50" data-alert-produto="{{ $ap->id }}">
-                                    <div>
-                                        <span class="font-mono text-xs text-black break-words sm:truncate sm:max-w-[120px] block">{{ $ap->nome }}</span>
-                                        <span class="font-mono text-[10px] text-yellow-600">{{ number_format($ap->margem_bruta_percentual, 1, ',', '.') }}%</span>
-                                    </div>
-                                    <button onclick="abrirQuickFix({{ $ap->id }}, '{{ addslashes($ap->nome) }}', '{{ $ap->custo_compra }}', {{ $ap->estoque }})"
-                                            class="font-mono text-[10px] uppercase tracking-widest px-2 py-1 border border-yellow-300 text-yellow-700 hover:bg-yellow-100 shrink-0">
-                                        &#9998; Editar
-                                    </button>
-                                </div>
-                                @endforeach
-                            </div>
-                        </div>
-                        @endif
-
-                        @if($alertas['estoque_zerado'] > 0)
-                        <div>
-                            <div data-expandable="alert-estoque" class="flex items-center justify-between py-2 border-l-2 border-yellow-400 pl-3 cursor-pointer hover:bg-yellow-50 select-none">
-                                <div class="flex items-center gap-2">
-                                    <span data-expand-arrow class="font-mono text-[10px] text-yellow-400">&#9654;</span>
-                                    <span class="font-mono text-xs text-black">Estoque zerado (ativo)</span>
-                                </div>
-                                <span class="font-mono text-xs font-bold text-yellow-600">{{ $alertas['estoque_zerado'] }}</span>
-                            </div>
-                            <div id="alert-estoque" class="hidden ml-3 mt-1 space-y-1">
-                                @foreach($alertas['produtos_estoque_zerado'] as $ap)
-                                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between py-2 px-3 bg-yellow-50" data-alert-produto="{{ $ap->id }}">
-                                    <span class="font-mono text-xs text-black break-words sm:truncate sm:max-w-[140px]">{{ $ap->nome }}</span>
-                                    <button onclick="abrirQuickFix({{ $ap->id }}, '{{ addslashes($ap->nome) }}', '{{ $ap->custo_compra }}', {{ $ap->estoque }})"
-                                            class="font-mono text-[10px] uppercase tracking-widest px-2 py-1 border border-yellow-300 text-yellow-700 hover:bg-yellow-100 shrink-0">
-                                        &#9998; Estoque
-                                    </button>
-                                </div>
-                                @endforeach
-                            </div>
-                        </div>
-                        @endif
-
-                        @if($temSemCusto)
-                        <p class="font-mono text-[10px] uppercase tracking-widest text-blue-600 mt-3 mb-1">Dados Incompletos</p>
-                        <div>
-                            <div data-expandable="alert-sem-custo" class="flex items-center justify-between py-2 border-l-2 border-blue-400 pl-3 cursor-pointer hover:bg-blue-50 select-none">
-                                <div class="flex items-center gap-2">
-                                    <span data-expand-arrow class="font-mono text-[10px] text-blue-400">&#9654;</span>
-                                    <div>
-                                        <span class="font-mono text-xs font-bold text-black">Pre&ccedil;o de compra n&atilde;o cadastrado</span>
-                                        <p class="font-mono text-[10px] text-blue-500">Margem indispon&iacute;vel &mdash; cadastre o custo de aquisi&ccedil;&atilde;o</p>
-                                    </div>
-                                </div>
-                                <span class="font-mono text-xs font-bold text-blue-600 shrink-0">{{ $alertas['sem_custo'] }}</span>
-                            </div>
-                            <div id="alert-sem-custo" class="hidden ml-3 mt-1 space-y-1">
-                                @foreach($alertas['produtos_sem_custo'] as $ap)
-                                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between py-2 px-3 bg-blue-50" data-alert-produto="{{ $ap->id }}">
-                                    <div>
-                                        <span class="font-mono text-xs text-black break-words sm:truncate sm:max-w-[120px] block">{{ $ap->nome }}</span>
-                                        <span class="font-mono text-[10px] text-gray-400">R$ {{ number_format($ap->preco_com_desconto, 2, ',', '.') }}</span>
-                                    </div>
-                                    <button onclick="abrirQuickFix({{ $ap->id }}, '{{ addslashes($ap->nome) }}', '', {{ $ap->estoque }})"
-                                            class="font-mono text-[10px] uppercase tracking-widest px-2 py-1 border border-blue-300 text-blue-600 hover:bg-blue-100 shrink-0">
-                                        &#9998; Editar custo
-                                    </button>
-                                </div>
-                                @endforeach
-                            </div>
-                        </div>
-                        @endif
-
-                        @if($temInfo)
-                        <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mt-3 mb-1">Informa&ccedil;&atilde;o</p>
-                        @if($alertas['inativos'] > 0)
-                        <div class="flex items-center justify-between py-1.5 border-l-2 border-gray-300 pl-3">
-                            <span class="font-mono text-xs text-black">Produtos inativos</span>
-                            <span class="font-mono text-xs font-bold text-gray-500">{{ $alertas['inativos'] }}</span>
-                        </div>
-                        @endif
-                        @endif
-                    </div>
-                </div>
-
-                {{-- Status dos pedidos --}}
                 <div>
                     <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-4">Status dos Pedidos</p>
                     <div class="space-y-3">
-                @foreach($pedidos_por_status as $s)
+                        @foreach($pedidos_por_status as $s)
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
                                 <div class="w-2 h-2 {{ $s['color'] }} shrink-0"></div>
@@ -307,31 +120,40 @@
                     </div>
                 </div>
 
-                {{-- Acoes rapidas --}}
                 <div>
-                    <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-4">A&ccedil;&otilde;es R&aacute;pidas</p>
-                    <div class="space-y-2 mb-4">
+                    <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-4">Resumo Operacional</p>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="font-mono text-sm text-black">Pedidos pagos</span>
+                            <span class="font-mono text-sm font-bold text-black">{{ $pedidos_pagos }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="font-mono text-sm text-black">Não finalizados</span>
+                            <span class="font-mono text-sm font-bold text-black">{{ $pedidos_nao_finalizados }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="font-mono text-sm text-black">Itens sem custo</span>
+                            <span class="font-mono text-sm font-bold {{ $itens_sem_custo > 0 ? 'text-yellow-600' : 'text-black' }}">{{ $itens_sem_custo }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="font-mono text-sm text-black">Receita total</span>
+                            <span class="font-mono text-sm font-bold text-black">R$ {{ number_format($receita_total, 2, ',', '.') }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-4">Ações Rápidas</p>
+                    <div class="space-y-2">
+                        <a href="{{ route('admin.analytics') }}" class="flex items-center gap-3 px-4 py-3 border border-[var(--color-lab-border)] hover:border-black hover:bg-gray-50 transition-colors">
+                            <span class="font-mono text-xs uppercase tracking-widest text-black">Abrir Analytics</span>
+                        </a>
                         <a href="{{ route('admin.produtos') }}" class="flex items-center gap-3 px-4 py-3 border border-[var(--color-lab-border)] hover:border-black hover:bg-gray-50 transition-colors">
                             <span class="font-mono text-xs uppercase tracking-widest text-black">Gerenciar Produtos</span>
-                        </a>
-                        <a href="{{ route('admin.categorias') }}" class="flex items-center gap-3 px-4 py-3 border border-[var(--color-lab-border)] hover:border-black hover:bg-gray-50 transition-colors">
-                            <span class="font-mono text-xs uppercase tracking-widest text-black">Gerenciar Categorias</span>
                         </a>
                         <a href="{{ route('admin.pedidos') }}" class="flex items-center gap-3 px-4 py-3 border border-[var(--color-lab-border)] hover:border-black hover:bg-gray-50 transition-colors">
                             <span class="font-mono text-xs uppercase tracking-widest text-black">Ver Todos os Pedidos</span>
                         </a>
-                    </div>
-                    <div class="border-t border-[var(--color-lab-border)] pt-4 space-y-2">
-                        <div class="flex justify-between">
-                            <span class="font-mono text-xs text-[var(--color-lab-muted)]">Custo total</span>
-                            <span class="font-mono text-xs font-bold text-black">R$&nbsp;{{ number_format($custo_total, 2, ',', '.') }}</span>
-                        </div>
-                        @if($itens_sem_custo > 0)
-                        <div class="flex justify-between">
-                            <span class="font-mono text-xs text-yellow-600">Itens s/ custo (entregues)</span>
-                            <span class="font-mono text-xs font-bold text-yellow-600">{{ $itens_sem_custo }}</span>
-                        </div>
-                        @endif
                     </div>
                 </div>
             </div>
@@ -417,17 +239,23 @@
                     <div class="font-mono text-xs text-[var(--color-lab-muted)]">R$&nbsp;{{ number_format($pedido->valor_total, 2, ',', '.') }}</div>
                 </div>
                 <div class="sm:mt-0">
-                    @if($pedido->status === PedidoStatus::PAGO)
-                    <button onclick="avancarStatusPedido(this, {{ $pedido->id }}, '{{ PedidoStatus::PROCESSANDO }}')"
-                            class="w-full sm:w-auto font-mono text-[10px] uppercase tracking-widest px-3 py-2 border border-black text-black hover:bg-black hover:text-white transition-colors">
-                        &rarr; {{ PedidoStatus::label(PedidoStatus::PROCESSANDO) }}
-                    </button>
-                    @elseif($pedido->status === PedidoStatus::PROCESSANDO)
-                    <button onclick="avancarStatusPedido(this, {{ $pedido->id }}, '{{ PedidoStatus::ENVIADO }}')"
-                            class="w-full sm:w-auto font-mono text-[10px] uppercase tracking-widest px-3 py-2 border border-black text-black hover:bg-black hover:text-white transition-colors">
-                        &rarr; {{ PedidoStatus::label(PedidoStatus::ENVIADO) }}
-                    </button>
-                    @endif
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <button onclick="verDetalhes({{ $pedido->id }})"
+                                class="w-full sm:w-auto font-mono text-[10px] uppercase tracking-widest px-3 py-2 border border-[var(--color-lab-border)] text-black hover:border-black hover:bg-gray-50 transition-colors">
+                            Ver detalhes
+                        </button>
+                        @if($pedido->status === PedidoStatus::PAGO)
+                        <button onclick="avancarStatusPedido(this, {{ $pedido->id }}, '{{ PedidoStatus::PROCESSANDO }}')"
+                                class="w-full sm:w-auto font-mono text-[10px] uppercase tracking-widest px-3 py-2 border border-black text-black hover:bg-black hover:text-white transition-colors">
+                            &rarr; {{ PedidoStatus::label(PedidoStatus::PROCESSANDO) }}
+                        </button>
+                        @elseif($pedido->status === PedidoStatus::PROCESSANDO)
+                        <button onclick="avancarStatusPedido(this, {{ $pedido->id }}, '{{ PedidoStatus::ENVIADO }}')"
+                                class="w-full sm:w-auto font-mono text-[10px] uppercase tracking-widest px-3 py-2 border border-black text-black hover:bg-black hover:text-white transition-colors">
+                            &rarr; {{ PedidoStatus::label(PedidoStatus::ENVIADO) }}
+                        </button>
+                        @endif
+                    </div>
                 </div>
             </div>
             @endforeach
@@ -435,202 +263,7 @@
     </div>
     @endif
 
-    {{-- SECTION: PERFORMANCE --}}
-    <div data-section="performance" data-default-open="true" class="border border-[var(--color-lab-border)] bg-white">
-        <div data-section-toggle class="flex items-center justify-between gap-3 px-4 sm:px-6 py-4 cursor-pointer hover:bg-gray-50 border-b border-[var(--color-lab-border)] select-none">
-            <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">
-                <span data-section-arrow>&#9660;</span>&nbsp; Performance
-            </p>
-        </div>
-        <div data-section-content class="p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-            <div>
-                <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-4">Top 5 Mais Vendidos</p>
-                @forelse($top_produtos as $i => $item)
-                <div class="flex items-start gap-3 mb-3">
-                    <span class="font-mono text-xs text-[var(--color-lab-muted)] w-4 shrink-0">{{ $i + 1 }}</span>
-                    <div class="flex-1 min-w-0">
-                        <p class="font-mono text-xs text-black truncate">{{ $item->produto?->nome ?? '&mdash;' }}</p>
-                        <p class="font-mono text-[10px] text-[var(--color-lab-muted)]">{{ $item->total_vendido }} un. &middot; R$&nbsp;{{ number_format($item->receita_gerada, 2, ',', '.') }}</p>
-                    </div>
-                </div>
-                @empty
-                <p class="font-mono text-xs text-[var(--color-lab-muted)]">Nenhuma venda entregue ainda.</p>
-                @endforelse
-            </div>
-
-            <div>
-                <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-4">Receita por Categoria</p>
-                @php $maxReceita = $receita_categoria->max('receita') ?: 1; @endphp
-                @forelse($receita_categoria as $cat)
-                <div class="mb-3">
-                    <div class="flex justify-between mb-1">
-                        <span class="font-mono text-xs text-black">{{ $cat->nome }}</span>
-                        <span class="font-mono text-xs text-[var(--color-lab-muted)]">R$&nbsp;{{ number_format($cat->receita, 0, ',', '.') }}</span>
-                    </div>
-                    <div class="h-1 bg-gray-100">
-                        <div class="h-1 bg-black" style="width: {{ round(($cat->receita / $maxReceita) * 100) }}%"></div>
-                    </div>
-                </div>
-                @empty
-                <p class="font-mono text-xs text-[var(--color-lab-muted)]">Nenhuma venda entregue ainda.</p>
-                @endforelse
-            </div>
-
-            <div>
-                <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-4">M&eacute;tricas Gerais</p>
-                <div class="space-y-4">
-                    <div>
-                        <p class="font-mono text-[10px] text-[var(--color-lab-muted)] mb-1">Ticket M&eacute;dio</p>
-                        <p class="font-mono text-xl font-bold text-black">R$&nbsp;{{ number_format($ticket_medio, 2, ',', '.') }}</p>
-                        <p class="font-mono text-[10px] text-[var(--color-lab-muted)]">por venda confirmada</p>
-                    </div>
-                    <div>
-                        <p class="font-mono text-[10px] text-[var(--color-lab-muted)] mb-1">Unidades Vendidas</p>
-                        <p class="font-mono text-xl font-bold text-black">{{ $total_unidades }}</p>
-                        <p class="font-mono text-[10px] text-[var(--color-lab-muted)]">vendas confirmadas e em andamento</p>
-                    </div>
-                    <div>
-                        <p class="font-mono text-[10px] text-[var(--color-lab-muted)] mb-1">Produtos Ativos</p>
-                        <p class="font-mono text-xl font-bold text-black">{{ $total_ativos }}</p>
-                        <p class="font-mono text-[10px] text-[var(--color-lab-muted)]">de {{ $total_produtos }} total</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- SECTION: ANALYTICS DE PRODUTOS --}}
-    <div data-section="analytics" data-default-open="true" class="border border-[var(--color-lab-border)] bg-white">
-        <div data-section-toggle class="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between px-4 sm:px-6 py-4 cursor-pointer hover:bg-gray-50 border-b border-[var(--color-lab-border)] select-none">
-            <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">
-                <span data-section-arrow>&#9660;</span>&nbsp; Analytics de Produtos
-            </p>
-            <span class="font-mono text-xs text-[var(--color-lab-muted)]">{{ $produtos_analytics->count() }} produtos &middot; clique nos cabe&ccedil;alhos para ordenar</span>
-        </div>
-        <div data-section-content>
-            <div class="md:hidden p-4 space-y-3">
-                @foreach($produtos_analytics as $p)
-                @php $margem = $p->margem_bruta_percentual; $lucro = $p->lucro_bruto_unitario; @endphp
-                <div class="border border-[var(--color-lab-border)] p-4">
-                    <div class="flex items-start justify-between gap-3">
-                        <div class="min-w-0">
-                            <p class="font-mono text-sm font-bold text-black break-words">{{ $p->nome }}</p>
-                            <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mt-1">{{ $p->marca ?: 'Sem marca' }}</p>
-                        </div>
-                        <button onclick="abrirQuickFix({{ $p->id }}, '{{ addslashes($p->nome) }}', '{{ $p->custo_compra ?? '' }}', {{ $p->estoque }})"
-                                class="shrink-0 font-mono text-[10px] px-2 py-1 border border-[var(--color-lab-border)] text-[var(--color-lab-muted)] hover:border-black hover:text-black transition-colors"
-                                title="Editar custo e estoque">
-                            &#9998;
-                        </button>
-                    </div>
-                    <div class="grid grid-cols-2 gap-3 mt-4">
-                        <div>
-                            <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Venda</p>
-                            <p class="font-mono text-xs text-black mt-1">R$ {{ number_format($p->preco_com_desconto, 2, ',', '.') }}</p>
-                        </div>
-                        <div>
-                            <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Custo</p>
-                            <p class="font-mono text-xs mt-1 {{ $p->custo_compra ? 'text-black' : 'text-gray-300' }}">
-                                {!! $p->custo_compra ? 'R$ ' . number_format($p->custo_compra, 2, ',', '.') : '&mdash;' !!}
-                            </p>
-                        </div>
-                        <div>
-                            <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Lucro unit.</p>
-                            <p class="font-mono text-xs mt-1 {{ $lucro === null ? 'text-gray-300' : ($lucro >= 0 ? 'text-black' : 'text-red-600') }}">
-                                {!! $lucro !== null ? 'R$ ' . number_format($lucro, 2, ',', '.') : '&mdash;' !!}
-                            </p>
-                        </div>
-                        <div>
-                            <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Estoque</p>
-                            <p class="font-mono text-xs mt-1 {{ $p->estoque == 0 && $p->ativo ? 'text-yellow-600 font-bold' : 'text-black' }}">{{ $p->estoque }}</p>
-                        </div>
-                    </div>
-                    <div class="flex flex-wrap items-center gap-2 mt-4">
-                        @if($margem === null)
-                            <span class="inline-block px-2 py-0.5 font-mono text-[10px] bg-blue-50 text-blue-500 border border-blue-200">Sem custo</span>
-                        @elseif($margem < 0)
-                            <span class="inline-block px-2 py-0.5 font-mono text-[10px] bg-red-100 text-red-700 font-bold">{{ number_format($margem, 1, ',', '.') }}%</span>
-                        @elseif($margem < 20)
-                            <span class="inline-block px-2 py-0.5 font-mono text-[10px] bg-yellow-100 text-yellow-700 font-bold">{{ number_format($margem, 1, ',', '.') }}%</span>
-                        @else
-                            <span class="inline-block px-2 py-0.5 font-mono text-[10px] bg-green-100 text-green-700 font-bold">{{ number_format($margem, 1, ',', '.') }}%</span>
-                        @endif
-                        <span class="inline-block px-2 py-0.5 font-mono text-[10px] border {{ $p->ativo ? 'border-black text-black' : 'border-gray-300 text-gray-400' }}">
-                            {{ $p->ativo ? 'Ativo' : 'Inativo' }}
-                        </span>
-                    </div>
-                </div>
-                @endforeach
-            </div>
-            <div class="hidden md:block overflow-x-auto admin-mobile-scroll">
-                <table id="tabela-analytics" class="w-full min-w-[920px] text-sm">
-                <thead>
-                    <tr class="border-b border-[var(--color-lab-border)]">
-                        <th data-col="nome"    class="analytics-th text-left    px-4 py-3 font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] cursor-pointer hover:text-black select-none whitespace-nowrap">Produto <span class="sort-arrow ml-1"></span></th>
-                        <th data-col="marca"   class="analytics-th text-left    px-4 py-3 font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] cursor-pointer hover:text-black select-none whitespace-nowrap">Marca <span class="sort-arrow ml-1"></span></th>
-                        <th data-col="preco"   class="analytics-th text-right   px-4 py-3 font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] cursor-pointer hover:text-black select-none whitespace-nowrap">Pre&ccedil;o Venda <span class="sort-arrow ml-1"></span></th>
-                        <th data-col="custo"   class="analytics-th text-right   px-4 py-3 font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] cursor-pointer hover:text-black select-none whitespace-nowrap">Custo <span class="sort-arrow ml-1"></span></th>
-                        <th data-col="lucro"   class="analytics-th text-right   px-4 py-3 font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] cursor-pointer hover:text-black select-none whitespace-nowrap">Lucro Unit. <span class="sort-arrow ml-1"></span></th>
-                        <th data-col="margem"  class="analytics-th text-right   px-4 py-3 font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] cursor-pointer hover:text-black select-none whitespace-nowrap">Margem % <span class="sort-arrow ml-1"></span></th>
-                        <th data-col="estoque" class="analytics-th text-right   px-4 py-3 font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] cursor-pointer hover:text-black select-none whitespace-nowrap">Estoque <span class="sort-arrow ml-1"></span></th>
-                        <th data-col="status"  class="analytics-th text-center  px-4 py-3 font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] cursor-pointer hover:text-black select-none whitespace-nowrap">Status <span class="sort-arrow ml-1"></span></th>
-                        <th class="px-4 py-3 font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] whitespace-nowrap">A&ccedil;&otilde;es</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($produtos_analytics as $p)
-                    @php $margem = $p->margem_bruta_percentual; $lucro = $p->lucro_bruto_unitario; @endphp
-                    <tr class="border-b border-[var(--color-lab-border)] hover:bg-gray-50 transition-colors"
-                        data-id="{{ $p->id }}"
-                        data-nome="{{ strtolower($p->nome) }}"
-                        data-marca="{{ strtolower($p->marca ?? '') }}"
-                        data-preco="{{ $p->preco_com_desconto }}"
-                        data-custo="{{ $p->custo_compra ?? '' }}"
-                        data-lucro="{{ $lucro ?? '' }}"
-                        data-margem="{{ $margem ?? '' }}"
-                        data-estoque="{{ $p->estoque }}"
-                        data-status="{{ $p->ativo ? '1' : '0' }}">
-                        <td class="px-4 py-3 font-mono text-xs text-black">{{ $p->nome }}</td>
-                        <td class="px-4 py-3 font-mono text-xs text-[var(--color-lab-muted)]">{!! $p->marca ?? '&mdash;' !!}</td>
-                        <td class="px-4 py-3 font-mono text-xs text-black text-right">R$&nbsp;{{ number_format($p->preco_com_desconto, 2, ',', '.') }}</td>
-                        <td class="px-4 py-3 font-mono text-xs text-right {{ $p->custo_compra ? 'text-black' : 'text-gray-300' }}" data-cell="custo">
-                            {!! $p->custo_compra ? 'R$ ' . number_format($p->custo_compra, 2, ',', '.') : '&mdash;' !!}
-                        </td>
-                        <td class="px-4 py-3 font-mono text-xs text-right {{ $lucro === null ? 'text-gray-300' : ($lucro >= 0 ? 'text-black' : 'text-red-600') }}" data-cell="lucro">
-                            {!! $lucro !== null ? 'R$ ' . number_format($lucro, 2, ',', '.') : '&mdash;' !!}
-                        </td>
-                        <td class="px-4 py-3 text-right" data-cell="margem">
-                            @if($margem === null)
-                                <span class="inline-block px-2 py-0.5 font-mono text-[10px] bg-blue-50 text-blue-500 border border-blue-200" title="Preco de compra nao cadastrado">Sem custo</span>
-                            @elseif($margem < 0)
-                                <span class="inline-block px-2 py-0.5 font-mono text-[10px] bg-red-100 text-red-700 font-bold">{{ number_format($margem, 1, ',', '.') }}%</span>
-                            @elseif($margem < 20)
-                                <span class="inline-block px-2 py-0.5 font-mono text-[10px] bg-yellow-100 text-yellow-700 font-bold">{{ number_format($margem, 1, ',', '.') }}%</span>
-                            @else
-                                <span class="inline-block px-2 py-0.5 font-mono text-[10px] bg-green-100 text-green-700 font-bold">{{ number_format($margem, 1, ',', '.') }}%</span>
-                            @endif
-                        </td>
-                        <td class="px-4 py-3 font-mono text-xs text-right {{ $p->estoque == 0 && $p->ativo ? 'text-yellow-600 font-bold' : 'text-black' }}" data-cell="estoque">{{ $p->estoque }}</td>
-                        <td class="px-4 py-3 text-center">
-                            <span class="inline-block px-2 py-0.5 font-mono text-[10px] border {{ $p->ativo ? 'border-black text-black' : 'border-gray-300 text-gray-400' }}">
-                                {{ $p->ativo ? 'Ativo' : 'Inativo' }}
-                            </span>
-                        </td>
-                        <td class="px-4 py-3 text-center">
-                            <button onclick="abrirQuickFix({{ $p->id }}, '{{ addslashes($p->nome) }}', '{{ $p->custo_compra ?? '' }}', {{ $p->estoque }})"
-                                    class="font-mono text-[10px] px-2 py-1 border border-[var(--color-lab-border)] text-[var(--color-lab-muted)] hover:border-black hover:text-black transition-colors"
-                                    title="Editar custo e estoque">
-                                &#9998;
-                            </button>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+    @include('admin.includes.promotion-simulator')
 
     {{-- SECTION: PEDIDOS RECENTES --}}
     <div data-section="pedidos-recentes" data-default-open="false" class="border border-[var(--color-lab-border)] bg-white">
@@ -651,14 +284,18 @@
                         <div class="font-mono text-sm text-black break-words sm:truncate">{{ $pedido->user?->name ?? $pedido->customer_name ?? 'Guest' }}</div>
                         <div class="font-mono text-xs text-[var(--color-lab-muted)] break-all sm:truncate">{{ $pedido->user?->email ?? $pedido->customer_email ?? 'E-mail não informado' }}</div>
                     </div>
-                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2 sm:mt-0">
-                        <div class="font-mono text-sm font-bold text-black text-right">R$&nbsp;{{ number_format($pedido->valor_total, 2, ',', '.') }}</div>
-                        @php $badgeColors = PedidoStatus::badgeClasses(); @endphp
-                        <span class="inline-block px-3 py-1 font-mono text-[10px] uppercase tracking-widest border {{ $badgeColors[$pedido->status] ?? 'border-gray-300 text-gray-500' }}">
-                            {{ PedidoStatus::label($pedido->status) }}
-                        </span>
-                    </div>
+                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2 sm:mt-0">
+                    <div class="font-mono text-sm font-bold text-black text-right">R$&nbsp;{{ number_format($pedido->valor_total, 2, ',', '.') }}</div>
+                    @php $badgeColors = PedidoStatus::badgeClasses(); @endphp
+                    <span class="inline-block px-3 py-1 font-mono text-[10px] uppercase tracking-widest border {{ $badgeColors[$pedido->status] ?? 'border-gray-300 text-gray-500' }}">
+                        {{ PedidoStatus::label($pedido->status) }}
+                    </span>
+                    <button onclick="verDetalhes({{ $pedido->id }})"
+                            class="font-mono text-[10px] uppercase tracking-widest px-3 py-2 border border-[var(--color-lab-border)] text-black hover:border-black hover:bg-gray-50 transition-colors">
+                        Ver detalhes
+                    </button>
                 </div>
+            </div>
             </div>
             @empty
             <p class="font-mono text-xs uppercase tracking-widest text-[var(--color-lab-muted)] text-center py-8">Nenhum pedido</p>
@@ -666,6 +303,25 @@
         </div>
     </div>
 
+</div>
+
+<div id="modalDetalhes" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-2 sm:p-4">
+        <div class="bg-white border border-[var(--color-lab-border)] w-full max-w-6xl max-h-[95vh] sm:max-h-[92vh] overflow-y-auto shadow-[0_24px_80px_rgba(0,0,0,0.16)]">
+            <div class="p-6 border-b border-[var(--color-lab-border)]">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-mono text-sm font-bold uppercase tracking-widest text-black">Detalhes do Pedido</h3>
+                    <button onclick="fecharModalDetalhes()" class="text-[var(--color-lab-muted)] hover:text-black p-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div id="conteudoDetalhes" class="p-6">
+                <!-- Conteudo sera carregado via JavaScript -->
+            </div>
+        </div>
+    </div>
 </div>
 
 {{-- QUICK-FIX MODAL --}}
@@ -1009,9 +665,245 @@
         updateArrows('margem', 'asc');
     }
 
+
+    function initPromotionSimulator() {
+        var form = document.getElementById('promotion-simulator-form');
+        if (!form) return;
+
+        var submitBtn = document.getElementById('promotion-simulator-submit');
+        var searchInput = document.getElementById('simulator-product-search');
+        var list = document.getElementById('simulator-product-list');
+        var countEl = document.getElementById('simulator-selected-count');
+        var emptyEl = document.getElementById('promotion-simulator-empty');
+        var resultsEl = document.getElementById('promotion-simulator-results');
+        var alertsEl = document.getElementById('promotion-simulator-alerts');
+        var productsEl = document.getElementById('promotion-simulator-products');
+        var metaEl = document.getElementById('promotion-simulator-meta');
+        var ordersEl = document.getElementById('promotion-simulator-orders');
+        var selectAllBtn = document.getElementById('simulator-select-all');
+        var clearAllBtn = document.getElementById('simulator-clear-all');
+
+        function formatMoney(value) {
+            return 'R$ ' + Number(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function formatPercent(value) {
+            return Number(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%';
+        }
+
+        function formatDeltaPercent(value) {
+            var num = Number(value || 0);
+            var prefix = num > 0 ? '+' : '';
+            return prefix + num.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' p.p.';
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function getCheckedBoxes() {
+            return Array.from(form.querySelectorAll('.simulator-product-checkbox:checked'));
+        }
+
+        function updateSelectedCount() {
+            countEl.textContent = String(getCheckedBoxes().length);
+        }
+
+        function applyFilter() {
+            var term = (searchInput.value || '').trim().toLowerCase();
+            list.querySelectorAll('[data-product-option]').forEach(function (row) {
+                var haystack = row.dataset.filterText || '';
+                row.classList.toggle('hidden', term !== '' && haystack.indexOf(term) === -1);
+            });
+        }
+
+        function badgeForMargin(margin, missingCost) {
+            if (missingCost) {
+                return '<span class="inline-block px-2 py-0.5 font-mono text-[10px] bg-blue-50 text-blue-500 border border-blue-200">Sem custo</span>';
+            }
+            if (margin < 0) {
+                return '<span class="inline-block px-2 py-0.5 font-mono text-[10px] bg-red-100 text-red-700 font-bold">' + formatPercent(margin) + '</span>';
+            }
+            if (margin < 20) {
+                return '<span class="inline-block px-2 py-0.5 font-mono text-[10px] bg-yellow-100 text-yellow-700 font-bold">' + formatPercent(margin) + '</span>';
+            }
+            return '<span class="inline-block px-2 py-0.5 font-mono text-[10px] bg-green-100 text-green-700 font-bold">' + formatPercent(margin) + '</span>';
+        }
+
+        function toneClass(value, positiveClass, negativeClass) {
+            var num = Number(value || 0);
+            if (num < 0) return negativeClass;
+            if (num > 0) return positiveClass;
+            return 'text-black';
+        }
+
+        function renderAlerts(alerts) {
+            alertsEl.innerHTML = '';
+            if (!alerts || !alerts.length) return;
+
+            alerts.forEach(function (alertItem) {
+                var tone = 'border-[var(--color-lab-border)] bg-white text-black';
+                if (alertItem.level === 'critical') tone = 'border-red-300 bg-red-50 text-red-700';
+                else if (alertItem.level === 'warning') tone = 'border-yellow-300 bg-yellow-50 text-yellow-700';
+                else if (alertItem.level === 'info') tone = 'border-blue-300 bg-blue-50 text-blue-700';
+
+                var alertEl = document.createElement('div');
+                alertEl.className = 'border px-4 py-3 font-mono text-xs ' + tone;
+                alertEl.textContent = alertItem.message;
+                alertsEl.appendChild(alertEl);
+            });
+        }
+
+        function renderProducts(products) {
+            productsEl.innerHTML = '';
+
+            products.forEach(function (product) {
+                var row = document.createElement('tr');
+                row.className = 'border-b border-[var(--color-lab-border)]';
+                row.innerHTML = [
+                    '<td class="px-4 py-3">',
+                        '<div class="min-w-0">',
+                            '<div class="font-mono text-xs text-black">' + escapeHtml(product.nome) + '</div>',
+                            '<div class="mt-1 flex flex-wrap items-center gap-2">',
+                                '<span class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">' + escapeHtml(product.marca || 'Sem marca') + '</span>',
+                                (product.ativo ? '' : '<span class="inline-block px-2 py-0.5 font-mono text-[10px] border border-gray-300 text-gray-400">Inativo</span>'),
+                                (product.missing_cost ? '<span class="inline-block px-2 py-0.5 font-mono text-[10px] bg-blue-50 text-blue-500 border border-blue-200">Sem custo</span>' : ''),
+                            '</div>',
+                        '</div>',
+                    '</td>',
+                    '<td class="px-4 py-3 text-right font-mono text-xs text-black">' + product.units + '</td>',
+                    '<td class="px-4 py-3 text-right font-mono text-xs text-black">' + formatMoney(product.current_price) + '</td>',
+                    '<td class="px-4 py-3 text-right font-mono text-xs text-black">' + formatMoney(product.simulated_price) + '</td>',
+                    '<td class="px-4 py-3 text-right font-mono text-xs ' + (product.missing_cost ? 'text-blue-500' : 'text-black') + '">' + (product.missing_cost ? 'Sem custo' : formatMoney(product.average_base_cost_per_unit)) + '</td>',
+                    '<td class="px-4 py-3 text-right font-mono text-xs ' + toneClass(product.current_unit_profit, 'text-black', 'text-red-600') + '">' + formatMoney(product.current_unit_profit) + '</td>',
+                    '<td class="px-4 py-3 text-right font-mono text-xs ' + toneClass(product.simulated_unit_profit, 'text-black', 'text-red-600') + '">' + formatMoney(product.simulated_unit_profit) + '</td>',
+                    '<td class="px-4 py-3 text-right">' + badgeForMargin(product.current_margin_percent, product.missing_cost) + '</td>',
+                    '<td class="px-4 py-3 text-right">' + badgeForMargin(product.simulated_margin_percent, product.missing_cost) + '</td>',
+                    '<td class="px-4 py-3 text-right font-mono text-xs ' + toneClass(product.delta_profit_total, 'text-green-700', 'text-red-600') + '">' + formatMoney(product.delta_profit_total) + '</td>'
+                ].join('');
+                productsEl.appendChild(row);
+            });
+        }
+
+        function updateSummary(simulation) {
+            var current = simulation.summary.current;
+            var simulated = simulation.summary.simulated;
+            var delta = simulation.summary.delta;
+            var meta = simulation.meta;
+
+            metaEl.textContent = meta.products_count + ' produto(s), ' + meta.selected_units + ' unidade(s), ' + meta.period_label + '.';
+            ordersEl.textContent = String(meta.selected_orders);
+
+            document.getElementById('sim-current-revenue').textContent = formatMoney(current.revenue_total);
+            document.getElementById('sim-current-cost').textContent = formatMoney(current.cost_total);
+            document.getElementById('sim-current-profit').textContent = formatMoney(current.profit_total);
+            document.getElementById('sim-current-profit').className = 'text-black ' + toneClass(current.profit_total, 'text-black', 'text-red-600');
+            document.getElementById('sim-current-margin').textContent = formatPercent(current.margin_percent);
+            document.getElementById('sim-current-margin').className = toneClass(current.margin_percent - 20, 'text-black', 'text-yellow-600');
+            document.getElementById('sim-current-units').textContent = String(current.units);
+
+            document.getElementById('sim-simulated-revenue').textContent = formatMoney(simulated.revenue_total);
+            document.getElementById('sim-simulated-cost').textContent = formatMoney(simulated.cost_total);
+            document.getElementById('sim-simulated-profit').textContent = formatMoney(simulated.profit_total);
+            document.getElementById('sim-simulated-profit').className = toneClass(simulated.profit_total, 'text-black font-bold', 'text-red-600 font-bold');
+            document.getElementById('sim-simulated-margin').textContent = formatPercent(simulated.margin_percent);
+            document.getElementById('sim-simulated-margin').className = toneClass(simulated.margin_percent - 20, 'text-black', 'text-yellow-600');
+            document.getElementById('sim-simulated-units').textContent = String(simulated.units);
+
+            document.getElementById('sim-delta-revenue').textContent = formatMoney(delta.revenue_total);
+            document.getElementById('sim-delta-revenue').className = toneClass(delta.revenue_total, 'text-green-700', 'text-red-600');
+            document.getElementById('sim-delta-cost').textContent = formatMoney(delta.cost_total);
+            document.getElementById('sim-delta-cost').className = toneClass(-delta.cost_total, 'text-green-700', 'text-red-600');
+            document.getElementById('sim-delta-profit').textContent = formatMoney(delta.profit_total);
+            document.getElementById('sim-delta-profit').className = toneClass(delta.profit_total, 'text-green-700 font-bold', 'text-red-600 font-bold');
+            document.getElementById('sim-delta-margin').textContent = formatDeltaPercent(delta.margin_percent);
+            document.getElementById('sim-delta-margin').className = toneClass(delta.margin_percent, 'text-green-700', 'text-red-600');
+            document.getElementById('sim-products-count').textContent = String(meta.products_count);
+        }
+
+        async function handleSubmit(event) {
+            event.preventDefault();
+
+            var checked = getCheckedBoxes();
+            if (!checked.length) {
+                alert('Selecione ao menos um produto para simular.');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Simulando...';
+
+            try {
+                var response = await fetch(window.routes.adminDashboardSimulator, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': CSRF,
+                    },
+                    body: JSON.stringify({
+                        product_ids: checked.map(function (checkbox) { return Number(checkbox.value); }),
+                        period_days: Number(document.getElementById('simulator-period-days').value),
+                        discount_percent: Number(document.getElementById('simulator-discount-percent').value || 0),
+                        extra_unit_cost: Number(document.getElementById('simulator-extra-unit-cost').value || 0),
+                        extra_order_cost: Number(document.getElementById('simulator-extra-order-cost').value || 0),
+                    }),
+                });
+
+                var data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.message || 'Falha ao gerar simulação.');
+                }
+
+                updateSummary(data);
+                renderAlerts(data.alerts || []);
+                renderProducts(data.products || []);
+
+                emptyEl.classList.add('hidden');
+                resultsEl.classList.remove('hidden');
+            } catch (error) {
+                alert('Não foi possível gerar a simulação agora.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Rodar simulação';
+            }
+        }
+
+        selectAllBtn.addEventListener('click', function () {
+            form.querySelectorAll('.simulator-product-checkbox').forEach(function (checkbox) {
+                if (!checkbox.closest('[data-product-option]').classList.contains('hidden')) {
+                    checkbox.checked = true;
+                }
+            });
+            updateSelectedCount();
+        });
+
+        clearAllBtn.addEventListener('click', function () {
+            form.querySelectorAll('.simulator-product-checkbox').forEach(function (checkbox) {
+                checkbox.checked = false;
+            });
+            updateSelectedCount();
+        });
+
+        searchInput.addEventListener('input', applyFilter);
+        form.querySelectorAll('.simulator-product-checkbox').forEach(function (checkbox) {
+            checkbox.addEventListener('change', updateSelectedCount);
+        });
+        form.addEventListener('submit', handleSubmit);
+
+        updateSelectedCount();
+        applyFilter();
+    }
+
     initCollapsibles();
     initExpandableAlerts();
     initExportMenu();
+    initPromotionSimulator();
 
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') setExportMenuState(false);
