@@ -27,13 +27,13 @@ class AdminPromotionSimulatorTest extends TestCase
         ])->assertStatus(401);
     }
 
-    public function test_dashboard_displays_promotion_simulator_section(): void
+    public function test_simulator_page_displays_promotion_simulator_section(): void
     {
         $user = User::factory()->create(['admin' => true]);
         Produto::factory()->create(['nome' => 'Produto Simulador']);
 
         $this->actingAs($user)
-            ->get(route('admin.dashboard'))
+            ->get(route('admin.simulador'))
             ->assertOk()
             ->assertSee('Simulador de Promoção')
             ->assertSee('Rodar simulação');
