@@ -85,6 +85,7 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::get('/analytics/produtos/busca', [AdminController::class, 'analyticsProductSearch'])->name('analytics.products.search');
     Route::get('/analytics/produtos/{produto}', [AdminController::class, 'analyticsProductShow'])->name('analytics.products.show');
     Route::post('/dashboard/simulador-promocao', [AdminController::class, 'simulatePromotion'])->name('dashboard.simulator');
+    Route::get('/simulador-promocao', [AdminController::class, 'simuladorPromocao'])->name('simulador');
 
     // Usuarios
     Route::get('/usuarios', [AdminUserController::class, 'index'])->name('usuarios.index');
