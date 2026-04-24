@@ -51,6 +51,19 @@ class CheckoutOrderService
                 return $cart;
             }
 
+            $pendenteSemPagamento = Pedido::query()
+                ->when($with !== [], fn ($builder) => $builder->with($with))
+                ->where('user_id', Auth::id())
+                ->where('status', PedidoStatus::PENDENTE)
+                ->whereDoesntHave('pagamentos')
+                ->latest('id')
+                ->first();
+
+            if ($pendenteSemPagamento) {
+                $pendenteSemPagamento->update(['status' => PedidoStatus::CARRINHO]);
+                return $pendenteSemPagamento;
+            }
+
             return Pedido::create([
                 'user_id' => Auth::id(),
                 'status' => PedidoStatus::CARRINHO,

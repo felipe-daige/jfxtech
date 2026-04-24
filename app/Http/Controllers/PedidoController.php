@@ -236,6 +236,31 @@ class PedidoController extends Controller
             ->with('success', 'Entrega confirmada com sucesso.');
     }
 
+    public function cancelar(Request $request, Pedido $pedido)
+    {
+        if (!$this->checkoutOrderService->canAccessOrder($request, $pedido)) {
+            if (Auth::check()) {
+                return redirect()->route('site.pedidos.index')->with('error', 'Pedido não encontrado.');
+            }
+            return redirect()->route('site.login')->with('error', 'Pedido não encontrado.');
+        }
+
+        if ($pedido->status !== PedidoStatus::PENDENTE) {
+            return redirect($this->checkoutOrderService->orderUrl($pedido))
+                ->with('error', 'Apenas pedidos pendentes sem pagamento podem ser cancelados.');
+        }
+
+        if ($pedido->pagamentos()->exists()) {
+            return redirect($this->checkoutOrderService->orderUrl($pedido))
+                ->with('error', 'Não é possível cancelar um pedido com pagamento em andamento. Entre em contato pelo WhatsApp.');
+        }
+
+        $pedido->update(['status' => PedidoStatus::CANCELADO]);
+
+        return redirect()->route('site.pedidos.index')
+            ->with('success', 'Pedido #' . $pedido->id . ' cancelado com sucesso.');
+    }
+
     public function createAccount(Request $request, Pedido $pedido)
     {
         if (!$this->checkoutOrderService->canAccessOrder($request, $pedido)) {

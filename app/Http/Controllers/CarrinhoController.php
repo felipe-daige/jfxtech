@@ -250,7 +250,7 @@ class CarrinhoController extends Controller
      */
     public function contador(Request $request)
     {
-        $carrinho = $this->checkoutOrderService->resolveActiveOrder($request, [], ['carrinho']);
+        $carrinho = $this->checkoutOrderService->resolveActiveOrder($request);
 
         $totalItens = $carrinho ? $carrinho->itens()->sum('quantidade') : 0;
 
@@ -265,7 +265,7 @@ class CarrinhoController extends Controller
      */
     public function itens(Request $request)
     {
-        $carrinho = $this->checkoutOrderService->resolveActiveOrder($request, ['itens.produto.imagens', 'itens.produtoVariante'], ['carrinho']);
+        $carrinho = $this->checkoutOrderService->resolveActiveOrder($request, ['itens.produto.imagens', 'itens.produtoVariante']);
 
         if (!$carrinho) {
             return response()->json([

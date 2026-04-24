@@ -75,6 +75,7 @@ Route::get('/meus-pedidos', [App\Http\Controllers\PedidoController::class, 'inde
 Route::post('/pedidos/{pedido}/criar-conta', [App\Http\Controllers\PedidoController::class, 'createAccount'])->name('site.pedidos.create-account');
 Route::get('/pedidos/{pedido}', [App\Http\Controllers\PedidoController::class, 'show'])->name('site.pedidos.show');
 Route::post('/pedidos/{pedido}/confirmar-entrega', [App\Http\Controllers\PedidoController::class, 'confirmarEntrega'])->name('site.pedidos.confirmar-entrega');
+Route::post('/pedidos/{pedido}/cancelar', [App\Http\Controllers\PedidoController::class, 'cancelar'])->name('site.pedidos.cancelar');
 Route::get('/pedidos/{pedido}/reembolso', [App\Http\Controllers\PedidoController::class, 'reembolso'])->name('site.pedidos.reembolso');
 
 // Rotas administrativas (apenas para admins)

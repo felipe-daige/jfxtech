@@ -72,6 +72,32 @@
                 </div>
 
                 @php
+                    $canCancel = $pedido->status === 'pendente' && $pedido->pagamentos->isEmpty();
+                @endphp
+
+                @if($canCancel)
+                <div class="bg-white border border-[var(--color-lab-border)] p-6 mb-6">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <p class="font-mono text-[10px] uppercase tracking-[0.2em] text-gray-500 mb-1">Deseja cancelar?</p>
+                            <p class="text-sm text-gray-600">Este pedido ainda não foi pago. Você pode cancelá-lo e realizar uma nova compra.</p>
+                        </div>
+                        <form method="POST" action="{{ route('site.pedidos.cancelar', $pedido) }}" class="shrink-0">
+                            @csrf
+                            @if($isGuestOrder && $pedido->guest_token)
+                                <input type="hidden" name="guest_token" value="{{ request('token', $pedido->guest_token) }}">
+                            @endif
+                            <button type="submit"
+                                onclick="return confirm('Tem certeza que deseja cancelar o pedido #{{ $pedido->id }}?')"
+                                class="inline-flex items-center gap-2 border border-red-400 text-red-600 px-5 py-3 text-sm font-mono font-bold uppercase tracking-widest transition-colors hover:bg-red-600 hover:text-white hover:border-red-600">
+                                Cancelar Pedido
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                @endif
+
+                @php
                     $whatsapp = '556721800568';
                     $showButton = false;
                     $buttonLabel = '';
