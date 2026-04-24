@@ -57,32 +57,6 @@
             adminDashboardSimulator: '{{ route("admin.dashboard.simulator") }}',
         };
 
-        document.addEventListener('DOMContentLoaded', function () {
-            var dashboardLink = document.querySelector('[data-admin-nav="dashboard"]');
-            var simulatorLink = document.querySelector('[data-admin-nav="simulator"]');
-            if (!dashboardLink || !simulatorLink) return;
-
-            function setNavState() {
-                var onDashboard = window.location.pathname === '{{ parse_url(route("admin.dashboard"), PHP_URL_PATH) }}';
-                var simulatorActive = onDashboard && window.location.hash === '#promotion-simulator';
-                var dashboardActive = onDashboard && !simulatorActive;
-
-                dashboardLink.classList.toggle('bg-black', dashboardActive);
-                dashboardLink.classList.toggle('text-white', dashboardActive);
-                dashboardLink.classList.toggle('text-[var(--color-lab-muted)]', !dashboardActive);
-                dashboardLink.classList.toggle('hover:bg-gray-100', !dashboardActive);
-                dashboardLink.classList.toggle('hover:text-black', !dashboardActive);
-
-                simulatorLink.classList.toggle('bg-black', simulatorActive);
-                simulatorLink.classList.toggle('text-white', simulatorActive);
-                simulatorLink.classList.toggle('text-[var(--color-lab-muted)]', !simulatorActive);
-                simulatorLink.classList.toggle('hover:bg-gray-100', !simulatorActive);
-                simulatorLink.classList.toggle('hover:text-black', !simulatorActive);
-            }
-
-            setNavState();
-            window.addEventListener('hashchange', setNavState);
-        });
     </script>
 </head>
 <body class="bg-[var(--color-lab-bg)]">
@@ -165,9 +139,8 @@
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('admin.dashboard') }}#promotion-simulator"
-                           data-admin-nav="simulator"
-                           class="flex items-center space-x-3 px-3 py-2.5 font-mono text-xs uppercase tracking-widest transition-colors {{ request()->routeIs('admin.dashboard') ? 'text-[var(--color-lab-muted)] hover:bg-gray-100 hover:text-black' : 'text-[var(--color-lab-muted)] hover:bg-gray-100 hover:text-black' }}">
+                        <a href="{{ route('admin.simulador') }}"
+                           class="flex items-center space-x-3 px-3 py-2.5 font-mono text-xs uppercase tracking-widest transition-colors {{ request()->routeIs('admin.simulador') ? 'bg-black text-white' : 'text-[var(--color-lab-muted)] hover:bg-gray-100 hover:text-black' }}">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" x2="5" y1="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
                             <span>Simulador</span>
                         </a>
