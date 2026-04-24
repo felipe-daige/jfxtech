@@ -1,0 +1,99 @@
+name: laravel-local
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: laravel-app
+    restart: unless-stopped
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8080
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: jfxtech
+      DB_USERNAME: jfxtech
+      DB_PASSWORD: jfxtech
+      MAIL_MAILER: log
+    volumes:
+      - ./.env:/var/www/html/.env
+      - storage-public:/var/www/html/storage/app/public
+    networks:
+      - laravel-local
+    depends_on:
+      db:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: laravel-worker
+    restart: unless-stopped
+    command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8080
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: jfxtech
+      DB_USERNAME: jfxtech
+      DB_PASSWORD: jfxtech
+      MAIL_MAILER: log
+    volumes:
+      - ./.env:/var/www/html/.env
+      - storage-public:/var/www/html/storage/app/public
+    networks:
+      - laravel-local
+    depends_on:
+      app:
+        condition: service_started
+      db:
+        condition: service_healthy
+
+  webserver:
+    build:
+      context: .
+      dockerfile: Dockerfile.webserver
+    container_name: laravel-webserver
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - storage-public:/var/www/html/storage/app/public:ro
+    networks:
+      - laravel-local
+    depends_on:
+      app:
+        condition: service_started
+
+  db:
+    image: postgres:16-alpine
+    container_name: laravel-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: jfxtech
+      POSTGRES_USER: jfxtech
+      POSTGRES_PASSWORD: jfxtech
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - laravel-local
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jfxtech -d jfxtech"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  laravel-local:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  storage-public:

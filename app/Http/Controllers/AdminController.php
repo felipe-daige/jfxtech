@@ -1865,10 +1865,15 @@ class AdminController extends Controller
 
         $frete = round((float) ($pedido->frete_valor ?? 0), 2);
         $desconto = round((float) ($pedido->valor_desconto ?? 0), 2);
-        $receitaLiquida = max(0, round($receitaItens - $desconto, 2));
-        $lucroLiquido = round($receitaLiquida - $custoConhecido, 2);
-        $margemPedido = ($receitaLiquida > 0 && $itensSemCusto === 0)
-            ? round(($lucroLiquido / $receitaLiquida) * 100, 2)
+        $ticket = round((float) $pedido->valor_total, 2);
+        $receitaLiquidaProdutos = max(0, round($receitaItens - $desconto, 2));
+        $lucroProdutos = round($receitaLiquidaProdutos - $custoConhecido, 2);
+        $lucroTicket = round($ticket - $custoConhecido, 2);
+        $margemProdutos = ($receitaLiquidaProdutos > 0 && $itensSemCusto === 0)
+            ? round(($lucroProdutos / $receitaLiquidaProdutos) * 100, 2)
+            : null;
+        $margemTicket = ($ticket > 0 && $itensSemCusto === 0)
+            ? round(($lucroTicket / $ticket) * 100, 2)
             : null;
         $paymentMix = $pedido->pagamentos
             ->groupBy(fn ($pagamento) => $pagamento->metodo ?? 'desconhecido')
@@ -1887,13 +1892,18 @@ class AdminController extends Controller
         return [
             'summary' => [
                 'receita_itens' => $receitaItens,
-                'receita_liquida' => $receitaLiquida,
-                'valor_total_pedido' => round((float) $pedido->valor_total, 2),
+                'receita_liquida' => $receitaLiquidaProdutos,
+                'receita_produtos_liquida' => $receitaLiquidaProdutos,
+                'valor_total_pedido' => $ticket,
                 'frete' => $frete,
                 'desconto' => $desconto,
                 'custo_total_estimado' => $custoConhecido,
-                'lucro_total_estimado' => $lucroLiquido,
-                'margem_percentual_estimada' => $margemPedido,
+                'lucro_total_estimado' => $lucroTicket,
+                'lucro_produtos_estimado' => $lucroProdutos,
+                'lucro_ticket_estimado' => $lucroTicket,
+                'margem_percentual_estimada' => $margemTicket,
+                'margem_produtos_percentual' => $margemProdutos,
+                'margem_ticket_percentual' => $margemTicket,
                 'unidades' => $totalUnidades,
                 'linhas' => $items->count(),
                 'itens_sem_custo' => $itensSemCusto,

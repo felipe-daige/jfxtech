@@ -101,11 +101,43 @@ graph TD
 - [Docker](https://docs.docker.com/get-docker/) e Docker Compose instalados
 - [Node.js](https://nodejs.org/) ≥ 20 no **host** (para build dos assets Vite)
 - Git
-- PostgreSQL acessível (container separado ou instância remota)
+- PostgreSQL acessível em produção. Para desenvolvimento local, use `docker-compose.local.yml`, que já inclui Postgres.
 
 ---
 
 ## Instalação e Setup
+
+### Desenvolvimento local rápido
+
+Use este caminho depois de clonar o projeto para abrir a aplicação localmente. O `docker-compose.local.yml` sobe PHP-FPM, Nginx exposto em `localhost:8080`, worker de fila e Postgres local.
+
+```bash
+cp .env.example .env
+docker compose -f docker-compose.local.yml up -d --build
+docker compose -f docker-compose.local.yml exec app php artisan key:generate
+docker compose -f docker-compose.local.yml exec app php artisan migrate --force
+```
+
+A aplicação estará disponível em `http://localhost:8080`. O compose local sobrescreve as variáveis mínimas de banco para usar o serviço `db`, mas o Laravel continua lendo o `.env` montado no container.
+
+Opcionalmente, popule dados de exemplo após as migrations:
+
+```bash
+docker compose -f docker-compose.local.yml exec app php artisan db:seed
+```
+
+Para rebuildar os assets frontend no host:
+
+```bash
+npm install
+npm run build
+```
+
+### Produção / VPS
+
+O `docker-compose.yml` principal é voltado para VPS com Traefik externo e banco PostgreSQL já disponível. Ele não expõe porta local diretamente e não inclui serviço de banco.
+
+Antes do deploy, configure secrets fora da imagem Docker: `APP_KEY`, credenciais do banco, Mercado Pago, SMTP e webhooks devem vir do `.env` da VPS ou de um gerenciador de secrets. Não grave secrets em `Dockerfile`, `docker-compose.yml` ou arquivos versionados.
 
 ### 1. Clone o repositório
 
@@ -142,6 +174,8 @@ MERCADO_PAGO_ACCESS_TOKEN=
 docker compose up -d
 ```
 
+> Para desenvolvimento local, prefira `docker compose -f docker-compose.local.yml up -d --build`.
+
 ### 4. Instale as dependências PHP
 
 ```bash
@@ -155,7 +189,15 @@ docker exec laravel-app php artisan key:generate
 docker exec laravel-app php artisan migrate --force
 ```
 
-### 6. (Opcional) Popule com dados de exemplo
+Migrations e seeders são etapas pós-build/deploy. Não rode migrations nem seeds dentro do build das imagens Docker.
+
+Em produção, rode seeders somente quando forem explicitamente necessários:
+
+```bash
+docker exec laravel-app php artisan db:seed --force
+```
+
+### 6. (Opcional em dev/staging) Popule com dados de exemplo
 
 ```bash
 docker exec laravel-app php artisan db:seed
@@ -285,11 +327,17 @@ bash docker/build-push.sh 1.2      # tag de versão específica
 ### Docker
 
 ```bash
-# Subir containers em background
+# Subir containers de produção/VPS em background
 docker compose up -d
 
-# Parar containers
+# Subir ambiente local completo
+docker compose -f docker-compose.local.yml up -d --build
+
+# Parar containers de produção/VPS
 docker compose down
+
+# Parar ambiente local
+docker compose -f docker-compose.local.yml down
 
 # Ver logs da aplicação
 docker logs -f laravel-app
@@ -297,7 +345,7 @@ docker logs -f laravel-app
 # Ver logs do worker de filas
 docker logs -f laravel-worker
 
-# Reconstruir imagens localmente
+# Reconstruir imagens de produção/VPS localmente
 docker compose up -d --build
 ```
 

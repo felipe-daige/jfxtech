@@ -468,22 +468,127 @@ document.addEventListener('DOMContentLoaded', function() {
         var specsGridContainerInit = document.getElementById('specs-grid-container');
         var initialSpecsHtml = specsGridContainerInit ? specsGridContainerInit.innerHTML : null;
         var gruposIds = [];
+        var variantesDisponiveis = variantes.filter(function(v) {
+            return v.ativo && parseInt(v.estoque_efetivo, 10) > 0;
+        });
 
         opcaoBtns.forEach(function(btn) {
             var grupoId = btn.getAttribute('data-grupo');
             if (gruposIds.indexOf(grupoId) === -1) gruposIds.push(grupoId);
         });
 
+        function getVariantValueIds(variante) {
+            return variante.valores.map(function(id) { return parseInt(id); });
+        }
+
+        function matchesSelection(variante, selection, ignoredGroupId) {
+            var variantIds = getVariantValueIds(variante);
+            for (var grupoId in selection) {
+                if (grupoId === ignoredGroupId) continue;
+                if (variantIds.indexOf(parseInt(selection[grupoId])) === -1) return false;
+            }
+            return true;
+        }
+
+        function selectionHasAvailableVariant(selection) {
+            return variantesDisponiveis.some(function(variante) {
+                return matchesSelection(variante, selection);
+            });
+        }
+
+        function selectionWithoutGroup(groupId) {
+            var reduced = {};
+            for (var selectedGroupId in selecao) {
+                if (selectedGroupId !== groupId) {
+                    reduced[selectedGroupId] = selecao[selectedGroupId];
+                }
+            }
+            return reduced;
+        }
+
+        function clearGroupSelection(groupId) {
+            delete selecao[groupId];
+            opcaoBtns.forEach(function(btn) {
+                if (btn.getAttribute('data-grupo') === groupId) {
+                    btn.classList.remove('border-black', 'bg-black', 'text-white');
+                    btn.classList.add('border-[var(--color-lab-border)]');
+                }
+            });
+        }
+
+        function normalizeSelection(lockedGroupId) {
+            var guard = 0;
+            while (!selectionHasAvailableVariant(selecao) && Object.keys(selecao).length > 1 && guard < gruposIds.length) {
+                var removed = false;
+                guard++;
+
+                for (var i = gruposIds.length - 1; i >= 0; i--) {
+                    var grupoId = gruposIds[i];
+                    if (grupoId === lockedGroupId || selecao[grupoId] === undefined) continue;
+
+                    var reduced = selectionWithoutGroup(grupoId);
+                    if (selectionHasAvailableVariant(reduced)) {
+                        clearGroupSelection(grupoId);
+                        removed = true;
+                        break;
+                    }
+                }
+
+                if (!removed) {
+                    gruposIds.forEach(function(grupoId) {
+                        if (grupoId !== lockedGroupId) clearGroupSelection(grupoId);
+                    });
+                    break;
+                }
+            }
+        }
+
+        function syncSelectedOptionStyles() {
+            opcaoBtns.forEach(function(btn) {
+                var grupoId = btn.getAttribute('data-grupo');
+                var valorId = parseInt(btn.getAttribute('data-valor'));
+                var selected = selecao[grupoId] === valorId;
+
+                btn.classList.toggle('border-black', selected);
+                btn.classList.toggle('bg-black', selected);
+                btn.classList.toggle('text-white', selected);
+                btn.classList.toggle('border-[var(--color-lab-border)]', !selected);
+            });
+        }
+
+        function optionHasAvailableVariant(grupoId, valorId) {
+            return variantesDisponiveis.some(function(variante) {
+                var variantIds = getVariantValueIds(variante);
+                return variantIds.indexOf(valorId) !== -1 && matchesSelection(variante, selecao, grupoId);
+            });
+        }
+
+        function updateAvailableOptions() {
+            opcaoBtns.forEach(function(btn) {
+                var grupoId = btn.getAttribute('data-grupo');
+                var valorId = parseInt(btn.getAttribute('data-valor'));
+                var selected = selecao[grupoId] === valorId;
+                var available = selected || optionHasAvailableVariant(grupoId, valorId);
+
+                btn.disabled = !available;
+                btn.style.display = available ? '' : 'none';
+                btn.setAttribute('aria-hidden', available ? 'false' : 'true');
+            });
+        }
+
         opcaoBtns.forEach(function(btn) {
             btn.addEventListener('click', function() {
+                if (this.disabled) return;
+
                 var grupoId = this.getAttribute('data-grupo');
                 var valorId = parseInt(this.getAttribute('data-valor'));
 
                 // --- DESELECT if already selected ---
                 if (selecao[grupoId] === valorId) {
-                    this.classList.remove('border-black', 'bg-black', 'text-white');
-                    this.classList.add('border-[var(--color-lab-border)]');
-                    delete selecao[grupoId];
+                    clearGroupSelection(grupoId);
+                    syncSelectedOptionStyles();
+                    updateAvailableOptions();
+
                     if (addToCartBtn) {
                         addToCartBtn.removeAttribute('data-variante-id');
                         addToCartBtn.disabled = true;
@@ -523,6 +628,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.classList.remove('border-[var(--color-lab-border)]');
 
                 selecao[grupoId] = valorId;
+                normalizeSelection(grupoId);
+                syncSelectedOptionStyles();
+                updateAvailableOptions();
 
                 // Check if all groups are selected
                 var todosGrupos = Object.keys(selecao).length === gruposIds.length;
@@ -676,6 +784,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         });
+
+        updateAvailableOptions();
     }
 
     // Image zoom

@@ -42,7 +42,10 @@ class CategoriaSeeder extends Seeder
         ];
 
         foreach ($categorias as $categoria) {
-            Categoria::create($categoria);
+            Categoria::updateOrCreate(
+                ['slug' => $categoria['slug']],
+                $categoria
+            );
         }
     }
 }

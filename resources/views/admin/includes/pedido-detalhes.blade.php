@@ -5,9 +5,11 @@
     $items = $analytics['items'];
     $paymentMix = $analytics['payment_mix'];
     $badgeClass = PedidoStatus::badgeClass($pedido->status);
-    $margin = $summary['margem_percentual_estimada'];
-    $marginTone = $margin === null ? 'text-blue-700 border-blue-200 bg-blue-50' : ($margin < 0 ? 'text-red-700 border-red-200 bg-red-50' : ($margin < 20 ? 'text-yellow-700 border-yellow-200 bg-yellow-50' : 'text-emerald-700 border-emerald-200 bg-emerald-50'));
-    $marginAccent = $margin === null ? 'bg-blue-500' : ($margin < 0 ? 'bg-red-500' : ($margin < 20 ? 'bg-yellow-500' : 'bg-emerald-500'));
+    $productMargin = $summary['margem_produtos_percentual'];
+    $ticketMargin = $summary['margem_ticket_percentual'];
+    $productMarginTone = $productMargin === null ? 'text-blue-700 border-blue-200 bg-blue-50' : ($productMargin < 0 ? 'text-red-700 border-red-200 bg-red-50' : ($productMargin < 20 ? 'text-yellow-700 border-yellow-200 bg-yellow-50' : 'text-emerald-700 border-emerald-200 bg-emerald-50'));
+    $ticketMarginTone = $ticketMargin === null ? 'text-blue-700 border-blue-200 bg-blue-50' : ($ticketMargin < 0 ? 'text-red-700 border-red-200 bg-red-50' : ($ticketMargin < 20 ? 'text-yellow-700 border-yellow-200 bg-yellow-50' : 'text-emerald-700 border-emerald-200 bg-emerald-50'));
+    $ticketMarginAccent = $ticketMargin === null ? 'bg-blue-500' : ($ticketMargin < 0 ? 'bg-red-500' : ($ticketMargin < 20 ? 'bg-yellow-500' : 'bg-emerald-500'));
 
     $phone = $pedido->user?->phone ?? $pedido->customer_phone ?? null;
     $wa = $phone ? preg_replace('/\D/', '', $phone) : null;
@@ -65,10 +67,10 @@
                         <p class="mt-2 font-mono text-xl font-bold text-black">R$ {{ number_format($summary['valor_total_pedido'], 2, ',', '.') }}</p>
                         <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">{{ $summary['unidades'] }} un. em {{ $summary['linhas'] }} linha(s)</p>
                     </div>
-                    <div class="border border-[var(--color-lab-border)] {{ $marginTone }} px-4 py-4">
-                        <p class="font-mono text-[9px] uppercase tracking-[0.18em]">Margem estimada</p>
-                        <p class="mt-2 font-mono text-xl font-bold">{{ $margin !== null ? number_format($margin, 1, ',', '.') . '%' : 'Sem custo base' }}</p>
-                        <p class="mt-1 font-mono text-[10px]">{{ $summary['itens_sem_custo'] > 0 ? $summary['itens_sem_custo'] . ' item(ns) sem custo cadastrado' : 'Calculada com custo atual do catálogo' }}</p>
+                    <div class="border border-[var(--color-lab-border)] {{ $productMarginTone }} px-4 py-4">
+                        <p class="font-mono text-[9px] uppercase tracking-[0.18em]">Margem produtos</p>
+                        <p class="mt-2 font-mono text-xl font-bold">{{ $productMargin !== null ? number_format($productMargin, 1, ',', '.') . '%' : 'Sem custo base' }}</p>
+                        <p class="mt-1 font-mono text-[10px]">{{ $summary['itens_sem_custo'] > 0 ? $summary['itens_sem_custo'] . ' item(ns) sem custo cadastrado' : 'Somente itens vendidos contra custo' }}</p>
                     </div>
                 </div>
             </div>
@@ -79,7 +81,7 @@
                     <span class="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--color-lab-muted)]">Estimado</span>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div class="border border-[var(--color-lab-border)] bg-white px-4 py-4">
                         <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Receita itens</p>
                         <p class="mt-2 font-mono text-lg font-bold text-black">R$ {{ number_format($summary['receita_itens'], 2, ',', '.') }}</p>
@@ -89,11 +91,18 @@
                         <p class="mt-2 font-mono text-lg font-bold text-black">R$ {{ number_format($summary['custo_total_estimado'], 2, ',', '.') }}</p>
                     </div>
                     <div class="border border-[var(--color-lab-border)] bg-white px-4 py-4">
-                        <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Lucro líquido</p>
-                        <p class="mt-2 font-mono text-lg font-bold {{ $summary['lucro_total_estimado'] < 0 ? 'text-red-600' : 'text-black' }}">R$ {{ number_format($summary['lucro_total_estimado'], 2, ',', '.') }}</p>
+                        <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Lucro líquido real</p>
+                        <p class="mt-2 font-mono text-lg font-bold {{ $summary['lucro_ticket_estimado'] < 0 ? 'text-red-600' : 'text-black' }}">R$ {{ number_format($summary['lucro_ticket_estimado'], 2, ',', '.') }}</p>
+                        <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">Ticket menos custo cadastrado</p>
                         @if($summary['desconto'] > 0)
-                        <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">Após desconto de R$ {{ number_format($summary['desconto'], 2, ',', '.') }}</p>
+                        <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">Desconto aplicado: R$ {{ number_format($summary['desconto'], 2, ',', '.') }}</p>
                         @endif
+                    </div>
+                    <div class="border border-[var(--color-lab-border)] {{ $ticketMarginTone }} px-4 py-4"
+                         title="Margem do ticket: lucro líquido real dividido pelo valor total do pedido. A margem dos produtos mede apenas SKU contra custo.">
+                        <p class="font-mono text-xs uppercase tracking-[0.16em]">Margem ticket</p>
+                        <p class="mt-2 font-mono text-lg font-bold">{{ $ticketMargin !== null ? number_format($ticketMargin, 1, ',', '.') . '%' : 'Sem custo base' }}</p>
+                        <p class="mt-1 font-mono text-[10px]">Lucro líquido real sobre o ticket</p>
                     </div>
                     <div class="border border-[var(--color-lab-border)] bg-white px-4 py-4">
                         <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Frete / desconto</p>
@@ -107,26 +116,26 @@
                         <div>
                             <p class="font-mono text-[9px] uppercase tracking-[0.18em] text-[var(--color-lab-muted)]">Leitura de margem</p>
                             <p class="mt-1 text-sm text-black">
-                                @if($margin === null)
+                                @if($ticketMargin === null)
                                     Parte da venda não possui custo cadastrado. O lucro exibido é parcial.
-                                @elseif($margin < 0)
-                                    Pedido vendido abaixo do custo estimado atual.
-                                @elseif($margin < 20)
-                                    Pedido com margem comprimida. Vale revisar preço ou custo do mix vendido.
+                                @elseif($ticketMargin < 0)
+                                    Ticket vendido abaixo do custo estimado atual.
+                                @elseif($ticketMargin < 20)
+                                    Ticket com margem comprimida. Vale revisar preço, frete ou custo do mix vendido.
                                 @else
-                                    Pedido com margem saudável considerando o custo atual cadastrado.
+                                    Ticket com margem saudável considerando o custo atual cadastrado.
                                 @endif
                             </p>
                         </div>
                         <div class="hidden sm:block w-20 h-20 rounded-full border border-[var(--color-lab-border)] bg-[var(--color-lab-bg)] relative overflow-hidden">
-                            <div class="absolute inset-x-0 bottom-0 {{ $marginAccent }}" style="height: {{ $margin !== null ? max(14, min(100, round(abs($margin)))) : 30 }}%;"></div>
+                            <div class="absolute inset-x-0 bottom-0 {{ $ticketMarginAccent }}" style="height: {{ $ticketMargin !== null ? max(14, min(100, round(abs($ticketMargin)))) : 30 }}%;"></div>
                             <div class="absolute inset-0 flex items-center justify-center font-mono text-xs font-bold text-black">
-                                {{ $margin !== null ? number_format($margin, 0, ',', '.') . '%' : 'N/A' }}
+                                {{ $ticketMargin !== null ? number_format($ticketMargin, 0, ',', '.') . '%' : 'N/A' }}
                             </div>
                         </div>
                     </div>
                     <p class="mt-3 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">
-                        Lucro líquido = receita dos itens − desconto do cupom − custo cadastrado no catálogo. Frete não é incluído na margem.
+                        Margem ticket = lucro líquido real dividido pelo ticket. Margem produtos mede apenas a venda dos itens contra o custo cadastrado.
                     </p>
                 </div>
             </div>
@@ -150,11 +159,11 @@
             <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">{{ $paymentMix->pluck('label')->implode(' · ') ?: 'Sem pagamento' }}</p>
         </div>
         <div class="border border-[var(--color-lab-border)] bg-white px-4 py-4">
-            <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Lucro por unidade</p>
+            <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Lucro médio/un.</p>
             <p class="mt-2 font-mono text-2xl font-bold text-black">
-                {{ $summary['unidades'] > 0 ? 'R$ ' . number_format($summary['lucro_total_estimado'] / $summary['unidades'], 2, ',', '.') : 'R$ 0,00' }}
+                {{ $summary['unidades'] > 0 ? 'R$ ' . number_format($summary['lucro_ticket_estimado'] / $summary['unidades'], 2, ',', '.') : 'R$ 0,00' }}
             </p>
-            <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">média direta sobre unidades do pedido</p>
+            <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">lucro líquido real dividido pelo total de unidades; não é lucro individual por SKU</p>
         </div>
     </section>
 
@@ -289,7 +298,7 @@
 
                             <div class="mt-4 border border-[var(--color-lab-border)] bg-[var(--color-lab-bg)] px-3 py-3">
                                 <div class="flex items-center justify-between gap-3">
-                                    <p class="font-mono text-[9px] uppercase tracking-[0.18em] text-[var(--color-lab-muted)]">Barra de margem</p>
+                                    <p class="font-mono text-[9px] uppercase tracking-[0.18em] text-[var(--color-lab-muted)]">Margem produto</p>
                                     <p class="font-mono text-xs font-bold {{ $item['margem_percentual'] !== null && $item['margem_percentual'] < 0 ? 'text-red-600' : 'text-black' }}">
                                         {{ $item['margem_percentual'] !== null ? number_format($item['margem_percentual'], 1, ',', '.') . '%' : 'Sem base de custo' }}
                                     </p>
@@ -301,6 +310,9 @@
                                     <span>Rank lucro #{{ $item['rank_receita'] }}</span>
                                     <span>Rank margem #{{ $item['rank_margem'] }}</span>
                                 </div>
+                                <p class="mt-2 font-mono text-[10px] text-[var(--color-lab-muted)]">
+                                    Margem apenas deste SKU contra custo cadastrado.
+                                </p>
                             </div>
 
                             @if($item['cost_source'] === 'sem_custo')
