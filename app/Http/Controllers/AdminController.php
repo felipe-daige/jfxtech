@@ -127,6 +127,27 @@ class AdminController extends Controller
         return response()->json($simulation);
     }
 
+    public function simuladorPromocao()
+    {
+        if (!Auth::check()) {
+            return redirect()->route('site.login');
+        }
+
+        $produtos_analytics = Produto::select(
+            'id', 'nome', 'marca', 'preco', 'preco_original', 'custo_compra',
+            'desconto_percentual', 'em_promocao', 'ativo'
+        )->orderBy('nome')->get();
+
+        $promotion_simulator_periods = [30, 90, 365];
+        $promotion_simulator_default_period = 30;
+
+        return view('admin.simulador-promocao', compact(
+            'produtos_analytics',
+            'promotion_simulator_periods',
+            'promotion_simulator_default_period'
+        ));
+    }
+
     // Gerenciar produtos
     public function produtos(Request $request)
     {
