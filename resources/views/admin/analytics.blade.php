@@ -73,7 +73,7 @@
         <div class="border border-[var(--color-lab-border)] bg-white p-5 sm:p-6">
             <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-2">Lucro Líquido</p>
             <p class="text-lg sm:text-2xl font-bold font-mono {{ $lucro_bruto_total >= 0 ? 'text-black' : 'text-red-600' }}">R$&nbsp;{{ number_format($lucro_bruto_total, 2, ',', '.') }}</p>
-            <p class="font-mono text-[10px] text-[var(--color-lab-muted)] mt-1">receita de produtos &minus; custo</p>
+            <p class="font-mono text-[10px] text-[var(--color-lab-muted)] mt-1">receita líquida (c/ descontos) &minus; custo</p>
         </div>
         <div class="border border-[var(--color-lab-border)] bg-white p-5 sm:p-6">
             <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-2">Margem Bruta</p>

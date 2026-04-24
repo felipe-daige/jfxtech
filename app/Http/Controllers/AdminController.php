@@ -1280,7 +1280,7 @@ class AdminController extends Controller
 
         $itensQuery = ItemPedido::query()
             ->with([
-                'pedido:id,status,created_at',
+                'pedido:id,status,created_at,valor_total,frete_valor,valor_desconto',
                 'produto:id,custo_compra',
                 'produtoVariante:id,produto_id,custo_compra',
             ])
@@ -1300,7 +1300,17 @@ class AdminController extends Controller
         $itensSemCusto = 0;
 
         foreach ($itens as $item) {
-            $receitaTotal += (float) $item->preco * (int) $item->quantidade;
+            $valorBruto = (float) $item->preco * (int) $item->quantidade;
+
+            $pedidoValorTotal = (float) ($item->pedido->valor_total ?? 0);
+            $pedidoFrete      = (float) ($item->pedido->frete_valor ?? 0);
+            $pedidoDesconto   = (float) ($item->pedido->valor_desconto ?? 0);
+            $pedidoSubtotal   = $pedidoValorTotal - $pedidoFrete + $pedidoDesconto;
+            $fatorLiquido     = $pedidoSubtotal > 0
+                ? ($pedidoValorTotal - $pedidoFrete) / $pedidoSubtotal
+                : 1.0;
+
+            $receitaTotal += $valorBruto * $fatorLiquido;
             $unidadesVendidas += (int) $item->quantidade;
 
             $custoUnitario = $this->resolveItemCost($item);
@@ -1781,8 +1791,10 @@ class AdminController extends Controller
 
         $frete = round((float) ($pedido->frete_valor ?? 0), 2);
         $desconto = round((float) ($pedido->valor_desconto ?? 0), 2);
-        $margemPedido = ($receitaItens > 0 && $itensSemCusto === 0)
-            ? round(($lucroConhecido / $receitaItens) * 100, 2)
+        $receitaLiquida = max(0, round($receitaItens - $desconto, 2));
+        $lucroLiquido = round($receitaLiquida - $custoConhecido, 2);
+        $margemPedido = ($receitaLiquida > 0 && $itensSemCusto === 0)
+            ? round(($lucroLiquido / $receitaLiquida) * 100, 2)
             : null;
         $paymentMix = $pedido->pagamentos
             ->groupBy(fn ($pagamento) => $pagamento->metodo ?? 'desconhecido')
@@ -1801,11 +1813,12 @@ class AdminController extends Controller
         return [
             'summary' => [
                 'receita_itens' => $receitaItens,
+                'receita_liquida' => $receitaLiquida,
                 'valor_total_pedido' => round((float) $pedido->valor_total, 2),
                 'frete' => $frete,
                 'desconto' => $desconto,
                 'custo_total_estimado' => $custoConhecido,
-                'lucro_total_estimado' => $lucroConhecido,
+                'lucro_total_estimado' => $lucroLiquido,
                 'margem_percentual_estimada' => $margemPedido,
                 'unidades' => $totalUnidades,
                 'linhas' => $items->count(),

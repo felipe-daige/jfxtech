@@ -8,9 +8,14 @@
     $margin = $summary['margem_percentual_estimada'];
     $marginTone = $margin === null ? 'text-blue-700 border-blue-200 bg-blue-50' : ($margin < 0 ? 'text-red-700 border-red-200 bg-red-50' : ($margin < 20 ? 'text-yellow-700 border-yellow-200 bg-yellow-50' : 'text-emerald-700 border-emerald-200 bg-emerald-50'));
     $marginAccent = $margin === null ? 'bg-blue-500' : ($margin < 0 ? 'bg-red-500' : ($margin < 20 ? 'bg-yellow-500' : 'bg-emerald-500'));
+
+    $phone = $pedido->user?->phone ?? $pedido->customer_phone ?? null;
+    $wa = $phone ? preg_replace('/\D/', '', $phone) : null;
+    if ($wa && strlen($wa) <= 11) $wa = '55' . $wa;
+    elseif ($wa && strlen($wa) > 13) $wa = preg_replace('/\D/', '', $phone);
 @endphp
 
-<div class="space-y-6">
+<div class="space-y-6" data-status="{{ $pedido->status }}">
     <section class="border border-[var(--color-lab-border)] bg-white overflow-hidden">
         <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.3fr)_minmax(320px,0.9fr)]">
             <div class="px-5 py-6 sm:px-6 sm:py-7 border-b xl:border-b-0 xl:border-r border-[var(--color-lab-border)] bg-[linear-gradient(135deg,#ffffff_0%,#f7f7f5_55%,#eef2f7_100%)]">
@@ -45,6 +50,15 @@
                         <p class="font-mono text-[9px] uppercase tracking-[0.18em] text-[var(--color-lab-muted)]">Cliente</p>
                         <p class="mt-2 text-sm font-semibold text-black break-words">{{ $pedido->user?->name ?? $pedido->customer_name ?? 'Guest' }}</p>
                         <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)] break-all">{{ $pedido->user?->email ?? $pedido->customer_email ?? 'E-mail não informado' }}</p>
+                        @if($phone)
+                        <a href="https://wa.me/{{ $wa }}" target="_blank" rel="noopener"
+                           class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)] hover:text-black flex items-center gap-1 break-words">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.117.549 4.107 1.51 5.843L.057 23.5a.5.5 0 0 0 .635.605l5.752-1.464A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a9.944 9.944 0 0 1-5.071-1.38l-.361-.214-3.754.956.993-3.651-.232-.374A9.952 9.952 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+                            {{ $phone }}
+                        </a>
+                        @else
+                        <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">Telefone não informado</p>
+                        @endif
                     </div>
                     <div class="border border-[var(--color-lab-border)] bg-white px-4 py-4">
                         <p class="font-mono text-[9px] uppercase tracking-[0.18em] text-[var(--color-lab-muted)]">Ticket</p>
@@ -75,8 +89,11 @@
                         <p class="mt-2 font-mono text-lg font-bold text-black">R$ {{ number_format($summary['custo_total_estimado'], 2, ',', '.') }}</p>
                     </div>
                     <div class="border border-[var(--color-lab-border)] bg-white px-4 py-4">
-                        <p class="font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Lucro bruto</p>
+                        <p class="font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Lucro líquido</p>
                         <p class="mt-2 font-mono text-lg font-bold {{ $summary['lucro_total_estimado'] < 0 ? 'text-red-600' : 'text-black' }}">R$ {{ number_format($summary['lucro_total_estimado'], 2, ',', '.') }}</p>
+                        @if($summary['desconto'] > 0)
+                        <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">Após desconto de R$ {{ number_format($summary['desconto'], 2, ',', '.') }}</p>
+                        @endif
                     </div>
                     <div class="border border-[var(--color-lab-border)] bg-white px-4 py-4">
                         <p class="font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Frete / desconto</p>
@@ -109,7 +126,7 @@
                         </div>
                     </div>
                     <p class="mt-3 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">
-                        Margens calculadas com custo atual cadastrado no catálogo. Frete e desconto não são rateados por item nesta visão.
+                        Lucro líquido = receita dos itens − desconto do cupom − custo cadastrado no catálogo. Frete não é incluído na margem.
                     </p>
                 </div>
             </div>
@@ -207,22 +224,22 @@
                                             <p class="mt-2 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)] break-words">{{ $item['variant_label'] }}</p>
                                         @endif
 
-                                        <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2">
-                                            <div class="border border-[var(--color-lab-border)] bg-white px-3 py-3">
-                                                <p class="font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Qtd</p>
-                                                <p class="mt-1 font-mono text-sm font-bold text-black">{{ $item['quantidade'] }}</p>
+                                        <div class="mt-4 grid grid-cols-4 gap-2">
+                                            <div class="border border-[var(--color-lab-border)] bg-white px-3 py-3 min-w-0 overflow-hidden">
+                                                <p class="font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)] truncate">Qtd</p>
+                                                <p class="mt-1 font-mono text-sm font-bold text-black truncate">{{ $item['quantidade'] }}</p>
                                             </div>
-                                            <div class="border border-[var(--color-lab-border)] bg-white px-3 py-3">
-                                                <p class="font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Venda un.</p>
-                                                <p class="mt-1 font-mono text-sm font-bold text-black">R$ {{ number_format($item['preco_unitario'], 2, ',', '.') }}</p>
+                                            <div class="border border-[var(--color-lab-border)] bg-white px-3 py-3 min-w-0 overflow-hidden">
+                                                <p class="font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)] truncate">Venda un.</p>
+                                                <p class="mt-1 font-mono text-sm font-bold text-black truncate">R$ {{ number_format($item['preco_unitario'], 2, ',', '.') }}</p>
                                             </div>
-                                            <div class="border border-[var(--color-lab-border)] bg-white px-3 py-3">
-                                                <p class="font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Receita</p>
-                                                <p class="mt-1 font-mono text-sm font-bold text-black">R$ {{ number_format($item['receita'], 2, ',', '.') }}</p>
+                                            <div class="border border-[var(--color-lab-border)] bg-white px-3 py-3 min-w-0 overflow-hidden">
+                                                <p class="font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)] truncate">Receita</p>
+                                                <p class="mt-1 font-mono text-sm font-bold text-black truncate">R$ {{ number_format($item['receita'], 2, ',', '.') }}</p>
                                             </div>
-                                            <div class="border border-[var(--color-lab-border)] bg-white px-3 py-3">
-                                                <p class="font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Fonte custo</p>
-                                                <p class="mt-1 font-mono text-sm font-bold text-black">{{ strtoupper(str_replace('_', ' ', $item['cost_source'])) }}</p>
+                                            <div class="border border-[var(--color-lab-border)] bg-white px-3 py-3 min-w-0 overflow-hidden">
+                                                <p class="font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)] truncate">Fonte custo</p>
+                                                <p class="mt-1 font-mono text-sm font-bold text-black truncate">{{ strtoupper(str_replace('_', ' ', $item['cost_source'])) }}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -306,7 +323,15 @@
                     <p class="font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)] mb-2">Cliente</p>
                     <p class="text-sm font-semibold text-black break-words">{{ $pedido->user?->name ?? $pedido->customer_name ?? 'Guest' }}</p>
                     <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)] break-all">{{ $pedido->user?->email ?? $pedido->customer_email ?? 'E-mail não informado' }}</p>
-                    <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)] break-words">{{ $pedido->user?->phone ?? $pedido->customer_phone ?? 'Telefone não informado' }}</p>
+                    @if($phone)
+                    <a href="https://wa.me/{{ $wa }}" target="_blank" rel="noopener"
+                       class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)] hover:text-black flex items-center gap-1 break-words">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.117.549 4.107 1.51 5.843L.057 23.5a.5.5 0 0 0 .635.605l5.752-1.464A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a9.944 9.944 0 0 1-5.071-1.38l-.361-.214-3.754.956.993-3.651-.232-.374A9.952 9.952 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+                        {{ $phone }}
+                    </a>
+                    @else
+                    <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">Telefone não informado</p>
+                    @endif
                 </div>
                 <div class="border border-[var(--color-lab-border)] bg-white p-4">
                     <p class="font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)] mb-2">Entrega</p>
