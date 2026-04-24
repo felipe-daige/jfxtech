@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Enums\PedidoStatus;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 use App\Models\Produto;
 use App\Models\Categoria;
@@ -53,23 +54,22 @@ class AdminController extends Controller
             return response()->json(['products' => []]);
         }
 
-        $normalizedTerm = Str::lower($term);
-        $prefix = $normalizedTerm . '%';
-        $contains = '%' . $normalizedTerm . '%';
+        $prefix   = $term . '%';
+        $contains = '%' . $term . '%';
 
         $products = Produto::query()
             ->select(['id', 'nome', 'marca', 'slug', 'ativo'])
             ->where(function ($query) use ($contains) {
                 $query
-                    ->whereRaw('LOWER(nome) LIKE ?', [$contains])
-                    ->orWhereRaw('LOWER(COALESCE(marca, \'\')) LIKE ?', [$contains])
-                    ->orWhereRaw('LOWER(slug) LIKE ?', [$contains]);
+                    ->where('nome',  'ilike', $contains)
+                    ->orWhere('marca', 'ilike', $contains)
+                    ->orWhere('slug',  'ilike', $contains);
             })
             ->orderByRaw(
                 "CASE
-                    WHEN LOWER(nome) LIKE ? THEN 0
-                    WHEN LOWER(COALESCE(marca, '')) LIKE ? THEN 1
-                    WHEN LOWER(slug) LIKE ? THEN 2
+                    WHEN nome ILIKE ? THEN 0
+                    WHEN COALESCE(marca, '') ILIKE ? THEN 1
+                    WHEN slug ILIKE ? THEN 2
                     ELSE 3
                 END",
                 [$prefix, $prefix, $prefix]
@@ -98,7 +98,10 @@ class AdminController extends Controller
 
         $period = $this->resolveAnalyticsPeriod((string) $request->query('period', '30'));
 
-        return view('admin.analytics-produto', $this->getProductAnalyticsData($produto, $period));
+        return view('admin.analytics-produto', array_merge(
+            $this->getProductAnalyticsData($produto, $period),
+            ['time_series' => $this->getProductTimeSeries($produto, $period)]
+        ));
     }
 
     public function simulatePromotion(Request $request, PromotionSimulationService $simulationService)
@@ -1354,6 +1357,77 @@ class AdminController extends Controller
                 'ultimo_pedido_em' => $ultimoPedidoEm,
             ],
         ];
+    }
+
+    private function getProductTimeSeries(Produto $produto, string $period): array
+    {
+        $performanceStatuses = PedidoStatus::performanceValues();
+        $periodStart = match ($period) {
+            '30'  => now()->subDays(30),
+            '90'  => now()->subDays(90),
+            '365' => now()->subDays(365),
+            default => null,
+        };
+
+        $itens = ItemPedido::query()
+            ->with([
+                'pedido:id,status,created_at,valor_total,frete_valor,valor_desconto',
+                'produto:id,custo_compra',
+                'produtoVariante:id,produto_id,custo_compra',
+            ])
+            ->where('produto_id', $produto->id)
+            ->whereHas('pedido', function ($query) use ($performanceStatuses, $periodStart) {
+                $query->whereIn('status', $performanceStatuses);
+                if ($periodStart) {
+                    $query->where('created_at', '>=', $periodStart);
+                }
+            })
+            ->get();
+
+        $groupBy = match ($period) {
+            '30'    => fn ($item) => Carbon::parse($item->pedido->created_at)->format('Y-m-d'),
+            '90'    => fn ($item) => Carbon::parse($item->pedido->created_at)->startOfWeek()->format('Y-m-d'),
+            '365'   => fn ($item) => Carbon::parse($item->pedido->created_at)->startOfWeek()->format('Y-m-d'),
+            default => fn ($item) => Carbon::parse($item->pedido->created_at)->format('Y-m'),
+        };
+
+        $groups = [];
+        foreach ($itens as $item) {
+            $key = $groupBy($item);
+            if (!isset($groups[$key])) {
+                $groups[$key] = ['receita' => 0.0, 'custo' => 0.0, 'unidades' => 0];
+            }
+
+            $valorBruto  = (float) $item->preco * (int) $item->quantidade;
+            $pedidoTotal = (float) ($item->pedido->valor_total ?? 0);
+            $pedidoFrete = (float) ($item->pedido->frete_valor ?? 0);
+            $pedidoDesc  = (float) ($item->pedido->valor_desconto ?? 0);
+            $subtotal    = $pedidoTotal - $pedidoFrete + $pedidoDesc;
+            $fator       = $subtotal > 0 ? ($pedidoTotal - $pedidoFrete) / $subtotal : 1.0;
+
+            $groups[$key]['receita']  += $valorBruto * $fator;
+            $groups[$key]['unidades'] += (int) $item->quantidade;
+
+            $custo = $this->resolveItemCost($item) ?? 0.0;
+            $groups[$key]['custo'] += $custo * (int) $item->quantidade;
+        }
+
+        ksort($groups);
+
+        $result = [];
+        foreach ($groups as $date => $data) {
+            $receita  = round($data['receita'], 2);
+            $lucro    = $receita - round($data['custo'], 2);
+            $margem   = $receita > 0 ? round(($lucro / $receita) * 100, 2) : 0.0;
+            $result[] = [
+                'date'     => $date,
+                'receita'  => $receita,
+                'unidades' => $data['unidades'],
+                'margem'   => $margem,
+            ];
+        }
+
+        return $result;
     }
 
     private function getDashboardAnalyticsData(): array

@@ -101,15 +101,25 @@
 </div>
 
 <!-- Modal de Detalhes do Pedido -->
-<div id="modalDetalhes" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-50">
-    <div class="flex items-center justify-center min-h-screen p-2 sm:p-4">
+<div id="modalDetalhes" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-50" data-pedido-id="" data-pedido-status="">
+    <div class="flex items-center justify-center min-h-screen p-2 sm:p-4" onclick="if(event.target===this)fecharModalDetalhes()">
         <div class="bg-white border border-[var(--color-lab-border)] w-full max-w-6xl max-h-[95vh] sm:max-h-[92vh] overflow-y-auto shadow-[0_24px_80px_rgba(0,0,0,0.16)]">
             <div class="p-6 border-b border-[var(--color-lab-border)]">
-                <div class="flex justify-between items-center">
-                    <h3 class="font-mono text-sm font-bold uppercase tracking-widest text-black">Detalhes do Pedido</h3>
-                    <button onclick="fecharModalDetalhes()" class="text-[var(--color-lab-muted)] hover:text-black p-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-                    </button>
+                <div class="flex justify-between items-center gap-3">
+                    <div>
+                        <p id="modalDetalhesSub" class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Detalhes do Pedido</p>
+                        <h3 id="modalDetalhesTitle" class="font-mono text-sm font-bold uppercase tracking-widest text-black">Carregando...</h3>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button id="btnAlterarStatusModal"
+                                onclick="alterarStatusDoModal()"
+                                class="hidden font-mono text-[10px] uppercase tracking-widest px-3 py-2 border border-black text-black hover:bg-black hover:text-white transition-colors whitespace-nowrap">
+                            Alterar Status
+                        </button>
+                        <button onclick="fecharModalDetalhes()" class="text-[var(--color-lab-muted)] hover:text-black p-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                        </button>
+                    </div>
                 </div>
             </div>
 

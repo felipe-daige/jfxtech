@@ -81,22 +81,22 @@
 
                 <div class="grid grid-cols-2 gap-3">
                     <div class="border border-[var(--color-lab-border)] bg-white px-4 py-4">
-                        <p class="font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Receita itens</p>
+                        <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Receita itens</p>
                         <p class="mt-2 font-mono text-lg font-bold text-black">R$ {{ number_format($summary['receita_itens'], 2, ',', '.') }}</p>
                     </div>
                     <div class="border border-[var(--color-lab-border)] bg-white px-4 py-4">
-                        <p class="font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Custo total</p>
+                        <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Custo total</p>
                         <p class="mt-2 font-mono text-lg font-bold text-black">R$ {{ number_format($summary['custo_total_estimado'], 2, ',', '.') }}</p>
                     </div>
                     <div class="border border-[var(--color-lab-border)] bg-white px-4 py-4">
-                        <p class="font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Lucro líquido</p>
+                        <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Lucro líquido</p>
                         <p class="mt-2 font-mono text-lg font-bold {{ $summary['lucro_total_estimado'] < 0 ? 'text-red-600' : 'text-black' }}">R$ {{ number_format($summary['lucro_total_estimado'], 2, ',', '.') }}</p>
                         @if($summary['desconto'] > 0)
                         <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">Após desconto de R$ {{ number_format($summary['desconto'], 2, ',', '.') }}</p>
                         @endif
                     </div>
                     <div class="border border-[var(--color-lab-border)] bg-white px-4 py-4">
-                        <p class="font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Frete / desconto</p>
+                        <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Frete / desconto</p>
                         <p class="mt-2 font-mono text-lg font-bold text-black">R$ {{ number_format($summary['frete'], 2, ',', '.') }}</p>
                         <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">Desconto: R$ {{ number_format($summary['desconto'], 2, ',', '.') }}</p>
                     </div>
@@ -135,22 +135,22 @@
 
     <section class="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <div class="border border-[var(--color-lab-border)] bg-white px-4 py-4">
-            <p class="font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Maior concentração</p>
+            <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Maior concentração</p>
             <p class="mt-2 font-mono text-2xl font-bold text-black">{{ $items->max('receita_share_percentual') ? number_format((float) $items->max('receita_share_percentual'), 1, ',', '.') . '%' : '0,0%' }}</p>
             <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">participação máxima na receita do pedido</p>
         </div>
         <div class="border border-[var(--color-lab-border)] bg-white px-4 py-4">
-            <p class="font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Itens sem custo</p>
+            <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Itens sem custo</p>
             <p class="mt-2 font-mono text-2xl font-bold {{ $summary['itens_sem_custo'] > 0 ? 'text-blue-600' : 'text-black' }}">{{ $summary['itens_sem_custo'] }}</p>
             <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">linhas com lucro parcial ou indisponível</p>
         </div>
         <div class="border border-[var(--color-lab-border)] bg-white px-4 py-4">
-            <p class="font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Métodos pagos</p>
+            <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Métodos pagos</p>
             <p class="mt-2 font-mono text-2xl font-bold text-black">{{ $paymentMix->count() }}</p>
             <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">{{ $paymentMix->pluck('label')->implode(' · ') ?: 'Sem pagamento' }}</p>
         </div>
         <div class="border border-[var(--color-lab-border)] bg-white px-4 py-4">
-            <p class="font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Lucro por unidade</p>
+            <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Lucro por unidade</p>
             <p class="mt-2 font-mono text-2xl font-bold text-black">
                 {{ $summary['unidades'] > 0 ? 'R$ ' . number_format($summary['lucro_total_estimado'] / $summary['unidades'], 2, ',', '.') : 'R$ 0,00' }}
             </p>
@@ -224,21 +224,21 @@
                                             <p class="mt-2 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)] break-words">{{ $item['variant_label'] }}</p>
                                         @endif
 
-                                        <div class="mt-4 grid grid-cols-4 gap-2">
+                                        <div class="mt-4 grid grid-cols-2 gap-2">
                                             <div class="border border-[var(--color-lab-border)] bg-white px-3 py-3 min-w-0 overflow-hidden">
-                                                <p class="font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)] truncate">Qtd</p>
+                                                <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)] truncate">Qtd</p>
                                                 <p class="mt-1 font-mono text-sm font-bold text-black truncate">{{ $item['quantidade'] }}</p>
                                             </div>
                                             <div class="border border-[var(--color-lab-border)] bg-white px-3 py-3 min-w-0 overflow-hidden">
-                                                <p class="font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)] truncate">Venda un.</p>
+                                                <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)] truncate">Venda un.</p>
                                                 <p class="mt-1 font-mono text-sm font-bold text-black truncate">R$ {{ number_format($item['preco_unitario'], 2, ',', '.') }}</p>
                                             </div>
                                             <div class="border border-[var(--color-lab-border)] bg-white px-3 py-3 min-w-0 overflow-hidden">
-                                                <p class="font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)] truncate">Receita</p>
+                                                <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)] truncate">Receita</p>
                                                 <p class="mt-1 font-mono text-sm font-bold text-black truncate">R$ {{ number_format($item['receita'], 2, ',', '.') }}</p>
                                             </div>
                                             <div class="border border-[var(--color-lab-border)] bg-white px-3 py-3 min-w-0 overflow-hidden">
-                                                <p class="font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)] truncate">Fonte custo</p>
+                                                <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)] truncate">Fonte custo</p>
                                                 <p class="mt-1 font-mono text-sm font-bold text-black truncate">{{ strtoupper(str_replace('_', ' ', $item['cost_source'])) }}</p>
                                             </div>
                                         </div>
@@ -262,25 +262,25 @@
                         <div class="p-4 sm:p-5 bg-white/70">
                             <div class="grid grid-cols-2 gap-2">
                                 <div class="border border-[var(--color-lab-border)] bg-white px-3 py-3">
-                                    <p class="font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Custo un.</p>
+                                    <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Custo un.</p>
                                     <p class="mt-1 font-mono text-sm font-bold text-black">
                                         {{ $item['custo_unitario'] !== null ? 'R$ ' . number_format($item['custo_unitario'], 2, ',', '.') : 'N/A' }}
                                     </p>
                                 </div>
                                 <div class="border border-[var(--color-lab-border)] bg-white px-3 py-3">
-                                    <p class="font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Custo total</p>
+                                    <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Custo total</p>
                                     <p class="mt-1 font-mono text-sm font-bold text-black">
                                         {{ $item['custo_total'] !== null ? 'R$ ' . number_format($item['custo_total'], 2, ',', '.') : 'N/A' }}
                                     </p>
                                 </div>
                                 <div class="border border-[var(--color-lab-border)] bg-white px-3 py-3">
-                                    <p class="font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Lucro un.</p>
+                                    <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Lucro un.</p>
                                     <p class="mt-1 font-mono text-sm font-bold {{ $item['lucro_unitario'] !== null && $item['lucro_unitario'] < 0 ? 'text-red-600' : 'text-black' }}">
                                         {{ $item['lucro_unitario'] !== null ? 'R$ ' . number_format($item['lucro_unitario'], 2, ',', '.') : 'N/A' }}
                                     </p>
                                 </div>
                                 <div class="border border-[var(--color-lab-border)] bg-white px-3 py-3">
-                                    <p class="font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Lucro total</p>
+                                    <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Lucro total</p>
                                     <p class="mt-1 font-mono text-sm font-bold {{ $item['lucro_total'] !== null && $item['lucro_total'] < 0 ? 'text-red-600' : 'text-black' }}">
                                         {{ $item['lucro_total'] !== null ? 'R$ ' . number_format($item['lucro_total'], 2, ',', '.') : 'N/A' }}
                                     </p>

@@ -591,6 +591,16 @@ function verDetalhes(pedidoId) {
     const modal = document.getElementById('modalDetalhes');
     if (!conteudo || !modal || !window.routes || !window.routes.adminPedidosDetalhes) return;
 
+    // Populate header immediately (skeleton phase)
+    modal.dataset.pedidoId = pedidoId;
+    modal.dataset.pedidoStatus = '';
+    const titleEl = document.getElementById('modalDetalhesTitle');
+    const subEl = document.getElementById('modalDetalhesSub');
+    const btnStatus = document.getElementById('btnAlterarStatusModal');
+    if (titleEl) titleEl.textContent = 'Pedido #' + pedidoId;
+    if (subEl) subEl.textContent = 'Detalhes do Pedido';
+    if (btnStatus) btnStatus.classList.add('hidden');
+
     conteudo.innerHTML = `
         <div class="border border-[var(--color-lab-border)] bg-white overflow-hidden animate-pulse">
             <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.3fr)_minmax(320px,0.9fr)]">
@@ -626,6 +636,11 @@ function verDetalhes(pedidoId) {
         .then(data => {
             if (data && data.html) {
                 conteudo.innerHTML = data.html;
+
+                // Read status from rendered content and show action button
+                const statusFromContent = conteudo.querySelector('[data-status]')?.dataset?.status ?? '';
+                modal.dataset.pedidoStatus = statusFromContent;
+                if (btnStatus) btnStatus.classList.remove('hidden');
             } else {
                 conteudo.innerHTML = '<p class="text-red-600">Não foi possível carregar os detalhes.</p>';
             }
@@ -643,7 +658,26 @@ function alterarStatus(pedidoId, statusAtual) {
 }
 
 function fecharModalDetalhes() {
-    document.getElementById('modalDetalhes').classList.add('hidden');
+    const modal = document.getElementById('modalDetalhes');
+    modal.classList.add('hidden');
+    modal.dataset.pedidoId = '';
+    modal.dataset.pedidoStatus = '';
+
+    const titleEl = document.getElementById('modalDetalhesTitle');
+    const subEl = document.getElementById('modalDetalhesSub');
+    const btnStatus = document.getElementById('btnAlterarStatusModal');
+    if (titleEl) titleEl.textContent = 'Carregando...';
+    if (subEl) subEl.textContent = 'Detalhes do Pedido';
+    if (btnStatus) btnStatus.classList.add('hidden');
+}
+
+function alterarStatusDoModal() {
+    const modal = document.getElementById('modalDetalhes');
+    const pedidoId = modal?.dataset?.pedidoId;
+    const statusAtual = modal?.dataset?.pedidoStatus ?? '';
+    if (!pedidoId) return;
+    fecharModalDetalhes();
+    alterarStatus(pedidoId, statusAtual);
 }
 
 function fecharModalStatus() {

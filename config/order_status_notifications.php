@@ -10,7 +10,7 @@ return [
     | switching targets without touching code if automation endpoints move.
     |
     */
-    'webhook_url' => env('ORDER_STATUS_NOTIFICATION_WEBHOOK', 'https://webhooks.jfxtech.com.br/webhook/n8n'),
+    'webhook_url' => env('ORDER_STATUS_NOTIFICATION_WEBHOOK', ''),
 
     /*
     |--------------------------------------------------------------------------

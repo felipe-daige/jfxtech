@@ -171,7 +171,7 @@
                             <p class="text-[10px] font-mono text-gray-500 mb-1">GARANTIA</p>
                             <p class="font-bold text-sm">5 ANOS</p>
                         </div>
-                        <a href="https://wa.me/5567999844366" target="_blank"
+                        <a href="https://wa.me/556721800568" target="_blank"
                            class="border border-[var(--color-lab-border)] bg-white p-4 block hover:border-black transition-colors">
                             <p class="text-[10px] font-mono text-gray-500 mb-1">ATENDIMENTO</p>
                             <div class="flex items-center gap-2">
@@ -182,7 +182,7 @@
                                 <p class="font-bold text-sm">VIA WHATSAPP · 7 DIAS</p>
                             </div>
                         </a>
-                        <a href="https://wa.me/5567999844366" target="_blank" class="border border-[var(--color-lab-border)] bg-white p-4 block hover:border-black transition-colors">
+                        <a href="https://wa.me/556721800568" target="_blank" class="border border-[var(--color-lab-border)] bg-white p-4 block hover:border-black transition-colors">
                             <p class="text-[10px] font-mono text-gray-500 mb-1">DEVOLUÇÃO</p>
                             <p class="font-bold text-sm">30 DIAS</p>
                         </a>
