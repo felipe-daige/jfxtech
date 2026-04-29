@@ -24,11 +24,17 @@
             </span>
         </div>
         {{-- Menu ··· --}}
+        @php
+            $cupomJson = array_merge(
+                $cupom->only(['id','codigo','user_id','tipo','valor','valor_minimo_pedido','limite_usos','valido_ate','ativo','comissao_percentual']),
+                ['user' => $cupom->user ? $cupom->user->only(['id','name','email','coupon_portal_enabled']) : null]
+            );
+        @endphp
         <div class="relative shrink-0 ml-2" data-cupom-menu>
             <button class="btn-menu text-gray-500 hover:text-black px-2 py-1 text-sm leading-none" data-id="{{ $cupom->id }}">···</button>
             <div class="menu-dropdown hidden absolute right-0 top-7 z-20 bg-white border border-[var(--color-lab-border)] min-w-[180px] shadow-sm">
                 <button class="btn-editar block w-full text-left px-4 py-2 text-xs hover:bg-gray-50"
-                    data-cupom='@json($cupom->only(["id","codigo","user_id","tipo","valor","valor_minimo_pedido","limite_usos","valido_ate","ativo","comissao_percentual"]) + ["user" => $cupom->user ? $cupom->user->only(["id","name","email","coupon_portal_enabled"]) : null])'>
+                    data-cupom='@json($cupomJson)'>
                     Editar
                 </button>
                 <button class="toggle-status block w-full text-left px-4 py-2 text-xs hover:bg-gray-50"
