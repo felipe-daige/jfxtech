@@ -20,13 +20,15 @@ class Cupom extends Model
         'usos_realizados',
         'valido_ate',
         'ativo',
+        'comissao_percentual',
     ];
 
     protected $casts = [
-        'ativo'               => 'boolean',
-        'valido_ate'          => 'date',
-        'valor'               => 'decimal:2',
-        'valor_minimo_pedido' => 'decimal:2',
+        'ativo'                => 'boolean',
+        'valido_ate'           => 'date',
+        'valor'                => 'decimal:2',
+        'valor_minimo_pedido'  => 'decimal:2',
+        'comissao_percentual'  => 'decimal:2',
     ];
 
     public function setCodigoAttribute(string $value): void
@@ -37,6 +39,11 @@ class Cupom extends Model
     public function usos(): HasMany
     {
         return $this->hasMany(CupomUso::class);
+    }
+
+    public function pagamentos(): HasMany
+    {
+        return $this->hasMany(CupomPagamento::class);
     }
 
     public function user(): BelongsTo

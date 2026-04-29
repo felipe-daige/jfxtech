@@ -97,6 +97,7 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::get('/produtos/search', [AdminController::class, 'pesquisarProdutos'])->name('produtos.search');
     Route::post('/produtos/bulk', [AdminController::class, 'bulkActionProdutos'])->name('produtos.bulk');
     Route::post('/produtos/exportar', [AdminController::class, 'exportarProdutos'])->name('produtos.exportar');
+    Route::get('/fornecedores', [AdminController::class, 'listarFornecedores'])->name('fornecedores.index');
     Route::get('/dashboard/exportar/csv', [AdminController::class, 'exportarAnalyticsCsv'])->name('dashboard.exportar.csv');
     Route::get('/dashboard/exportar/pdf', [AdminController::class, 'exportarAnalyticsPdf'])->name('dashboard.exportar.pdf');
     Route::post('/produtos/imagens/{id}/excluir', [AdminController::class, 'excluirImagem'])->name('produtos.imagens.excluir');
@@ -104,6 +105,8 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::post('/produtos/imagens/{id}/substituir', [AdminController::class, 'substituirImagem'])->name('produtos.imagens.substituir');
     Route::post('/produtos/{id}/imagens/reordenar', [AdminController::class, 'reordenarImagens'])->name('produtos.imagens.reordenar');
     Route::get('/produtos/{id}/opcoes', [AdminController::class, 'buscarOpcoesProduto'])->name('produtos.opcoes');
+    Route::get('/produtos/{id}/fornecedores', [AdminController::class, 'buscarProdutoFornecedores'])->name('produtos.fornecedores');
+    Route::put('/produtos/{id}/fornecedores', [AdminController::class, 'salvarProdutoFornecedores'])->name('produtos.fornecedores.salvar');
     Route::post('/produtos/{id}/opcao-grupos', [AdminController::class, 'salvarOpcaoGrupos'])->name('produtos.opcao-grupos');
     Route::post('/produtos/{id}/variantes/gerar', [AdminController::class, 'gerarVariantes'])->name('produtos.variantes.gerar');
     Route::put('/produtos/{id}/variantes', [AdminController::class, 'salvarVariantes'])->name('produtos.variantes.salvar');
@@ -135,6 +138,12 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::put('/cupons/{id}',         [App\Http\Controllers\AdminCupomController::class, 'update'])->name('cupons.update');
     Route::delete('/cupons/{id}',      [App\Http\Controllers\AdminCupomController::class, 'destroy'])->name('cupons.destroy');
     Route::post('/cupons/{id}/toggle', [App\Http\Controllers\AdminCupomController::class, 'toggle'])->name('cupons.toggle');
+
+    Route::get('/cupons/{id}/pagamentos',          [App\Http\Controllers\AdminCupomController::class, 'pagamentos'])->name('cupons.pagamentos');
+    Route::post('/cupons/{id}/pagamentos',         [App\Http\Controllers\AdminCupomController::class, 'storePagamento'])->name('cupons.pagamentos.store');
+    Route::put('/cupons/{id}/pagamentos/{pid}',    [App\Http\Controllers\AdminCupomController::class, 'updatePagamento'])->name('cupons.pagamentos.update');
+    Route::delete('/cupons/{id}/pagamentos/{pid}', [App\Http\Controllers\AdminCupomController::class, 'destroyPagamento'])->name('cupons.pagamentos.destroy');
+    Route::get('/cupons/{id}/usos-pendentes',      [App\Http\Controllers\AdminCupomController::class, 'usosPendentes'])->name('cupons.usosPendentes');
 });
 
 // Rota para buscar CEP (pública)

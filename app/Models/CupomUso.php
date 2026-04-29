@@ -11,7 +11,7 @@ class CupomUso extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['cupom_id', 'user_id', 'pedido_id'];
+    protected $fillable = ['cupom_id', 'user_id', 'pedido_id', 'cupom_pagamento_id'];
 
     protected $casts = [
         'created_at' => 'datetime',
@@ -25,5 +25,10 @@ class CupomUso extends Model
     public function pedido(): BelongsTo
     {
         return $this->belongsTo(Pedido::class);
+    }
+
+    public function pagamento(): BelongsTo
+    {
+        return $this->belongsTo(CupomPagamento::class, 'cupom_pagamento_id');
     }
 }
