@@ -7,6 +7,7 @@ use App\Mail\OrderStatusMail;
 use App\Models\Pedido;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
@@ -14,6 +15,12 @@ use Tests\TestCase;
 class OrderEmailNotificationTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        Config::set('order_status_notifications.enabled', true);
+    }
 
     public function test_paid_order_sends_email_to_authenticated_customer_and_keeps_webhook(): void
     {

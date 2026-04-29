@@ -16,6 +16,12 @@ class OrderStatusNotificationTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        Config::set('order_status_notifications.enabled', true);
+    }
+
     public function test_notification_sent_when_status_changes_to_relevant_value()
     {
         Http::fake();
