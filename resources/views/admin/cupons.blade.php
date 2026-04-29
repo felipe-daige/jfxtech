@@ -37,7 +37,7 @@
                 </button>
                 @if($cupom->user_id)
                 <button class="btn-historico block w-full text-left px-4 py-2 text-xs hover:bg-gray-50"
-                    data-id="{{ $cupom->id }}" data-codigo="{{ $cupom->codigo }}">
+                    data-id="{{ $cupom->id }}" data-codigo="{{ $cupom->codigo }}" data-pendente="{{ $cupom->comissao_pendente }}">
                     Registrar pagamento
                 </button>
                 @endif
@@ -99,7 +99,7 @@
     </div>
     <div class="px-4 py-2">
         <button class="btn-historico w-full text-left text-xs underline hover:text-gray-600"
-            data-id="{{ $cupom->id }}" data-codigo="{{ $cupom->codigo }}">
+            data-id="{{ $cupom->id }}" data-codigo="{{ $cupom->codigo }}" data-pendente="{{ $cupom->comissao_pendente }}">
             Ver histórico de pagamentos
         </button>
     </div>
@@ -573,10 +573,10 @@
     });
 
     $(document).on('click', '.btn-historico', function () {
-        const id     = $(this).data('id');
-        const codigo = $(this).data('codigo');
-        // pendente value: find in the cards rendered by blade
-        abrirModalPagamentos(id, codigo);
+        const id      = $(this).data('id');
+        const codigo  = $(this).data('codigo');
+        const pendente = $(this).data('pendente');
+        abrirModalPagamentos(id, codigo, pendente);
     });
 
     $('#btn-registrar-pagamento').on('click', function () {
