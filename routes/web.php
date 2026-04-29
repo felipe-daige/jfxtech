@@ -104,6 +104,7 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::get('/produtos/imagens/{id}/download', [AdminController::class, 'downloadImagem'])->name('produtos.imagens.download');
     Route::post('/produtos/imagens/{id}/substituir', [AdminController::class, 'substituirImagem'])->name('produtos.imagens.substituir');
     Route::post('/produtos/{id}/imagens/reordenar', [AdminController::class, 'reordenarImagens'])->name('produtos.imagens.reordenar');
+    Route::get('/produtos/{id}/ver', [AdminController::class, 'verProduto'])->name('produtos.ver');
     Route::get('/produtos/{id}/opcoes', [AdminController::class, 'buscarOpcoesProduto'])->name('produtos.opcoes');
     Route::get('/produtos/{id}/fornecedores', [AdminController::class, 'buscarProdutoFornecedores'])->name('produtos.fornecedores');
     Route::put('/produtos/{id}/fornecedores', [AdminController::class, 'salvarProdutoFornecedores'])->name('produtos.fornecedores.salvar');

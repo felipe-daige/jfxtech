@@ -55,6 +55,16 @@
                             <span>Visitar página</span>
                         </a>
 
+                        <a href="{{ route('admin.produtos.ver', $produto->id) }}"
+                           class="flex items-center space-x-2 px-3 py-2 text-xs font-mono text-[var(--color-lab-muted)] hover:text-black hover:bg-[var(--color-lab-bg)] transition-colors">
+                            <svg class="w-3.5 h-3.5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                            <span>Ver detalhes</span>
+                        </a>
+
                         <button onclick="closeProdutoMenu({{ $produto->id }}); editarProduto({{ $produto->id }})"
                                 class="w-full flex items-center space-x-2 px-3 py-2 text-xs font-mono text-[var(--color-lab-muted)] hover:text-black hover:bg-[var(--color-lab-bg)] transition-colors">
                             <svg class="w-3.5 h-3.5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"

@@ -8,8 +8,11 @@ use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 use App\Models\Produto;
 use App\Models\Categoria;
+use App\Models\Cupom;
+use App\Models\Fornecedor;
 use App\Models\Pedido;
 use App\Models\ItemPedido;
+use App\Models\ProdutoFornecedorOferta;
 use App\Models\ProdutoImagem;
 use App\Models\ProdutoVariante;
 use App\Models\ProdutoOpcaoGrupo;
@@ -20,6 +23,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ProdutosExport;
 use App\Support\ProdutoDescricaoFormatter;
+use App\Services\CouponPartnerProgressService;
 use App\Services\PromotionSimulationService;
 
 class AdminController extends Controller
@@ -56,20 +60,22 @@ class AdminController extends Controller
 
         $prefix   = $term . '%';
         $contains = '%' . $term . '%';
+        $likeOperator = \DB::getDriverName() === 'pgsql' ? 'ilike' : 'like';
+        $likeKeyword = \DB::getDriverName() === 'pgsql' ? 'ILIKE' : 'LIKE';
 
         $products = Produto::query()
             ->select(['id', 'nome', 'marca', 'slug', 'ativo'])
-            ->where(function ($query) use ($contains) {
+            ->where(function ($query) use ($contains, $likeOperator) {
                 $query
-                    ->where('nome',  'ilike', $contains)
-                    ->orWhere('marca', 'ilike', $contains)
-                    ->orWhere('slug',  'ilike', $contains);
+                    ->where('nome', $likeOperator, $contains)
+                    ->orWhere('marca', $likeOperator, $contains)
+                    ->orWhere('slug', $likeOperator, $contains);
             })
             ->orderByRaw(
                 "CASE
-                    WHEN nome ILIKE ? THEN 0
-                    WHEN COALESCE(marca, '') ILIKE ? THEN 1
-                    WHEN slug ILIKE ? THEN 2
+                    WHEN nome {$likeKeyword} ? THEN 0
+                    WHEN COALESCE(marca, '') {$likeKeyword} ? THEN 1
+                    WHEN slug {$likeKeyword} ? THEN 2
                     ELSE 3
                 END",
                 [$prefix, $prefix, $prefix]
@@ -137,7 +143,7 @@ class AdminController extends Controller
         }
 
         $produtos_analytics = Produto::select(
-            'id', 'nome', 'marca', 'preco', 'preco_original', 'custo_compra',
+            'id', 'nome', 'marca', 'preco', 'preco_original', 'custo_compra', 'frete_compra',
             'desconto_percentual', 'em_promocao', 'ativo'
         )->orderBy('nome')->get();
 
@@ -265,6 +271,25 @@ class AdminController extends Controller
         ]);
     }
 
+    // Página de detalhes completos do produto
+    public function verProduto(int $id)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('site.login');
+        }
+
+        $produto = Produto::with([
+            'categoria',
+            'imagens'       => fn($q) => $q->orderBy('ordem')->orderBy('id'),
+            'variantes',
+            'opcaoGrupos.opcaoValores',
+        ])->findOrFail($id);
+
+        $categorias = \App\Models\Categoria::orderBy('nome')->get();
+
+        return view('admin.produto-ver', compact('produto', 'categorias'));
+    }
+
     // Buscar dados do produto para edição
     public function buscarProduto($id)
     {
@@ -280,6 +305,7 @@ class AdminController extends Controller
                        number_format($produto->preco_original, 2, ',', '.') : 
                        number_format($produto->preco, 2, ',', '.'),
             'custo_compra' => $produto->custo_compra !== null ? number_format($produto->custo_compra, 2, ',', '.') : '',
+            'frete_compra' => $produto->frete_compra !== null ? number_format($produto->frete_compra, 2, ',', '.') : '',
             'peso' => $produto->peso ? number_format($produto->peso, 3, ',', '.') : '',
             'desconto_percentual' => $produto->desconto_percentual,
             'em_promocao' => $produto->em_promocao,
@@ -310,6 +336,7 @@ class AdminController extends Controller
             'descricao_curta' => 'nullable|string',
             'preco' => 'required|string',
             'custo_compra' => 'nullable|string',
+            'frete_compra' => 'nullable|string',
             'peso' => 'nullable|numeric|min:0',
             'estoque' => 'required|integer|min:0',
             'categoria_id' => 'required|exists:categorias,id',
@@ -332,6 +359,11 @@ class AdminController extends Controller
         $custoCompra = $this->parseMoneyInput($request->custo_compra);
         if ($request->filled('custo_compra') && (!is_numeric($custoCompra) || $custoCompra < 0)) {
             return redirect()->back()->withErrors(['custo_compra' => 'Custo de compra deve ser um valor válido maior ou igual a zero.'])->withInput();
+        }
+
+        $freteCompra = $this->parseMoneyInput($request->frete_compra);
+        if ($request->filled('frete_compra') && (!is_numeric($freteCompra) || $freteCompra < 0)) {
+            return redirect()->back()->withErrors(['frete_compra' => 'Frete de compra deve ser um valor válido maior ou igual a zero.'])->withInput();
         }
 
         // Processar campos de promoção
@@ -369,6 +401,7 @@ class AdminController extends Controller
             'descricao_curta' => $request->filled('descricao_curta') ? trim((string) $request->descricao_curta) : null,
             'preco' => $precoFinal, // Preço final (com desconto se aplicável)
             'custo_compra' => $request->filled('custo_compra') ? $custoCompra : null,
+            'frete_compra' => $request->filled('frete_compra') ? $freteCompra : null,
             'peso' => $request->peso, // Peso em KG
             'preco_original' => $emPromocao ? $preco : null, // Preço original (sem desconto)
             'desconto_percentual' => $descontoPercentual,
@@ -410,6 +443,7 @@ class AdminController extends Controller
             'descricao_curta' => 'nullable|string',
             'preco' => 'required|string',
             'custo_compra' => 'nullable|string',
+            'frete_compra' => 'nullable|string',
             'peso' => 'nullable|numeric|min:0',
             'estoque' => 'required|integer|min:0',
             'categoria_id' => 'required|exists:categorias,id',
@@ -433,6 +467,11 @@ class AdminController extends Controller
         $custoCompra = $this->parseMoneyInput($request->custo_compra);
         if ($request->filled('custo_compra') && (!is_numeric($custoCompra) || $custoCompra < 0)) {
             return redirect()->back()->withErrors(['custo_compra' => 'Custo de compra deve ser um valor válido maior ou igual a zero.'])->withInput();
+        }
+
+        $freteCompra = $this->parseMoneyInput($request->frete_compra);
+        if ($request->filled('frete_compra') && (!is_numeric($freteCompra) || $freteCompra < 0)) {
+            return redirect()->back()->withErrors(['frete_compra' => 'Frete de compra deve ser um valor válido maior ou igual a zero.'])->withInput();
         }
 
         // Processar campos de promoção
@@ -470,6 +509,7 @@ class AdminController extends Controller
             'descricao_curta' => $request->filled('descricao_curta') ? trim((string) $request->descricao_curta) : null,
             'preco' => $precoFinal, // Preço final (com desconto se aplicável)
             'custo_compra' => $request->filled('custo_compra') ? $custoCompra : null,
+            'frete_compra' => $request->filled('frete_compra') ? $freteCompra : null,
             'peso' => $request->peso, // Peso em KG
             'preco_original' => $emPromocao ? $preco : null, // Preço original (sem desconto)
             'desconto_percentual' => $descontoPercentual,
@@ -913,7 +953,7 @@ class AdminController extends Controller
                     $produto->nome,
                     $produto->marca ?? '—',
                     $this->formatCurrency($produto->preco_com_desconto),
-                    $produto->custo_compra !== null ? $this->formatCurrency((float) $produto->custo_compra) : '—',
+                    $produto->custo_efetivo !== null ? $this->formatCurrency($produto->custo_efetivo) : '—',
                     $produto->lucro_bruto_unitario !== null ? $this->formatCurrency($produto->lucro_bruto_unitario) : '—',
                     $produto->margem_bruta_percentual !== null ? $this->formatPercent($produto->margem_bruta_percentual) : 'Sem custo',
                     (string) $produto->estoque,
@@ -978,6 +1018,7 @@ class AdminController extends Controller
                     'valores'     => $v->valores,
                     'preco'       => $v->preco,
                     'custo_compra'=> $v->custo_compra,
+                    'frete_compra'=> $v->frete_compra,
                     'estoque'     => $v->estoque,
                     'ativo'       => $v->ativo,
                     'descricao'   => $v->descricao,   // null if inheriting from product
@@ -1004,6 +1045,146 @@ class AdminController extends Controller
                 'id'  => $img->id,
                 'url' => asset('storage/' . $img->caminho),
             ]),
+        ]);
+    }
+
+    public function listarFornecedores(Request $request)
+    {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Não autorizado'], 401);
+        }
+
+        $query = Fornecedor::query()->orderBy('nome')->orderBy('id');
+
+        $term = trim((string) $request->query('q', ''));
+        if ($term !== '') {
+            $operator = \DB::getDriverName() === 'pgsql' ? 'ilike' : 'like';
+            $query->where(function ($q) use ($term, $operator) {
+                $q->where('nome', $operator, "%{$term}%")
+                    ->orWhere('email', $operator, "%{$term}%")
+                    ->orWhere('telefone', $operator, "%{$term}%")
+                    ->orWhere('whatsapp', $operator, "%{$term}%");
+            });
+        }
+
+        return response()->json([
+            'fornecedores' => $query->limit(100)->get()->map(fn (Fornecedor $fornecedor) => $this->formatFornecedorPayload($fornecedor)),
+        ]);
+    }
+
+    public function buscarProdutoFornecedores($id)
+    {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Não autorizado'], 401);
+        }
+
+        $produto = Produto::with(['fornecedorOfertas.fornecedor'])->findOrFail($id);
+
+        return response()->json([
+            'fornecedores' => Fornecedor::query()
+                ->orderBy('nome')
+                ->orderBy('id')
+                ->limit(100)
+                ->get()
+                ->map(fn (Fornecedor $fornecedor) => $this->formatFornecedorPayload($fornecedor)),
+            'ofertas' => $produto->fornecedorOfertas
+                ->sortBy(fn (ProdutoFornecedorOferta $oferta) => $oferta->fornecedor?->nome ?? '')
+                ->values()
+                ->map(fn (ProdutoFornecedorOferta $oferta) => $this->formatFornecedorOfertaPayload($oferta)),
+        ]);
+    }
+
+    public function salvarProdutoFornecedores(Request $request, $id)
+    {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Não autorizado'], 401);
+        }
+
+        $produto = Produto::findOrFail($id);
+
+        $validated = $request->validate([
+            'ofertas' => ['nullable', 'array'],
+            'ofertas.*.fornecedor_id' => ['nullable', 'integer', 'exists:fornecedores,id'],
+            'ofertas.*.fornecedor' => ['nullable', 'array'],
+            'ofertas.*.fornecedor.nome' => ['nullable', 'string', 'max:255'],
+            'ofertas.*.fornecedor.perfil_url' => ['nullable', 'url', 'max:2048'],
+            'ofertas.*.fornecedor.site_url' => ['nullable', 'url', 'max:2048'],
+            'ofertas.*.fornecedor.email' => ['nullable', 'email', 'max:255'],
+            'ofertas.*.fornecedor.telefone' => ['nullable', 'string', 'max:50'],
+            'ofertas.*.fornecedor.whatsapp' => ['nullable', 'string', 'max:50'],
+            'ofertas.*.fornecedor.contato_nome' => ['nullable', 'string', 'max:255'],
+            'ofertas.*.fornecedor.pais' => ['nullable', 'string', 'max:80'],
+            'ofertas.*.fornecedor.observacoes' => ['nullable', 'string'],
+            'ofertas.*.preco_compra' => ['nullable', 'numeric', 'min:0'],
+            'ofertas.*.frete_compra' => ['nullable', 'numeric', 'min:0'],
+            'ofertas.*.moeda' => ['nullable', 'string', 'max:10'],
+            'ofertas.*.quantidade_minima' => ['nullable', 'integer', 'min:1'],
+            'ofertas.*.prazo_dias' => ['nullable', 'integer', 'min:0'],
+            'ofertas.*.url_produto' => ['nullable', 'url', 'max:2048'],
+            'ofertas.*.sku_fornecedor' => ['nullable', 'string', 'max:255'],
+            'ofertas.*.observacoes' => ['nullable', 'string'],
+            'ofertas.*.cotado_em' => ['nullable', 'date'],
+            'ofertas.*.ativo' => ['nullable', 'boolean'],
+        ]);
+
+        $ofertas = $validated['ofertas'] ?? [];
+        $idsManter = [];
+
+        \DB::transaction(function () use ($ofertas, $produto, &$idsManter) {
+            foreach ($ofertas as $ofertaData) {
+                $fornecedorData = $this->normalizeFornecedorData($ofertaData['fornecedor'] ?? []);
+                $ofertaPayload = $this->normalizeFornecedorOfertaData($ofertaData);
+                $fornecedorId = $ofertaData['fornecedor_id'] ?? null;
+
+                $hasFornecedorData = collect($fornecedorData)->filter(fn ($value) => filled($value))->isNotEmpty();
+                $hasOfertaData = collect($ofertaPayload)
+                    ->except('ativo')
+                    ->filter(fn ($value) => filled($value) || $value === 0 || $value === 0.0)
+                    ->isNotEmpty();
+
+                if (!$fornecedorId && !$hasFornecedorData && !$hasOfertaData) {
+                    continue;
+                }
+
+                if (!$fornecedorId && !$hasFornecedorData) {
+                    abort(response()->json(['message' => 'Informe um fornecedor para salvar a oferta.'], 422));
+                }
+
+                $fornecedor = $fornecedorId
+                    ? Fornecedor::findOrFail($fornecedorId)
+                    : Fornecedor::create($fornecedorData + ['ativo' => true]);
+
+                if ($fornecedorId && $hasFornecedorData) {
+                    $fornecedor->update($fornecedorData);
+                }
+
+                $oferta = ProdutoFornecedorOferta::updateOrCreate(
+                    [
+                        'produto_id' => $produto->id,
+                        'fornecedor_id' => $fornecedor->id,
+                    ],
+                    $ofertaPayload
+                );
+
+                $idsManter[] = $oferta->id;
+            }
+
+            $query = $produto->fornecedorOfertas();
+            if (!empty($idsManter)) {
+                $query->whereNotIn('id', $idsManter)->delete();
+            } else {
+                $query->delete();
+            }
+        });
+
+        $produto->load(['fornecedorOfertas.fornecedor']);
+
+        return response()->json([
+            'success' => true,
+            'ofertas' => $produto->fornecedorOfertas
+                ->sortBy(fn (ProdutoFornecedorOferta $oferta) => $oferta->fornecedor?->nome ?? '')
+                ->values()
+                ->map(fn (ProdutoFornecedorOferta $oferta) => $this->formatFornecedorOfertaPayload($oferta)),
         ]);
     }
 
@@ -1134,6 +1315,7 @@ class AdminController extends Controller
                         'valores'    => $combo,
                         'preco'      => null,
                         'custo_compra' => null,
+                        'frete_compra' => null,
                         'estoque'    => null,
                         'ativo'      => true,
                     ]);
@@ -1174,6 +1356,7 @@ class AdminController extends Controller
             'variantes.*.id'             => 'required|integer',
             'variantes.*.preco'          => 'nullable|numeric|min:0',
             'variantes.*.custo_compra'   => 'nullable|numeric|min:0',
+            'variantes.*.frete_compra'   => 'nullable|numeric|min:0',
             'variantes.*.estoque'        => 'nullable|integer|min:0',
             'variantes.*.ativo'          => 'nullable|boolean',
             'variantes.*.imagem_ids'     => 'nullable|array',
@@ -1197,6 +1380,7 @@ class AdminController extends Controller
                 $update = [];
                 if (array_key_exists('preco', $varData))   $update['preco']   = $varData['preco'];
                 if (array_key_exists('custo_compra', $varData)) $update['custo_compra'] = $varData['custo_compra'];
+                if (array_key_exists('frete_compra', $varData)) $update['frete_compra'] = $varData['frete_compra'];
                 if (array_key_exists('estoque', $varData)) $update['estoque'] = $varData['estoque'];
                 if (array_key_exists('ativo', $varData))   $update['ativo']   = $varData['ativo'];
 
@@ -1243,17 +1427,138 @@ class AdminController extends Controller
         return is_numeric($normalized) ? (float) $normalized : null;
     }
 
+    private function formatFornecedorPayload(Fornecedor $fornecedor): array
+    {
+        return [
+            'id' => $fornecedor->id,
+            'nome' => $fornecedor->nome,
+            'perfil_url' => $fornecedor->perfil_url,
+            'site_url' => $fornecedor->site_url,
+            'email' => $fornecedor->email,
+            'telefone' => $fornecedor->telefone,
+            'whatsapp' => $fornecedor->whatsapp,
+            'contato_nome' => $fornecedor->contato_nome,
+            'pais' => $fornecedor->pais,
+            'observacoes' => $fornecedor->observacoes,
+            'ativo' => $fornecedor->ativo,
+        ];
+    }
+
+    private function formatFornecedorOfertaPayload(ProdutoFornecedorOferta $oferta): array
+    {
+        return [
+            'id' => $oferta->id,
+            'produto_id' => $oferta->produto_id,
+            'fornecedor_id' => $oferta->fornecedor_id,
+            'fornecedor' => $oferta->fornecedor ? $this->formatFornecedorPayload($oferta->fornecedor) : null,
+            'preco_compra' => $oferta->preco_compra !== null ? (float) $oferta->preco_compra : null,
+            'frete_compra' => $oferta->frete_compra !== null ? (float) $oferta->frete_compra : null,
+            'moeda' => $oferta->moeda,
+            'quantidade_minima' => $oferta->quantidade_minima,
+            'prazo_dias' => $oferta->prazo_dias,
+            'url_produto' => $oferta->url_produto,
+            'sku_fornecedor' => $oferta->sku_fornecedor,
+            'observacoes' => $oferta->observacoes,
+            'cotado_em' => $oferta->cotado_em?->toDateString(),
+            'ativo' => $oferta->ativo,
+        ];
+    }
+
+    private function normalizeFornecedorData(array $data): array
+    {
+        return [
+            'nome' => $this->nullableString($data['nome'] ?? null),
+            'perfil_url' => $this->nullableString($data['perfil_url'] ?? null),
+            'site_url' => $this->nullableString($data['site_url'] ?? null),
+            'email' => $this->nullableString($data['email'] ?? null),
+            'telefone' => $this->nullableString($data['telefone'] ?? null),
+            'whatsapp' => $this->nullableString($data['whatsapp'] ?? null),
+            'contato_nome' => $this->nullableString($data['contato_nome'] ?? null),
+            'pais' => $this->nullableString($data['pais'] ?? null),
+            'observacoes' => $this->nullableString($data['observacoes'] ?? null),
+        ];
+    }
+
+    private function normalizeFornecedorOfertaData(array $data): array
+    {
+        return [
+            'preco_compra' => array_key_exists('preco_compra', $data) ? $data['preco_compra'] : null,
+            'frete_compra' => array_key_exists('frete_compra', $data) ? $data['frete_compra'] : null,
+            'moeda' => $this->nullableString($data['moeda'] ?? null),
+            'quantidade_minima' => array_key_exists('quantidade_minima', $data) ? $data['quantidade_minima'] : null,
+            'prazo_dias' => array_key_exists('prazo_dias', $data) ? $data['prazo_dias'] : null,
+            'url_produto' => $this->nullableString($data['url_produto'] ?? null),
+            'sku_fornecedor' => $this->nullableString($data['sku_fornecedor'] ?? null),
+            'observacoes' => $this->nullableString($data['observacoes'] ?? null),
+            'cotado_em' => $this->nullableString($data['cotado_em'] ?? null),
+            'ativo' => array_key_exists('ativo', $data) ? $data['ativo'] : true,
+        ];
+    }
+
+    private function nullableString(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $value = trim((string) $value);
+
+        return $value === '' ? null : $value;
+    }
+
     private function resolveItemCost(ItemPedido $item): ?float
     {
-        if ($item->produtoVariante && $item->produtoVariante->custo_compra !== null) {
-            return (float) $item->produtoVariante->custo_compra;
+        if ($item->produtoVariante) {
+            $custoCompra = $item->produtoVariante->custo_compra !== null
+                ? (float) $item->produtoVariante->custo_compra
+                : ($item->produto?->custo_compra !== null ? (float) $item->produto->custo_compra : null);
+
+            if ($custoCompra === null) {
+                return null;
+            }
+
+            $freteCompra = $item->produtoVariante->frete_compra !== null
+                ? (float) $item->produtoVariante->frete_compra
+                : (float) ($item->produto?->frete_compra ?? 0);
+
+            return round($custoCompra + $freteCompra, 2);
         }
 
-        if ($item->produto && $item->produto->custo_compra !== null) {
-            return (float) $item->produto->custo_compra;
+        return $item->produto?->custo_efetivo;
+    }
+
+    private function resolvePartnerCommissionContext(Pedido $pedido): array
+    {
+        $couponCode = trim((string) ($pedido->cupom_codigo ?? ''));
+
+        if ($couponCode === '') {
+            return [
+                'coupon_code' => null,
+                'partner_name' => null,
+                'rate' => null,
+            ];
         }
 
-        return null;
+        $coupon = Cupom::with('user')
+            ->whereRaw('UPPER(codigo) = ?', [Str::upper($couponCode)])
+            ->whereNotNull('user_id')
+            ->first();
+
+        if (!$coupon || !$coupon->user) {
+            return [
+                'coupon_code' => Str::upper($couponCode),
+                'partner_name' => null,
+                'rate' => null,
+            ];
+        }
+
+        $progress = app(CouponPartnerProgressService::class)->progressForUser($coupon->user);
+
+        return [
+            'coupon_code' => $coupon->codigo,
+            'partner_name' => $coupon->user->name,
+            'rate' => (float) $progress['current_rate'],
+        ];
     }
 
     private function resolveAnalyticsPeriod(string $period): string
@@ -1284,8 +1589,8 @@ class AdminController extends Controller
         $itensQuery = ItemPedido::query()
             ->with([
                 'pedido:id,status,created_at,valor_total,frete_valor,valor_desconto',
-                'produto:id,custo_compra',
-                'produtoVariante:id,produto_id,custo_compra',
+                'produto:id,custo_compra,frete_compra',
+                'produtoVariante:id,produto_id,custo_compra,frete_compra',
             ])
             ->where('produto_id', $produto->id)
             ->whereHas('pedido', function ($query) use ($performanceStatuses, $periodStart) {
@@ -1372,8 +1677,8 @@ class AdminController extends Controller
         $itens = ItemPedido::query()
             ->with([
                 'pedido:id,status,created_at,valor_total,frete_valor,valor_desconto',
-                'produto:id,custo_compra',
-                'produtoVariante:id,produto_id,custo_compra',
+                'produto:id,custo_compra,frete_compra',
+                'produtoVariante:id,produto_id,custo_compra,frete_compra',
             ])
             ->where('produto_id', $produto->id)
             ->whereHas('pedido', function ($query) use ($performanceStatuses, $periodStart) {
@@ -1448,8 +1753,8 @@ class AdminController extends Controller
             ->value('receita');
 
         $itensPerformance = ItemPedido::with([
-            'produto:id,custo_compra',
-            'produtoVariante:id,produto_id,custo_compra',
+            'produto:id,custo_compra,frete_compra',
+            'produtoVariante:id,produto_id,custo_compra,frete_compra',
         ])->whereHas('pedido', function ($query) {
             $query->whereIn('status', PedidoStatus::performanceValues());
         })->get();
@@ -1480,6 +1785,7 @@ class AdminController extends Controller
             'preco',
             'preco_original',
             'custo_compra',
+            'frete_compra',
             'desconto_percentual',
             'em_promocao',
             'destaque',
@@ -1668,7 +1974,7 @@ class AdminController extends Controller
                     'marca' => $produto->marca,
                     'categoria' => $produto->categoria?->nome,
                     'preco_com_desconto' => (float) $produto->preco_com_desconto,
-                    'custo_compra' => (float) $produto->custo_compra,
+                    'custo_compra' => $produto->custo_efetivo,
                     'lucro_bruto_unitario' => (float) $produto->lucro_bruto_unitario,
                     'margem_bruta_percentual' => (float) $produto->margem_bruta_percentual,
                     'estoque' => (int) $produto->estoque,
@@ -1777,6 +2083,8 @@ class AdminController extends Controller
 
     private function buildOrderDetailAnalytics(Pedido $pedido): array
     {
+        $partnerCommission = $this->resolvePartnerCommissionContext($pedido);
+
         $items = $pedido->itens->map(function (ItemPedido $item) {
             $receita = round((float) $item->preco * (int) $item->quantidade, 2);
             $custoUnitario = $this->resolveItemCost($item);
@@ -1821,6 +2129,41 @@ class AdminController extends Controller
         })->values();
 
         $receitaItens = round((float) $items->sum('receita'), 2);
+        $desconto = round((float) ($pedido->valor_desconto ?? 0), 2);
+        $descontoRateavel = $receitaItens > 0 ? min($desconto, $receitaItens) : 0.0;
+        $descontoRestante = $descontoRateavel;
+        $ultimoItemIndex = $items->count() - 1;
+        $taxaParceiro = $partnerCommission['rate'];
+
+        $items = $items->map(function (array $item, int $index) use ($receitaItens, $descontoRateavel, &$descontoRestante, $ultimoItemIndex, $taxaParceiro) {
+            $descontoRateado = 0.0;
+
+            if ($receitaItens > 0 && $descontoRateavel > 0) {
+                $descontoRateado = $index === $ultimoItemIndex
+                    ? round($descontoRestante, 2)
+                    : min($descontoRestante, round($descontoRateavel * ($item['receita'] / $receitaItens), 2));
+                $descontoRestante = round($descontoRestante - $descontoRateado, 2);
+            }
+
+            $receitaLiquida = max(0, round($item['receita'] - $descontoRateado, 2));
+            $comissaoParceiro = $taxaParceiro !== null
+                ? round($receitaLiquida * ($taxaParceiro / 100), 2)
+                : null;
+            $lucroLiquidoItem = $item['custo_total'] !== null
+                ? round($receitaLiquida - $item['custo_total'], 2)
+                : null;
+
+            $item['desconto_rateado'] = $descontoRateado;
+            $item['receita_liquida'] = $receitaLiquida;
+            $item['comissao_parceiro'] = $comissaoParceiro;
+            $item['lucro_liquido_item'] = $lucroLiquidoItem;
+            $item['lucro_apos_parceiro'] = ($lucroLiquidoItem !== null && $comissaoParceiro !== null)
+                ? round($lucroLiquidoItem - $comissaoParceiro, 2)
+                : null;
+
+            return $item;
+        })->values();
+
         $custoConhecido = round((float) $items->sum(fn (array $item) => $item['custo_total'] ?? 0), 2);
         $lucroConhecido = round((float) $items->sum(fn (array $item) => $item['lucro_total'] ?? 0), 2);
         $totalUnidades = (int) $items->sum('quantidade');
@@ -1864,11 +2207,14 @@ class AdminController extends Controller
         })->values();
 
         $frete = round((float) ($pedido->frete_valor ?? 0), 2);
-        $desconto = round((float) ($pedido->valor_desconto ?? 0), 2);
         $ticket = round((float) $pedido->valor_total, 2);
         $receitaLiquidaProdutos = max(0, round($receitaItens - $desconto, 2));
         $lucroProdutos = round($receitaLiquidaProdutos - $custoConhecido, 2);
-        $lucroTicket = round($ticket - $custoConhecido, 2);
+        $comissaoParceiroTotal = $taxaParceiro !== null
+            ? round((float) $items->sum(fn (array $item) => $item['comissao_parceiro'] ?? 0), 2)
+            : null;
+        $lucroTicketAntesComissao = round($ticket - $custoConhecido, 2);
+        $lucroTicket = round($lucroTicketAntesComissao - ($comissaoParceiroTotal ?? 0), 2);
         $margemProdutos = ($receitaLiquidaProdutos > 0 && $itensSemCusto === 0)
             ? round(($lucroProdutos / $receitaLiquidaProdutos) * 100, 2)
             : null;
@@ -1898,6 +2244,11 @@ class AdminController extends Controller
                 'frete' => $frete,
                 'desconto' => $desconto,
                 'custo_total_estimado' => $custoConhecido,
+                'comissao_parceiro_total' => $comissaoParceiroTotal,
+                'parceiro_taxa_percentual' => $taxaParceiro,
+                'parceiro_nome' => $partnerCommission['partner_name'],
+                'parceiro_cupom_codigo' => $partnerCommission['coupon_code'],
+                'lucro_ticket_antes_comissao' => $lucroTicketAntesComissao,
                 'lucro_total_estimado' => $lucroTicket,
                 'lucro_produtos_estimado' => $lucroProdutos,
                 'lucro_ticket_estimado' => $lucroTicket,
@@ -1954,6 +2305,7 @@ class AdminController extends Controller
         return response()->json([
             'success'      => true,
             'custo_compra' => $produto->custo_compra,
+            'custo_efetivo' => $produto->custo_efetivo,
             'estoque'      => $produto->estoque,
             'margem'       => $produto->margem_bruta_percentual,
             'lucro'        => $produto->lucro_bruto_unitario,
