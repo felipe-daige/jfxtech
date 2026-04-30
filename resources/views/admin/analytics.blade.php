@@ -216,8 +216,8 @@
                             <td class="px-4 py-3 font-mono text-xs text-black">{{ $p->nome }}</td>
                             <td class="px-4 py-3 font-mono text-xs text-[var(--color-lab-muted)]">{!! $p->marca ?? '&mdash;' !!}</td>
                             <td class="px-4 py-3 font-mono text-xs text-black text-right">R$&nbsp;{{ number_format($p->preco_com_desconto, 2, ',', '.') }}</td>
-                            <td class="px-4 py-3 font-mono text-xs text-right {{ $p->custo_compra ? 'text-black' : 'text-gray-300' }}" data-cell="custo">
-                                {!! $p->custo_compra ? 'R$ ' . number_format($p->custo_compra, 2, ',', '.') : '&mdash;' !!}
+                            <td class="px-4 py-3 font-mono text-xs text-right {{ $p->custo_efetivo ? 'text-black' : 'text-gray-300' }}" data-cell="custo">
+                                {!! $p->custo_efetivo ? 'R$ ' . number_format($p->custo_efetivo, 2, ',', '.') : '&mdash;' !!}
                             </td>
                             <td class="px-4 py-3 font-mono text-xs text-right {{ $lucro === null ? 'text-gray-300' : ($lucro >= 0 ? 'text-black' : 'text-red-600') }}" data-cell="lucro">
                                 {!! $lucro !== null ? 'R$ ' . number_format($lucro, 2, ',', '.') : '&mdash;' !!}
@@ -547,7 +547,7 @@
                     row.dataset.lucro = data.lucro != null ? data.lucro : '';
                     row.dataset.estoque = data.estoque;
                     var cellCusto = row.querySelector('[data-cell="custo"]');
-                    if (cellCusto) cellCusto.textContent = data.custo_compra ? 'R$ ' + fmtMoney(data.custo_compra) : '—';
+                    if (cellCusto) cellCusto.textContent = data.custo_efetivo ? 'R$ ' + fmtMoney(data.custo_efetivo) : '—';
                     var cellLucro = row.querySelector('[data-cell="lucro"]');
                     if (cellLucro) cellLucro.textContent = data.lucro !== null ? 'R$ ' + fmtMoney(data.lucro) : '—';
                     var cellMargem = row.querySelector('[data-cell="margem"]');

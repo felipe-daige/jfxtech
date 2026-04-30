@@ -10,6 +10,22 @@
     $productMarginTone = $productMargin === null ? 'text-blue-700 border-blue-200 bg-blue-50' : ($productMargin < 0 ? 'text-red-700 border-red-200 bg-red-50' : ($productMargin < 20 ? 'text-yellow-700 border-yellow-200 bg-yellow-50' : 'text-emerald-700 border-emerald-200 bg-emerald-50'));
     $ticketMarginTone = $ticketMargin === null ? 'text-blue-700 border-blue-200 bg-blue-50' : ($ticketMargin < 0 ? 'text-red-700 border-red-200 bg-red-50' : ($ticketMargin < 20 ? 'text-yellow-700 border-yellow-200 bg-yellow-50' : 'text-emerald-700 border-emerald-200 bg-emerald-50'));
     $ticketMarginAccent = $ticketMargin === null ? 'bg-blue-500' : ($ticketMargin < 0 ? 'bg-red-500' : ($ticketMargin < 20 ? 'bg-yellow-500' : 'bg-emerald-500'));
+    $partnerCommissionTotal = $summary['comissao_parceiro_total'] ?? null;
+    $hasPartnerCommission = $partnerCommissionTotal !== null;
+    $partnerRate = $summary['parceiro_taxa_percentual'] ?? null;
+    $partnerName = $summary['parceiro_nome'] ?? null;
+
+    $couponCode = trim((string) ($pedido->cupom_codigo ?? ''));
+    $hasCoupon = $couponCode !== '';
+    $shippingType = strtolower((string) ($pedido->frete_tipo ?? ''));
+    $shippingLabel = match ($shippingType) {
+        'pac' => 'PAC',
+        'sedex' => 'SEDEX',
+        'retirada' => 'Retirada',
+        'gratis' => 'Grátis',
+        default => $shippingType !== '' ? strtoupper($shippingType) : 'Não informado',
+    };
+    $checkoutLabel = strtoupper((string) ($pedido->checkout_mode ?? ($pedido->user_id ? 'user' : 'guest')));
 
     $phone = $pedido->user?->phone ?? $pedido->customer_phone ?? null;
     $wa = $phone ? preg_replace('/\D/', '', $phone) : null;
@@ -29,25 +45,30 @@
                             <span class="inline-flex items-center px-3 py-1 border font-mono text-[10px] uppercase tracking-widest {{ $badgeClass }}">
                                 {{ PedidoStatus::label($pedido->status) }}
                             </span>
+                            <a href="{{ route('admin.pedidos.detalhes', $pedido->id) }}"
+                               class="inline-flex items-center gap-1.5 px-3 py-1 border border-black font-mono text-[10px] uppercase tracking-widest text-black hover:bg-black hover:text-white transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                                Ver pedido
+                            </a>
                         </div>
                         <p class="mt-3 max-w-2xl text-sm text-[var(--color-lab-muted)]">
-                            Leitura operacional da venda com margem estimada por item, concentração de receita e alertas de custo do catálogo atual.
+                            Leitura operacional da venda com ticket, cupom, frete, margem por produto e alertas de custo do catálogo atual.
                         </p>
                     </div>
 
                     <div class="grid grid-cols-2 gap-2 text-right">
-                        <div class="border border-[var(--color-lab-border)] bg-white px-3 py-3">
+                        <div class="border border-[var(--color-lab-border)] bg-white px-3 py-3 min-w-0">
                             <p class="font-mono text-[9px] uppercase tracking-[0.18em] text-[var(--color-lab-muted)]">Criado em</p>
                             <p class="mt-1 font-mono text-xs font-bold text-black">{{ $pedido->created_at->format('d/m/Y H:i') }}</p>
                         </div>
-                        <div class="border border-[var(--color-lab-border)] bg-white px-3 py-3">
+                        <div class="border border-[var(--color-lab-border)] bg-white px-3 py-3 min-w-0">
                             <p class="font-mono text-[9px] uppercase tracking-[0.18em] text-[var(--color-lab-muted)]">Checkout</p>
-                            <p class="mt-1 font-mono text-xs font-bold text-black">{{ strtoupper((string) ($pedido->checkout_mode ?? ($pedido->user_id ? 'user' : 'guest'))) }}</p>
+                            <p class="mt-1 font-mono text-xs font-bold text-black truncate">{{ $checkoutLabel }}</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
                     <div class="border border-[var(--color-lab-border)] bg-white px-4 py-4">
                         <p class="font-mono text-[9px] uppercase tracking-[0.18em] text-[var(--color-lab-muted)]">Cliente</p>
                         <p class="mt-2 text-sm font-semibold text-black break-words">{{ $pedido->user?->name ?? $pedido->customer_name ?? 'Guest' }}</p>
@@ -66,6 +87,21 @@
                         <p class="font-mono text-[9px] uppercase tracking-[0.18em] text-[var(--color-lab-muted)]">Ticket</p>
                         <p class="mt-2 font-mono text-xl font-bold text-black">R$ {{ number_format($summary['valor_total_pedido'], 2, ',', '.') }}</p>
                         <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">{{ $summary['unidades'] }} un. em {{ $summary['linhas'] }} linha(s)</p>
+                    </div>
+                    <div class="border border-[var(--color-lab-border)] bg-white px-4 py-4">
+                        <p class="font-mono text-[9px] uppercase tracking-[0.18em] text-[var(--color-lab-muted)]">Cupom</p>
+                        <p class="mt-2 font-mono text-xl font-bold {{ $hasCoupon ? 'text-emerald-700' : 'text-black' }} break-words">{{ $hasCoupon ? strtoupper($couponCode) : 'Sem cupom' }}</p>
+                        <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">{{ $hasCoupon ? 'Desconto: - R$ ' . number_format($summary['desconto'], 2, ',', '.') : 'Nenhum desconto aplicado' }}</p>
+                        @if($hasPartnerCommission)
+                            <p class="mt-1 font-mono text-[10px] text-emerald-700">{{ number_format($partnerRate, 1, ',', '.') }}% parceiro{{ $partnerName ? ' · ' . $partnerName : '' }}</p>
+                        @elseif($hasCoupon)
+                            <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">Sem parceiro vinculado</p>
+                        @endif
+                    </div>
+                    <div class="border border-[var(--color-lab-border)] bg-white px-4 py-4">
+                        <p class="font-mono text-[9px] uppercase tracking-[0.18em] text-[var(--color-lab-muted)]">Frete</p>
+                        <p class="mt-2 font-mono text-xl font-bold text-black">{{ $shippingLabel }}</p>
+                        <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">Valor: R$ {{ number_format($summary['frete'], 2, ',', '.') }}</p>
                     </div>
                     <div class="border border-[var(--color-lab-border)] {{ $productMarginTone }} px-4 py-4">
                         <p class="font-mono text-[9px] uppercase tracking-[0.18em]">Margem produtos</p>
@@ -93,10 +129,19 @@
                     <div class="border border-[var(--color-lab-border)] bg-white px-4 py-4">
                         <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Lucro líquido real</p>
                         <p class="mt-2 font-mono text-lg font-bold {{ $summary['lucro_ticket_estimado'] < 0 ? 'text-red-600' : 'text-black' }}">R$ {{ number_format($summary['lucro_ticket_estimado'], 2, ',', '.') }}</p>
-                        <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">Ticket menos custo cadastrado</p>
+                        <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">Ticket menos custo cadastrado{{ $hasPartnerCommission ? ' e comissão parceiro' : '' }}</p>
                         @if($summary['desconto'] > 0)
                         <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">Desconto aplicado: R$ {{ number_format($summary['desconto'], 2, ',', '.') }}</p>
                         @endif
+                    </div>
+                    <div class="border border-[var(--color-lab-border)] bg-white px-4 py-4">
+                        <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Comissão parceiro</p>
+                        <p class="mt-2 font-mono text-lg font-bold {{ $hasPartnerCommission ? 'text-emerald-700' : 'text-black' }}">
+                            {{ $hasPartnerCommission ? 'R$ ' . number_format($partnerCommissionTotal, 2, ',', '.') : 'N/A' }}
+                        </p>
+                        <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">
+                            {{ $hasPartnerCommission ? number_format($partnerRate, 1, ',', '.') . '% sobre itens após desconto' : 'Sem cupom de parceiro' }}
+                        </p>
                     </div>
                     <div class="border border-[var(--color-lab-border)] {{ $ticketMarginTone }} px-4 py-4"
                          title="Margem do ticket: lucro líquido real dividido pelo valor total do pedido. A margem dos produtos mede apenas SKU contra custo.">
@@ -240,8 +285,18 @@
                                             </div>
                                             <div class="border border-[var(--color-lab-border)] bg-white px-3 py-3 min-w-0 overflow-hidden">
                                                 <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)] truncate">Venda un.</p>
-                                                <p class="mt-1 font-mono text-sm font-bold text-black truncate">R$ {{ number_format($item['preco_unitario'], 2, ',', '.') }}</p>
+                                                <p class="mt-1 font-mono text-sm font-bold {{ $item['desconto_rateado'] > 0 ? 'text-[var(--color-lab-muted)] line-through' : 'text-black' }} truncate">R$ {{ number_format($item['preco_unitario'], 2, ',', '.') }}</p>
                                             </div>
+                                            @if($item['desconto_rateado'] > 0)
+                                            <div class="border border-emerald-200 bg-emerald-50 px-3 py-3 min-w-0 overflow-hidden">
+                                                <p class="font-mono text-xs uppercase tracking-[0.16em] text-emerald-700 truncate">Pago un.</p>
+                                                <p class="mt-1 font-mono text-sm font-bold text-emerald-800 truncate">R$ {{ number_format($item['receita_liquida'] / $item['quantidade'], 2, ',', '.') }}</p>
+                                            </div>
+                                            <div class="border border-emerald-200 bg-emerald-50 px-3 py-3 min-w-0 overflow-hidden">
+                                                <p class="font-mono text-xs uppercase tracking-[0.16em] text-emerald-700 truncate">Desconto item</p>
+                                                <p class="mt-1 font-mono text-sm font-bold text-emerald-800 truncate">- R$ {{ number_format($item['desconto_rateado'], 2, ',', '.') }}</p>
+                                            </div>
+                                            @endif
                                             <div class="border border-[var(--color-lab-border)] bg-white px-3 py-3 min-w-0 overflow-hidden">
                                                 <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)] truncate">Receita</p>
                                                 <p class="mt-1 font-mono text-sm font-bold text-black truncate">R$ {{ number_format($item['receita'], 2, ',', '.') }}</p>
@@ -294,6 +349,18 @@
                                         {{ $item['lucro_total'] !== null ? 'R$ ' . number_format($item['lucro_total'], 2, ',', '.') : 'N/A' }}
                                     </p>
                                 </div>
+                                <div class="border border-[var(--color-lab-border)] bg-white px-3 py-3">
+                                    <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Comissão parceiro</p>
+                                    <p class="mt-1 font-mono text-sm font-bold {{ $item['comissao_parceiro'] !== null ? 'text-emerald-700' : 'text-black' }}">
+                                        {{ $item['comissao_parceiro'] !== null ? 'R$ ' . number_format($item['comissao_parceiro'], 2, ',', '.') : 'N/A' }}
+                                    </p>
+                                </div>
+                                <div class="border border-[var(--color-lab-border)] bg-white px-3 py-3">
+                                    <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Lucro após parceiro</p>
+                                    <p class="mt-1 font-mono text-sm font-bold {{ $item['lucro_apos_parceiro'] !== null && $item['lucro_apos_parceiro'] < 0 ? 'text-red-600' : 'text-black' }}">
+                                        {{ $item['lucro_apos_parceiro'] !== null ? 'R$ ' . number_format($item['lucro_apos_parceiro'], 2, ',', '.') : 'N/A' }}
+                                    </p>
+                                </div>
                             </div>
 
                             <div class="mt-4 border border-[var(--color-lab-border)] bg-[var(--color-lab-bg)] px-3 py-3">
@@ -311,7 +378,7 @@
                                     <span>Rank margem #{{ $item['rank_margem'] }}</span>
                                 </div>
                                 <p class="mt-2 font-mono text-[10px] text-[var(--color-lab-muted)]">
-                                    Margem apenas deste SKU contra custo cadastrado.
+                                    Margem apenas deste SKU contra custo cadastrado. Comissão calculada sobre item líquido após desconto.
                                 </p>
                             </div>
 

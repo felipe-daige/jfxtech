@@ -12,13 +12,14 @@ class ProdutoVariante extends Model
 
     protected $table = 'produto_variantes';
 
-    protected $fillable = ['produto_id', 'valores', 'preco', 'custo_compra', 'estoque', 'ativo', 'descricao', 'specs'];
+    protected $fillable = ['produto_id', 'valores', 'preco', 'custo_compra', 'frete_compra', 'estoque', 'ativo', 'descricao', 'specs'];
 
     protected $casts = [
         'valores' => 'array',
         'specs'   => 'array',
         'preco'   => 'decimal:2',
         'custo_compra' => 'decimal:2',
+        'frete_compra' => 'decimal:2',
         'estoque' => 'integer',
         'ativo'   => 'boolean',
     ];
@@ -63,13 +64,19 @@ class ProdutoVariante extends Model
 
     public function getCustoEfetivoAttribute(): ?float
     {
-        if ($this->custo_compra !== null) {
-            return (float) $this->custo_compra;
+        $custoCompra = $this->custo_compra !== null
+            ? (float) $this->custo_compra
+            : ($this->produto?->custo_compra !== null ? (float) $this->produto->custo_compra : null);
+
+        if ($custoCompra === null) {
+            return null;
         }
 
-        return $this->produto?->custo_compra !== null
-            ? (float) $this->produto->custo_compra
-            : null;
+        $freteCompra = $this->frete_compra !== null
+            ? (float) $this->frete_compra
+            : (float) ($this->produto?->frete_compra ?? 0);
+
+        return round($custoCompra + $freteCompra, 2);
     }
 
     /**

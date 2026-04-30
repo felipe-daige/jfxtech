@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Cupom;
 use App\Models\ItemPedido;
 use App\Models\Pagamento;
 use App\Models\Pedido;
@@ -86,6 +87,103 @@ class AdminOrderDetailsAnalyticsTest extends TestCase
         $this->assertStringContainsString('PRODUTO', $html);
         $this->assertStringContainsString('R$ 300,00', $html);
         $this->assertStringContainsString('R$ 180,00', $html);
+    }
+
+    public function test_order_details_modal_renders_partner_commission_per_item_and_deducts_profit(): void
+    {
+        $admin = User::factory()->create(['admin' => true]);
+        $partner = User::factory()->create([
+            'name' => 'Parceiro JFX',
+            'coupon_portal_enabled' => true,
+        ]);
+
+        Cupom::create([
+            'user_id' => $partner->id,
+            'codigo' => 'PARCEIRO10',
+            'tipo' => 'percentual',
+            'valor' => 10,
+            'ativo' => true,
+        ]);
+
+        $pedido = Pedido::factory()->create([
+            'status' => 'pago',
+            'cupom_codigo' => 'PARCEIRO10',
+            'valor_total' => 280.00,
+            'frete_valor' => 0.00,
+            'valor_desconto' => 20.00,
+        ]);
+
+        $mouse = Produto::factory()->create([
+            'nome' => 'Mouse Parceiro',
+            'custo_compra' => 40.00,
+        ]);
+        $teclado = Produto::factory()->create([
+            'nome' => 'Teclado Parceiro',
+            'custo_compra' => 100.00,
+        ]);
+
+        ItemPedido::create([
+            'pedido_id' => $pedido->id,
+            'produto_id' => $mouse->id,
+            'quantidade' => 1,
+            'preco' => 100.00,
+        ]);
+
+        ItemPedido::create([
+            'pedido_id' => $pedido->id,
+            'produto_id' => $teclado->id,
+            'quantidade' => 1,
+            'preco' => 200.00,
+        ]);
+
+        $response = $this->actingAs($admin)->getJson(route('admin.pedidos.detalhes', $pedido->id));
+
+        $response->assertOk();
+
+        $html = html_entity_decode((string) $response->json('html'), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        $this->assertStringContainsString('Comissão parceiro', $html);
+        $this->assertStringContainsString('Parceiro JFX', $html);
+        $this->assertStringContainsString('5,0% parceiro', $html);
+        $this->assertStringContainsString('R$ 14,00', $html);
+        $this->assertStringContainsString('R$ 4,67', $html);
+        $this->assertStringContainsString('R$ 9,33', $html);
+        $this->assertStringContainsString('R$ 126,00', $html);
+    }
+
+    public function test_order_details_modal_uses_purchase_freight_in_item_cost(): void
+    {
+        $admin = User::factory()->create(['admin' => true]);
+        $pedido = Pedido::factory()->create([
+            'status' => 'pago',
+            'valor_total' => 100.00,
+            'frete_valor' => 0.00,
+            'valor_desconto' => 0.00,
+        ]);
+
+        $produto = Produto::factory()->create([
+            'nome' => 'Mouse com frete de compra',
+            'preco' => 100.00,
+            'custo_compra' => 40.00,
+            'frete_compra' => 5.00,
+        ]);
+
+        ItemPedido::create([
+            'pedido_id' => $pedido->id,
+            'produto_id' => $produto->id,
+            'quantidade' => 1,
+            'preco' => 100.00,
+        ]);
+
+        $response = $this->actingAs($admin)->getJson(route('admin.pedidos.detalhes', $pedido->id));
+
+        $response->assertOk();
+
+        $html = html_entity_decode((string) $response->json('html'), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        $this->assertStringContainsString('Mouse com frete de compra', $html);
+        $this->assertStringContainsString('R$ 45,00', $html);
+        $this->assertStringContainsString('R$ 55,00', $html);
     }
 
     public function test_order_details_modal_flags_missing_cost_items_and_partial_profit(): void

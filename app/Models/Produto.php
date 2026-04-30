@@ -22,6 +22,7 @@ class Produto extends Model
         'specs',
         'preco',
         'custo_compra',
+        'frete_compra',
         'peso',
         'preco_original',
         'desconto_percentual',
@@ -37,6 +38,7 @@ class Produto extends Model
     protected $casts = [
         'preco' => 'decimal:2',
         'custo_compra' => 'decimal:2',
+        'frete_compra' => 'decimal:2',
         'preco_original' => 'decimal:2',
         'desconto_percentual' => 'decimal:2',
         'em_promocao' => 'boolean',
@@ -104,6 +106,11 @@ class Produto extends Model
         return $this->hasMany(ProdutoImagem::class)->orderBy('ordem')->orderBy('id');
     }
 
+    public function fornecedorOfertas(): HasMany
+    {
+        return $this->hasMany(ProdutoFornecedorOferta::class);
+    }
+
     /**
      * Relacionamento: Um produto pode estar em vários itens de pedido
      */
@@ -168,21 +175,30 @@ class Produto extends Model
 
     public function getLucroBrutoUnitarioAttribute(): ?float
     {
-        if ($this->custo_compra === null) {
+        if ($this->custo_efetivo === null) {
             return null;
         }
 
-        return round($this->preco_com_desconto - (float) $this->custo_compra, 2);
+        return round($this->preco_com_desconto - $this->custo_efetivo, 2);
     }
 
     public function getMargemBrutaPercentualAttribute(): ?float
     {
         $precoEfetivo = $this->preco_com_desconto;
-        if ($this->custo_compra === null || $precoEfetivo <= 0) {
+        if ($this->custo_efetivo === null || $precoEfetivo <= 0) {
             return null;
         }
 
-        return round((($precoEfetivo - (float) $this->custo_compra) / $precoEfetivo) * 100, 2);
+        return round((($precoEfetivo - $this->custo_efetivo) / $precoEfetivo) * 100, 2);
+    }
+
+    public function getCustoEfetivoAttribute(): ?float
+    {
+        if ($this->custo_compra === null) {
+            return null;
+        }
+
+        return round((float) $this->custo_compra + (float) ($this->frete_compra ?? 0), 2);
     }
 
     /**

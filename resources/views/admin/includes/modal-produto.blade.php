@@ -1,7 +1,7 @@
 <!-- Modal de Produto -->
 <div id="modalProduto" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-50">
     <div class="flex items-center justify-center min-h-screen p-2 sm:p-4">
-        <div class="bg-white border border-[var(--color-lab-border)] w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+        <div class="bg-white border border-[var(--color-lab-border)] w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
             <div class="p-4 sm:p-6 border-b border-[var(--color-lab-border)]">
                 <div class="flex justify-between items-center">
                     <h3 class="font-mono text-sm font-bold uppercase tracking-widest text-black" id="modalTitulo">Novo Produto</h3>
@@ -36,6 +36,12 @@
                                 class="produto-tab-btn shrink-0 px-4 py-2 text-sm font-mono uppercase tracking-widest border-b-2 -mb-px transition-colors border-transparent text-gray-400 hover:text-black"
                                 data-tab="variantes">
                             VARIANTES
+                        </button>
+                        <button type="button"
+                                onclick="switchProdutoTab('fornecedores')"
+                                class="produto-tab-btn shrink-0 px-4 py-2 text-sm font-mono uppercase tracking-widest border-b-2 -mb-px transition-colors border-transparent text-gray-400 hover:text-black"
+                                data-tab="fornecedores">
+                            FORNECEDORES
                         </button>
                         <button type="button"
                                 onclick="switchProdutoTab('specs')"
@@ -99,7 +105,7 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                         <div>
                             <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Preco (R$)</label>
                             <input type="text" name="preco" id="preco" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black" placeholder="0,00" required>
@@ -107,6 +113,10 @@
                         <div>
                             <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Custo de Compra (R$)</label>
                             <input type="text" name="custo_compra" id="custo_compra" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black" placeholder="0,00">
+                        </div>
+                        <div>
+                            <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Frete Compra (R$)</label>
+                            <input type="text" name="frete_compra" id="frete_compra" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black" placeholder="0,00">
                         </div>
                     </div>
 
@@ -122,8 +132,16 @@
                                     <span id="precoVendaResumoDisplay">R$ 0,00</span>
                                 </div>
                                 <div class="flex justify-between">
-                                    <span class="text-[var(--color-lab-muted)]">Custo:</span>
+                                    <span class="text-[var(--color-lab-muted)]">Custo compra:</span>
                                     <span id="custoCompraDisplay">R$ 0,00</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-[var(--color-lab-muted)]">Frete compra:</span>
+                                    <span id="freteCompraDisplay">R$ 0,00</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-[var(--color-lab-muted)]">Custo total:</span>
+                                    <span id="custoTotalCompraDisplay">R$ 0,00</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-[var(--color-lab-muted)]">Lucro unitario:</span>
@@ -257,6 +275,33 @@
                     </div>
                 </div>
                 </div>{{-- end #tab-variantes --}}
+
+                <div id="tab-fornecedores" class="produto-tab-panel hidden">
+                <div class="px-4 sm:px-6 pb-6 space-y-4">
+                    <div id="fornecedores-loading" class="text-center py-8 text-gray-400 font-mono text-sm">CARREGANDO...</div>
+                    <div id="fornecedores-content" class="hidden space-y-4">
+                        <div class="border border-[var(--color-lab-border)] bg-[var(--color-lab-bg)] p-4">
+                            <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Fornecedores do produto</p>
+                            <p class="mt-1 text-xs text-[var(--color-lab-muted)] leading-5">Cadastre contatos, links e preços individuais de compra de cada fornecedor. Linhas vazias são ignoradas.</p>
+                        </div>
+
+                        <div id="fornecedores-ofertas-lista" class="space-y-3"></div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <button type="button"
+                                    onclick="addFornecedorOfertaRow()"
+                                    class="w-full border border-dashed border-gray-400 px-4 py-3 text-sm font-mono uppercase tracking-widest hover:border-black transition-colors">
+                                + Adicionar fornecedor
+                            </button>
+                            <button type="button"
+                                    onclick="salvarFornecedoresProduto(window.currentProdutoId)"
+                                    class="w-full bg-black text-white px-4 py-3 text-sm font-mono uppercase tracking-widest hover:bg-gray-800 transition-colors">
+                                Salvar fornecedores
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                </div>{{-- end #tab-fornecedores --}}
 
                 <div id="tab-specs" class="produto-tab-panel hidden">
                 <div class="px-4 sm:px-6 pb-6 space-y-5">

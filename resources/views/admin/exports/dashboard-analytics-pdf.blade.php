@@ -144,7 +144,7 @@
                         <td>{{ $produto->nome }}</td>
                         <td>{{ $produto->marca ?? '—' }}</td>
                         <td class="text-right">R$ {{ number_format($produto->preco_com_desconto, 2, ',', '.') }}</td>
-                        <td class="text-right">{{ $produto->custo_compra !== null ? 'R$ ' . number_format($produto->custo_compra, 2, ',', '.') : '—' }}</td>
+                        <td class="text-right">{{ $produto->custo_efetivo !== null ? 'R$ ' . number_format($produto->custo_efetivo, 2, ',', '.') : '—' }}</td>
                         <td class="text-right">{{ $produto->lucro_bruto_unitario !== null ? 'R$ ' . number_format($produto->lucro_bruto_unitario, 2, ',', '.') : '—' }}</td>
                         <td class="text-right">
                             @if($produto->margem_bruta_percentual !== null)

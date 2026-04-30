@@ -79,6 +79,33 @@ class ProdutoVarianteTest extends TestCase
         $this->assertEquals(5, $variante->estoque_efetivo);
     }
 
+    public function test_custo_efetivo_includes_own_or_inherited_purchase_freight(): void
+    {
+        $produto = Produto::factory()->create([
+            'custo_compra' => 100.00,
+            'frete_compra' => 12.50,
+        ]);
+
+        $varianteHerdada = ProdutoVariante::factory()->create([
+            'produto_id' => $produto->id,
+            'custo_compra' => null,
+            'frete_compra' => null,
+            'valores' => [1],
+        ]);
+        $varianteHerdada->setRelation('produto', $produto);
+
+        $variantePropria = ProdutoVariante::factory()->create([
+            'produto_id' => $produto->id,
+            'custo_compra' => 80.00,
+            'frete_compra' => 7.00,
+            'valores' => [1],
+        ]);
+        $variantePropria->setRelation('produto', $produto);
+
+        $this->assertSame(112.50, $varianteHerdada->custo_efetivo);
+        $this->assertSame(87.00, $variantePropria->custo_efetivo);
+    }
+
     public function test_descricao_efetiva_retorna_propria_quando_preenchida(): void
     {
         $variante = ProdutoVariante::factory()->create([

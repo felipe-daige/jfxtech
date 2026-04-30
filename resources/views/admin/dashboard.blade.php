@@ -492,8 +492,8 @@
                 row.dataset.estoque = data.estoque;
 
                 var cellCusto = row.querySelector('[data-cell="custo"]');
-                if (cellCusto) cellCusto.textContent = data.custo_compra
-                    ? 'R$ ' + fmtMoney(data.custo_compra) : '\u2014';
+                if (cellCusto) cellCusto.textContent = data.custo_efetivo
+                    ? 'R$ ' + fmtMoney(data.custo_efetivo) : '\u2014';
 
                 var cellLucro = row.querySelector('[data-cell="lucro"]');
                 if (cellLucro) cellLucro.textContent = data.lucro !== null

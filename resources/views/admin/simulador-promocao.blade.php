@@ -76,8 +76,8 @@
                                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                                         <div class="border border-[var(--color-lab-border)] bg-white px-3 py-2">
                                             <div class="font-mono text-[10px] uppercase tracking-widest text-gray-500">Custo</div>
-                                            <div class="mt-1 font-mono text-sm font-bold {{ $produto->custo_compra !== null ? 'text-black' : 'text-blue-600' }}">
-                                                {{ $produto->custo_compra !== null ? 'R$ ' . number_format($produto->custo_compra, 2, ',', '.') : 'Pendente' }}
+                                            <div class="mt-1 font-mono text-sm font-bold {{ $produto->custo_efetivo !== null ? 'text-black' : 'text-blue-600' }}">
+                                                {{ $produto->custo_efetivo !== null ? 'R$ ' . number_format($produto->custo_efetivo, 2, ',', '.') : 'Pendente' }}
                                             </div>
                                         </div>
                                         <div class="border border-[var(--color-lab-border)] bg-white px-3 py-2">

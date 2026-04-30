@@ -32,6 +32,7 @@ class PromotionSimulationService
                 'preco',
                 'preco_original',
                 'custo_compra',
+                'frete_compra',
                 'desconto_percentual',
                 'em_promocao',
                 'ativo',
@@ -46,8 +47,8 @@ class PromotionSimulationService
 
         $items = ItemPedido::query()
             ->with([
-                'produto:id,nome,marca,preco,preco_original,custo_compra,desconto_percentual,em_promocao,ativo',
-                'produtoVariante:id,produto_id,custo_compra',
+                'produto:id,nome,marca,preco,preco_original,custo_compra,frete_compra,desconto_percentual,em_promocao,ativo',
+                'produtoVariante:id,produto_id,custo_compra,frete_compra',
             ])
             ->whereIn('produto_id', $resolvedIds)
             ->whereHas('pedido', function ($query) use ($periodStart) {
@@ -175,7 +176,7 @@ class PromotionSimulationService
 
         $averageBaseCostPerUnit = $units > 0
             ? round($productBaseCostTotal / $units, 2)
-            : ($product->custo_compra !== null ? round((float) $product->custo_compra, 2) : 0.0);
+            : ($product->custo_efetivo !== null ? round($product->custo_efetivo, 2) : 0.0);
 
         $currentRevenueTotal = round($currentPrice * $units, 2);
         $currentCostTotal = round($units > 0 ? $productBaseCostTotal : 0.0, 2);
@@ -289,15 +290,23 @@ class PromotionSimulationService
 
     private function resolveItemCost(ItemPedido $item): ?float
     {
-        if ($item->produtoVariante && $item->produtoVariante->custo_compra !== null) {
-            return (float) $item->produtoVariante->custo_compra;
+        if ($item->produtoVariante) {
+            $custoCompra = $item->produtoVariante->custo_compra !== null
+                ? (float) $item->produtoVariante->custo_compra
+                : ($item->produto?->custo_compra !== null ? (float) $item->produto->custo_compra : null);
+
+            if ($custoCompra === null) {
+                return null;
+            }
+
+            $freteCompra = $item->produtoVariante->frete_compra !== null
+                ? (float) $item->produtoVariante->frete_compra
+                : (float) ($item->produto?->frete_compra ?? 0);
+
+            return round($custoCompra + $freteCompra, 2);
         }
 
-        if ($item->produto && $item->produto->custo_compra !== null) {
-            return (float) $item->produto->custo_compra;
-        }
-
-        return null;
+        return $item->produto?->custo_efetivo;
     }
 
     private function formatPeriodLabel(int $periodDays, CarbonInterface $periodStart): string

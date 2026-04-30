@@ -19,6 +19,13 @@ $(document).ready(function () {
         allowZero: true,
         allowNegative: false
     });
+    $('#frete_compra').maskMoney({
+        prefix: 'R$ ',
+        thousands: '.',
+        decimal: ',',
+        allowZero: true,
+        allowNegative: false
+    });
 
 
     // Event listeners para promoção
@@ -35,6 +42,9 @@ $(document).ready(function () {
         calcularPromocao();
     });
     $('#custo_compra').on('input', function () {
+        calcularPromocao();
+    });
+    $('#frete_compra').on('input', function () {
         calcularPromocao();
     });
     $('#descricao').on('input', function () {
@@ -98,6 +108,13 @@ function abrirModalProduto() {
         allowZero: true,
         allowNegative: false
     });
+    $('#frete_compra').maskMoney({
+        prefix: 'R$ ',
+        thousands: '.',
+        decimal: ',',
+        allowZero: true,
+        allowNegative: false
+    });
 
 
     // Limpar campos de specs
@@ -129,6 +146,7 @@ function editarProduto(id) {
             syncDescriptionPreview(data.descricao || '');
             document.getElementById('preco').value = 'R$ ' + data.preco;
             document.getElementById('custo_compra').value = data.custo_compra ? 'R$ ' + data.custo_compra : '';
+            document.getElementById('frete_compra').value = data.frete_compra ? 'R$ ' + data.frete_compra : '';
             document.getElementById('estoque').value = data.estoque;
             document.getElementById('categoria_id').value = data.categoria_id;
 
@@ -165,6 +183,13 @@ function editarProduto(id) {
                 allowNegative: false
             });
             $('#custo_compra').maskMoney({
+                prefix: 'R$ ',
+                thousands: '.',
+                decimal: ',',
+                allowZero: true,
+                allowNegative: false
+            });
+            $('#frete_compra').maskMoney({
                 prefix: 'R$ ',
                 thousands: '.',
                 decimal: ',',
@@ -494,11 +519,13 @@ function toggleCamposPromocao() {
 function calcularPromocao() {
     const precoAtual = parseCurrencyBRL(document.getElementById('preco').value);
     const custoAtual = parseCurrencyBRL(document.getElementById('custo_compra').value);
+    const freteCompra = parseCurrencyBRL(document.getElementById('frete_compra').value);
+    const custoTotalCompra = custoAtual > 0 ? custoAtual + freteCompra : 0;
     const descontoPercentual = parseFloat(document.getElementById('desconto_percentual').value) || 0;
     const emPromocao = document.getElementById('em_promocao').checked;
     const valorDesconto = emPromocao && descontoPercentual > 0 ? precoAtual * (descontoPercentual / 100) : 0;
     const precoFinal = emPromocao && descontoPercentual > 0 ? precoAtual - valorDesconto : precoAtual;
-    const lucroUnitario = precoFinal - custoAtual;
+    const lucroUnitario = precoFinal - custoTotalCompra;
     const margemBruta = precoFinal > 0 ? (lucroUnitario / precoFinal) * 100 : 0;
 
     document.getElementById('precoOriginalDisplay').textContent = formatCurrencyBRL(precoAtual);
@@ -506,6 +533,8 @@ function calcularPromocao() {
     document.getElementById('precoFinalDisplay').textContent = formatCurrencyBRL(precoFinal);
     document.getElementById('precoVendaResumoDisplay').textContent = formatCurrencyBRL(precoFinal);
     document.getElementById('custoCompraDisplay').textContent = formatCurrencyBRL(custoAtual);
+    document.getElementById('freteCompraDisplay').textContent = formatCurrencyBRL(freteCompra);
+    document.getElementById('custoTotalCompraDisplay').textContent = formatCurrencyBRL(custoTotalCompra);
     document.getElementById('lucroUnitarioDisplay').textContent = formatCurrencyBRL(lucroUnitario);
     document.getElementById('margemBrutaDisplay').textContent = formatPercentBRL(margemBruta);
 
@@ -1160,6 +1189,240 @@ function switchProdutoTab(targetTab) {
     if (targetTab === 'variantes') {
         loadVariantes(window.currentProdutoId);
     }
+    if (targetTab === 'fornecedores') {
+        loadFornecedoresProduto(window.currentProdutoId);
+    }
+}
+
+// ===== SUPPLIER OFFER MANAGEMENT =====
+
+window.fornecedoresDisponiveis = [];
+
+function loadFornecedoresProduto(produtoId) {
+    var loading = document.getElementById('fornecedores-loading');
+    var content = document.getElementById('fornecedores-content');
+
+    if (!produtoId) {
+        if (loading) {
+            loading.classList.remove('hidden');
+            loading.textContent = 'Salve o produto primeiro para gerenciar fornecedores.';
+        }
+        if (content) content.classList.add('hidden');
+        return;
+    }
+
+    var requestId = produtoId;
+    if (loading) {
+        loading.classList.remove('hidden');
+        loading.textContent = 'CARREGANDO...';
+    }
+    if (content) content.classList.add('hidden');
+
+    var url = (window.routes.adminProdutoFornecedores || '/admin/produtos/:id/fornecedores').replace(':id', produtoId);
+    fetch(url, { headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': getCsrfToken() } })
+        .then(function(r) { if (!r.ok) throw new Error('Erro ao carregar fornecedores: ' + r.status); return r.json(); })
+        .then(function(data) {
+            if (window.currentProdutoId !== requestId) return;
+            window.fornecedoresDisponiveis = data.fornecedores || [];
+            renderFornecedorOfertas(data.ofertas || []);
+            if (loading) loading.classList.add('hidden');
+            if (content) content.classList.remove('hidden');
+        })
+        .catch(function(err) {
+            console.error(err);
+            if (loading) loading.textContent = 'Erro ao carregar fornecedores. Tente novamente.';
+        });
+}
+
+function renderFornecedorOfertas(ofertas) {
+    var container = document.getElementById('fornecedores-ofertas-lista');
+    if (!container) return;
+
+    if (!ofertas.length) {
+        container.innerHTML = '<div class="border border-dashed border-gray-300 p-5 text-center font-mono text-xs text-gray-400 uppercase tracking-widest">Nenhum fornecedor cadastrado para este produto.</div>';
+        return;
+    }
+
+    container.innerHTML = ofertas.map(function(oferta) {
+        return buildFornecedorOfertaHTML(oferta);
+    }).join('');
+}
+
+function addFornecedorOfertaRow() {
+    var container = document.getElementById('fornecedores-ofertas-lista');
+    if (!container) return;
+
+    if (container.querySelector('.border-dashed')) {
+        container.innerHTML = '';
+    }
+
+    container.insertAdjacentHTML('beforeend', buildFornecedorOfertaHTML({ fornecedor: {}, ativo: true }));
+}
+
+function removeFornecedorOfertaRow(btn) {
+    var row = btn.closest('.fornecedor-oferta-row');
+    if (row) row.remove();
+    var container = document.getElementById('fornecedores-ofertas-lista');
+    if (container && !container.querySelector('.fornecedor-oferta-row')) {
+        renderFornecedorOfertas([]);
+    }
+}
+
+function buildFornecedorOfertaHTML(oferta) {
+    var fornecedor = oferta.fornecedor || {};
+    var fornecedorId = oferta.fornecedor_id || fornecedor.id || '';
+
+    return '<div class="fornecedor-oferta-row border border-[var(--color-lab-border)] bg-white p-4 space-y-3">' +
+        '<div class="flex items-start justify-between gap-3">' +
+            '<div class="flex-1 min-w-0">' +
+                '<label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Fornecedor existente</label>' +
+                '<select class="fornecedor-select w-full border border-[var(--color-lab-border)] px-3 py-2 text-sm font-mono bg-white focus:outline-none focus:border-black" onchange="syncFornecedorRowFromSelect(this)">' +
+                    buildFornecedorOptions(fornecedorId) +
+                '</select>' +
+            '</div>' +
+            '<button type="button" onclick="removeFornecedorOfertaRow(this)" class="mt-6 border border-gray-300 px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-gray-500 hover:border-black hover:text-black">Remover</button>' +
+        '</div>' +
+        '<div class="grid grid-cols-1 md:grid-cols-2 gap-3">' +
+            inputFornecedor('nome', 'Nome', fornecedor.nome) +
+            inputFornecedor('contato_nome', 'Contato', fornecedor.contato_nome) +
+            inputFornecedor('email', 'E-mail', fornecedor.email, 'email') +
+            inputFornecedor('telefone', 'Telefone', fornecedor.telefone) +
+            inputFornecedor('whatsapp', 'WhatsApp', fornecedor.whatsapp) +
+            inputFornecedor('pais', 'País', fornecedor.pais) +
+            inputFornecedor('perfil_url', 'URL perfil', fornecedor.perfil_url, 'url') +
+            inputFornecedor('site_url', 'Site', fornecedor.site_url, 'url') +
+        '</div>' +
+        '<div class="grid grid-cols-1 md:grid-cols-3 gap-3">' +
+            inputOferta('preco_compra', 'Preço compra', oferta.preco_compra, 'number', '0.01') +
+            inputOferta('frete_compra', 'Frete', oferta.frete_compra, 'number', '0.01') +
+            inputOferta('moeda', 'Moeda', oferta.moeda || '') +
+            inputOferta('quantidade_minima', 'Qtd mínima', oferta.quantidade_minima, 'number', '1') +
+            inputOferta('prazo_dias', 'Prazo dias', oferta.prazo_dias, 'number', '1') +
+            inputOferta('sku_fornecedor', 'SKU fornecedor', oferta.sku_fornecedor) +
+        '</div>' +
+        '<div class="grid grid-cols-1 md:grid-cols-2 gap-3">' +
+            inputOferta('url_produto', 'URL produto', oferta.url_produto, 'url') +
+            inputOferta('cotado_em', 'Cotado em', oferta.cotado_em, 'date') +
+        '</div>' +
+        '<div class="grid grid-cols-1 md:grid-cols-2 gap-3">' +
+            textareaFornecedor('observacoes', 'Obs. fornecedor', fornecedor.observacoes) +
+            textareaOferta('observacoes', 'Obs. oferta', oferta.observacoes) +
+        '</div>' +
+        '<label class="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-[var(--color-lab-muted)]">' +
+            '<input type="checkbox" class="fornecedor-oferta-ativo" ' + (oferta.ativo === false ? '' : 'checked') + '> Ativo' +
+        '</label>' +
+    '</div>';
+}
+
+function buildFornecedorOptions(selectedId) {
+    var html = '<option value="">Novo fornecedor</option>';
+    (window.fornecedoresDisponiveis || []).forEach(function(fornecedor) {
+        var label = fornecedor.nome || fornecedor.email || fornecedor.telefone || ('Fornecedor #' + fornecedor.id);
+        html += '<option value="' + fornecedor.id + '"' + (String(selectedId) === String(fornecedor.id) ? ' selected' : '') + '>' + escapeHtml(label) + '</option>';
+    });
+    return html;
+}
+
+function inputFornecedor(field, label, value, type) {
+    return inputBase('fornecedor-field', field, label, value, type);
+}
+
+function inputOferta(field, label, value, type, step) {
+    return inputBase('oferta-field', field, label, value, type, step);
+}
+
+function inputBase(className, field, label, value, type, step) {
+    return '<div>' +
+        '<label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">' + escapeHtml(label) + '</label>' +
+        '<input type="' + (type || 'text') + '" data-field="' + field + '" class="' + className + ' w-full border border-[var(--color-lab-border)] px-3 py-2 text-sm font-mono focus:outline-none focus:border-black" value="' + escapeHtml(value != null ? String(value) : '') + '"' + (step ? ' step="' + step + '" min="0"' : '') + '>' +
+    '</div>';
+}
+
+function textareaFornecedor(field, label, value) {
+    return textareaBase('fornecedor-field', field, label, value);
+}
+
+function textareaOferta(field, label, value) {
+    return textareaBase('oferta-field', field, label, value);
+}
+
+function textareaBase(className, field, label, value) {
+    return '<div>' +
+        '<label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">' + escapeHtml(label) + '</label>' +
+        '<textarea data-field="' + field + '" rows="3" class="' + className + ' w-full border border-[var(--color-lab-border)] px-3 py-2 text-sm font-mono focus:outline-none focus:border-black">' + escapeHtml(value != null ? String(value) : '') + '</textarea>' +
+    '</div>';
+}
+
+function syncFornecedorRowFromSelect(select) {
+    var row = select.closest('.fornecedor-oferta-row');
+    var id = parseInt(select.value);
+    var fornecedor = (window.fornecedoresDisponiveis || []).find(function(item) { return item.id === id; });
+    if (!row || !fornecedor) return;
+
+    row.querySelectorAll('.fornecedor-field').forEach(function(input) {
+        var key = input.getAttribute('data-field');
+        input.value = fornecedor[key] || '';
+    });
+}
+
+function collectFornecedoresOfertasFromUI() {
+    var ofertas = [];
+    document.querySelectorAll('.fornecedor-oferta-row').forEach(function(row) {
+        var fornecedor = {};
+        row.querySelectorAll('.fornecedor-field').forEach(function(input) {
+            fornecedor[input.getAttribute('data-field')] = input.value.trim() || null;
+        });
+
+        var oferta = {
+            fornecedor_id: row.querySelector('.fornecedor-select').value ? parseInt(row.querySelector('.fornecedor-select').value) : null,
+            fornecedor: fornecedor,
+            ativo: row.querySelector('.fornecedor-oferta-ativo').checked
+        };
+
+        row.querySelectorAll('.oferta-field').forEach(function(input) {
+            var key = input.getAttribute('data-field');
+            var value = input.value.trim();
+            if (['preco_compra', 'frete_compra'].indexOf(key) !== -1) {
+                oferta[key] = value !== '' ? parseFloat(value) : null;
+            } else if (['quantidade_minima', 'prazo_dias'].indexOf(key) !== -1) {
+                oferta[key] = value !== '' ? parseInt(value) : null;
+            } else {
+                oferta[key] = value !== '' ? value : null;
+            }
+        });
+
+        ofertas.push(oferta);
+    });
+    return ofertas;
+}
+
+function salvarFornecedoresProduto(produtoId) {
+    if (!produtoId) {
+        alert('Salve o produto primeiro para gerenciar fornecedores.');
+        return;
+    }
+
+    var url = (window.routes.adminProdutoFornecedoresSalvar || '/admin/produtos/:id/fornecedores').replace(':id', produtoId);
+    fetch(url, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken(), 'Accept': 'application/json' },
+        body: JSON.stringify({ ofertas: collectFornecedoresOfertasFromUI() })
+    })
+    .then(function(r) {
+        if (!r.ok) {
+            return r.json().catch(function() { return {}; }).then(function(data) {
+                throw new Error(data.message || 'Erro ao salvar fornecedores: ' + r.status);
+            });
+        }
+        return r.json();
+    })
+    .then(function() {
+        loadFornecedoresProduto(produtoId);
+    })
+    .catch(function(err) {
+        console.error(err);
+        alert(err.message);
+    });
 }
 
 // ===== VARIANT MANAGEMENT FUNCTIONS =====
@@ -1282,6 +1545,7 @@ function renderVariantesTabela(variantes, imagens) {
             '<div class="variante-edit hidden border border-t-0 border-gray-200 bg-gray-50 p-3 flex flex-wrap items-center gap-3">' +
             '<input type="number" class="variante-preco w-28 border border-gray-300 px-2 py-1 text-sm font-mono" placeholder="Preço" value="' + (v.preco !== null && v.preco !== undefined ? v.preco : '') + '" step="0.01" min="0">' +
             '<input type="number" class="variante-custo w-28 border border-gray-300 px-2 py-1 text-sm font-mono" placeholder="Custo" value="' + (v.custo_compra !== null && v.custo_compra !== undefined ? v.custo_compra : '') + '" step="0.01" min="0">' +
+            '<input type="number" class="variante-frete w-28 border border-gray-300 px-2 py-1 text-sm font-mono" placeholder="Frete" value="' + (v.frete_compra !== null && v.frete_compra !== undefined ? v.frete_compra : '') + '" step="0.01" min="0">' +
             '<input type="number" class="variante-estoque w-20 border border-gray-300 px-2 py-1 text-sm font-mono estoque-field" placeholder="Estq" value="' + (v.estoque !== null ? v.estoque : '') + '" min="0">' +
             '<label class="flex items-center gap-1 text-xs font-mono"><input type="checkbox" class="variante-ativo" ' + (v.ativo ? 'checked' : '') + '> ATIVO</label>' +
             '<button type="button" onclick="toggleVarianteEdit(this)" class="text-xs font-mono uppercase tracking-widest bg-black text-white px-3 py-1 hover:bg-gray-800 transition-colors ml-auto">✔ OK</button>' +
@@ -1391,6 +1655,7 @@ function gerarPreviewLocal() {
             id: id,
             preco: row.querySelector('.variante-preco').value,
             custo_compra: row.querySelector('.variante-custo').value,
+            frete_compra: row.querySelector('.variante-frete').value,
             estoque: row.querySelector('.variante-estoque').value,
             ativo: row.querySelector('.variante-ativo').checked,
             descricao: descricaoTa && descricaoTa.value.trim() !== '' ? descricaoTa.value.trim() : null,
@@ -1407,6 +1672,7 @@ function gerarPreviewLocal() {
             valores: [],
             preco: s ? (s.preco !== '' ? parseFloat(s.preco) : null) : null,
             custo_compra: s ? (s.custo_compra !== '' ? parseFloat(s.custo_compra) : null) : null,
+            frete_compra: s ? (s.frete_compra !== '' ? parseFloat(s.frete_compra) : null) : null,
             estoque: s ? (s.estoque !== '' ? parseInt(s.estoque) : null) : null,
             ativo: s ? s.ativo : true,
             descricao: s ? s.descricao : null,
@@ -1442,6 +1708,7 @@ function salvarTudo(produtoId) {
         if (!id) return;
         var preco = row.querySelector('.variante-preco').value;
         var custoCompra = row.querySelector('.variante-custo').value;
+        var freteCompra = row.querySelector('.variante-frete').value;
         var estoque = row.querySelector('.variante-estoque').value;
         var ativo = row.querySelector('.variante-ativo').checked;
         var imagem_ids = [];
@@ -1460,6 +1727,7 @@ function salvarTudo(produtoId) {
             id: id,
             preco: preco !== '' ? parseFloat(preco) : null,
             custo_compra: custoCompra !== '' ? parseFloat(custoCompra) : null,
+            frete_compra: freteCompra !== '' ? parseFloat(freteCompra) : null,
             estoque: estoque !== '' ? parseInt(estoque) : null,
             ativo: ativo,
             imagem_ids: imagem_ids,

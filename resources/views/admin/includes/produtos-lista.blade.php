@@ -19,7 +19,7 @@
                     </div>
                 @endif
                 <div class="flex-1 min-w-0">
-                    <h3 class="font-mono text-sm font-bold text-black break-words sm:truncate">{{ $produto->nome }}</h3>
+                    <a href="{{ route('admin.produtos.ver', $produto->id) }}" class="font-mono text-sm font-bold text-black break-words sm:truncate hover:underline block">{{ $produto->nome }}</a>
                     <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] break-words">{{ $produto->categoria->nome }}</p>
                 </div>
             </div>

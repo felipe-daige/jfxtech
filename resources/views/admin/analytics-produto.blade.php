@@ -360,8 +360,8 @@
                 </div>
                 <div class="flex items-center justify-between gap-4 border-b border-[var(--color-lab-border)] pb-3">
                     <span class="font-mono text-xs uppercase tracking-widest text-[var(--color-lab-muted)]">Custo</span>
-                    <span class="font-mono text-sm font-bold {{ $produto->custo_compra !== null ? 'text-black' : 'text-gray-400' }}">
-                        {{ $produto->custo_compra !== null ? 'R$ ' . number_format($produto->custo_compra, 2, ',', '.') : 'Não cadastrado' }}
+                    <span class="font-mono text-sm font-bold {{ $produto->custo_efetivo !== null ? 'text-black' : 'text-gray-400' }}">
+                        {{ $produto->custo_efetivo !== null ? 'R$ ' . number_format($produto->custo_efetivo, 2, ',', '.') : 'Não cadastrado' }}
                     </span>
                 </div>
                 <div class="flex items-center justify-between gap-4 border-b border-[var(--color-lab-border)] pb-3">
