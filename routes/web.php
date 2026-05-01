@@ -6,9 +6,11 @@ use App\Http\Controllers\PedidosController;
 use App\Http\Controllers\FavoritosController;
 use App\Http\Controllers\CarrinhoController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AdminSorteioController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\MercadoPagoCheckoutController;
 use App\Http\Controllers\PasswordResetController;
+use App\Http\Controllers\SorteioController;
 
 Route::get('/', [SiteController::class, 'index'])->name('site.index');
 Route::get('/produtos', [SiteController::class, 'produtos'])->name('site.produtos');
@@ -34,6 +36,13 @@ Route::get('/reset-password/{token}', [PasswordResetController::class, 'resetFor
 Route::post('/reset-password', [PasswordResetController::class, 'reset'])->name('site.password.update');
 
 Route::match(['GET', 'POST'], '/logout', [SiteController::class, 'logout'])->name('site.logout');
+
+// Sorteios
+Route::get('/sorteio', [SorteioController::class, 'index'])->name('site.sorteio.index');
+Route::get('/meus-sorteios', [SorteioController::class, 'minhasParticipacoes'])->middleware('auth')->name('site.sorteios.minhas');
+Route::get('/sorteio/{sorteio:slug}/acompanhar', [SorteioController::class, 'acompanhar'])->middleware('auth')->name('site.sorteio.acompanhar');
+Route::post('/sorteio/{sorteio:slug}/participar', [SorteioController::class, 'participar'])->name('site.sorteio.participar');
+Route::get('/sorteio/{sorteio:slug}', [SorteioController::class, 'show'])->name('site.sorteio.show');
 
 // Rota do perfil (apenas para usuários logados)
 Route::get('/perfil', [SiteController::class, 'perfil'])->name('site.perfil');
@@ -91,6 +100,17 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     // Usuarios
     Route::get('/usuarios', [AdminUserController::class, 'index'])->name('usuarios.index');
     Route::put('/usuarios/{id}', [AdminUserController::class, 'update'])->name('usuarios.update');
+
+    // Sorteios
+    Route::get('/sorteios', [AdminSorteioController::class, 'index'])->name('sorteios.index');
+    Route::post('/sorteios', [AdminSorteioController::class, 'store'])->name('sorteios.store');
+    Route::get('/sorteios/{sorteio}', [AdminSorteioController::class, 'show'])->name('sorteios.show');
+    Route::put('/sorteios/{sorteio}', [AdminSorteioController::class, 'update'])->name('sorteios.update');
+    Route::delete('/sorteios/{sorteio}', [AdminSorteioController::class, 'destroy'])->name('sorteios.destroy');
+    Route::post('/sorteios/{sorteio}/sortear', [AdminSorteioController::class, 'sortearCandidato'])->name('sorteios.sortear');
+    Route::post('/sorteios/{sorteio}/resultado', [AdminSorteioController::class, 'publicarResultado'])->name('sorteios.resultado');
+    Route::delete('/sorteios/{sorteio}/resultado', [AdminSorteioController::class, 'limparResultado'])->name('sorteios.resultado.limpar');
+    Route::put('/sorteios/{sorteio}/participantes/{participante}', [AdminSorteioController::class, 'updateParticipante'])->name('sorteios.participantes.update');
     
     // Produtos
     Route::get('/produtos', [AdminController::class, 'produtos'])->name('produtos');

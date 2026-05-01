@@ -3,12 +3,12 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Notifications\ResetPasswordNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use App\Notifications\ResetPasswordNotification;
 
 class User extends Authenticatable
 {
@@ -78,13 +78,18 @@ class User extends Authenticatable
         return $this->hasMany(Cupom::class);
     }
 
+    public function sorteioParticipantes(): HasMany
+    {
+        return $this->hasMany(SorteioParticipante::class);
+    }
+
     /**
      * Relacionamento: Um usuário pode favoritar vários produtos
      */
     public function produtosFavoritos(): BelongsToMany
     {
         return $this->belongsToMany(Produto::class, 'favoritos')
-                    ->withTimestamps();
+            ->withTimestamps();
     }
 
     public function sendPasswordResetNotification($token): void
