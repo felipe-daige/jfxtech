@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\Cupom;
+use App\Models\CupomUso;
 use App\Models\ItemPedido;
 use App\Models\Pagamento;
 use App\Models\Pedido;
@@ -161,6 +163,119 @@ class MercadoPagoCheckoutTest extends TestCase
             'status' => 'pago',
             'metodo' => 'cartao',
         ]);
+    }
+
+    public function test_pay_rejects_applied_coupon_when_global_limit_was_already_used(): void
+    {
+        $user = User::factory()->create();
+        $pedido = $this->makeCart($user, 100.00, 1, 'pendente');
+        $pedido->update([
+            'cupom_codigo' => 'KAUE',
+            'valor_desconto' => 10.00,
+            'valor_total' => 90.00,
+        ]);
+
+        Cupom::create([
+            'codigo' => 'KAUE',
+            'tipo' => 'percentual',
+            'valor' => 10,
+            'limite_usos' => 1,
+            'usos_realizados' => 1,
+            'ativo' => true,
+        ]);
+
+        $this->mock(MercadoPagoService::class, function ($mock): void {
+            $mock->shouldNotReceive('createPayment');
+        });
+
+        $response = $this->actingAs($user)->postJson(route('site.checkout.mercadopago.pay'), [
+            'pedido_id' => $pedido->id,
+            'payment_method_id' => 'visa',
+            'transaction_amount' => 90.00,
+            'installments' => 1,
+            'token' => 'test-token',
+            'issuer_id' => '123',
+            'payer' => [
+                'email' => $user->email,
+                'identification' => [
+                    'type' => 'CPF',
+                    'number' => '12345678901',
+                ],
+            ],
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('message', 'Este cupom atingiu o limite de usos.');
+    }
+
+    public function test_approved_payment_records_coupon_usage_only_once_for_duplicate_notifications(): void
+    {
+        $user = User::factory()->create();
+        $pedido = $this->makeCart($user, 100.00, 1, 'pendente');
+        $pedido->update([
+            'cupom_codigo' => 'KAUE',
+            'valor_desconto' => 10.00,
+            'valor_total' => 90.00,
+        ]);
+
+        $cupom = Cupom::create([
+            'codigo' => 'KAUE',
+            'tipo' => 'percentual',
+            'valor' => 10,
+            'limite_usos' => 1,
+            'usos_realizados' => 0,
+            'ativo' => true,
+        ]);
+
+        $gatewayResponse = [
+            'id' => 123456789,
+            'status' => 'approved',
+            'status_detail' => 'accredited',
+            'transaction_amount' => 90.00,
+            'payment_method_id' => 'visa',
+            'payment_type_id' => 'credit_card',
+            'external_reference' => (string) $pedido->id,
+        ];
+
+        $this->mock(MercadoPagoService::class, function ($mock) use ($gatewayResponse): void {
+            $mock->shouldReceive('createPayment')
+                ->once()
+                ->andReturn($gatewayResponse);
+
+            $mock->shouldReceive('getPayment')
+                ->once()
+                ->with('123456789')
+                ->andReturn($gatewayResponse);
+        });
+
+        $this->actingAs($user)->postJson(route('site.checkout.mercadopago.pay'), [
+            'pedido_id' => $pedido->id,
+            'payment_method_id' => 'visa',
+            'transaction_amount' => 90.00,
+            'installments' => 1,
+            'token' => 'test-token',
+            'issuer_id' => '123',
+            'payer' => [
+                'email' => $user->email,
+                'identification' => [
+                    'type' => 'CPF',
+                    'number' => '12345678901',
+                ],
+            ],
+        ])->assertOk();
+
+        $this->postJson(route('site.checkout.mercadopago.webhook'), [
+            'type' => 'payment',
+            'data' => [
+                'id' => '123456789',
+            ],
+        ])->assertOk();
+
+        $cupom->refresh();
+
+        $this->assertSame(1, $cupom->usos_realizados);
+        $this->assertSame(1, CupomUso::where('cupom_id', $cupom->id)->where('pedido_id', $pedido->id)->count());
     }
 
     public function test_pay_includes_https_notification_url_when_configured(): void

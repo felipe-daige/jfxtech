@@ -115,15 +115,15 @@ class FreteController extends Controller
         $valores = [
             'pac' => [
                 'nome' => 'PAC',
-                'descricao' => 'Entrega em até 7 dias úteis',
+                'descricao' => 'Entrega em 4 a 7 dias úteis',
                 'valor' => $this->tabelaFrete['pac'][$regiao][$faixaPeso],
-                'prazo' => '5-7 dias úteis'
+                'prazo' => '4-7 dias úteis'
             ],
             'sedex' => [
                 'nome' => 'SEDEX',
-                'descricao' => 'Entrega em até 3 dias úteis',
+                'descricao' => 'Entrega em 4 a 7 dias úteis',
                 'valor' => $this->tabelaFrete['sedex'][$regiao][$faixaPeso],
-                'prazo' => '2-3 dias úteis'
+                'prazo' => '4-7 dias úteis'
             ],
             'retirada' => [
                 'nome' => 'Retirada na Loja',
@@ -231,7 +231,7 @@ class FreteController extends Controller
                     'nome' => 'Frete Grátis',
                     'descricao' => 'Promoção por tempo limitado!',
                     'valor' => 0.00,
-                    'prazo' => '5-7 dias úteis',
+                    'prazo' => '7-12 dias úteis',
                     'tempo_limitado' => true,
                 ];
                 return response()->json($data);

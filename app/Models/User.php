@@ -17,8 +17,11 @@ class User extends Authenticatable
 
     public const ADMIN_PERMISSION_CATALOG = 'catalog.manage';
 
+    public const ADMIN_PERMISSION_ANALYTICS = 'analytics.view';
+
     public const ADMIN_PERMISSION_LABELS = [
         self::ADMIN_PERMISSION_CATALOG => 'Produtos e estoque',
+        self::ADMIN_PERMISSION_ANALYTICS => 'Analytics e precificação',
     ];
 
     /**
@@ -74,7 +77,7 @@ class User extends Authenticatable
     {
         $permissions = $this->admin_permissions ?? [];
 
-        if (!is_array($permissions)) {
+        if (! is_array($permissions)) {
             return [];
         }
 

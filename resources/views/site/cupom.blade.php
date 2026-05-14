@@ -170,9 +170,9 @@
                             <p class="kpi-label text-gray-500 mb-3">Vendas pagas</p>
                             <span class="kpi-value text-black"
                                   data-animate-counter
-                                  data-value="{{ $progress['total_sales'] }}"
-                                  data-type="integer">{{ $progress['total_sales'] }}</span>
-                            <p class="font-mono text-[10px] text-gray-400 mt-2">{{ $progress['current_label'] }}</p>
+                                  data-value="{{ $progressAggregate['total_sales'] }}"
+                                  data-type="integer">{{ $progressAggregate['total_sales'] }}</span>
+                            <p class="font-mono text-[10px] text-gray-400 mt-2">{{ $progressAggregate['current_label'] }}</p>
                         </div>
 
                         {{-- Comissão atual --}}
@@ -276,7 +276,9 @@
                                                 @php
                                                     $liquido = $sale->valor_total;
                                                     $bruto = $sale->valor_total + $sale->valor_desconto;
-                                                    $comissao = $liquido * $taxa;
+                                                    $saleProgress = $couponProgress->get($sale->cupom_codigo);
+                                                    $saleRate = ($saleProgress['current_rate'] ?? 0) / 100;
+                                                    $comissao = $liquido * $saleRate;
                                                 @endphp
                                                 <tr class="sale-row"
                                                     data-id="{{ $sale->id }}"
@@ -292,7 +294,7 @@
                                                     <td class="text-red-600">-R$ {{ number_format($sale->valor_desconto, 2, ',', '.') }}</td>
                                                     <td class="font-bold">R$ {{ number_format($liquido, 2, ',', '.') }}</td>
                                                     <td class="text-green-700 font-bold"
-                                                        data-tooltip="Taxa: {{ $progress['current_rate'] }}% sobre líquido">
+                                                        data-tooltip="Taxa: {{ $saleProgress['current_rate'] ?? 0 }}% sobre líquido">
                                                         R$ {{ number_format($comissao, 2, ',', '.') }}
                                                     </td>
                                                     <td class="text-gray-400">{{ $sale->created_at->format('d/m/Y') }}</td>

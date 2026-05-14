@@ -28,11 +28,11 @@ class CupomDashboardTest extends TestCase
         ]);
     }
 
-    private function makePaidOrder(string $codigo, float $total, float $desconto): Pedido
+    private function makePaidOrder(string $codigo, float $total, float $desconto, string $status = 'pago'): Pedido
     {
         return Pedido::create([
             'user_id'        => User::factory()->create()->id,
-            'status'         => 'pago',
+            'status'         => $status,
             'cupom_codigo'   => $codigo,
             'valor_total'    => $total,
             'valor_desconto' => $desconto,
@@ -95,6 +95,45 @@ class CupomDashboardTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertViewHas('progressPct', 36);
+        $response->assertViewHas('couponProgress', fn($progress) => $progress->get('TIER2')['progress_pct'] === 36);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function dashboard_counts_processing_order_as_progress(): void
+    {
+        $user = $this->makeUser();
+        $this->makeCupom($user, 'TOGS');
+
+        $this->makePaidOrder('TOGS', 1690.98, 169.10, 'processando');
+        $this->makePaidOrder('TOGS', 100.00, 10.00, 'cancelado');
+
+        $response = $this->actingAs($user)->get('/cupom');
+
+        $response->assertStatus(200);
+        $response->assertViewHas('progressPct', 7);
+        $response->assertViewHas('progress', fn($progress) => $progress['total_sales'] === 1);
+        $response->assertViewHas('allSales', fn($sales) => $sales->count() === 1);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function dashboard_uses_coupon_specific_rates_for_accumulated_commission(): void
+    {
+        $user = $this->makeUser();
+        $this->makeCupom($user, 'ALPHA10');
+        $this->makeCupom($user, 'BETA10');
+
+        foreach (range(1, 3) as $_) {
+            $this->makePaidOrder('ALPHA10', 100.00, 0.00);
+        }
+
+        foreach (range(1, 20) as $_) {
+            $this->makePaidOrder('BETA10', 100.00, 0.00);
+        }
+
+        $response = $this->actingAs($user)->get('/cupom');
+
+        $response->assertStatus(200);
+        $response->assertViewHas('comissaoAcumulada', 135.0);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]

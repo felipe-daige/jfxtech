@@ -52,7 +52,7 @@
                         </p>
                         <p class="font-mono text-3xl font-bold">#{{ $sorteio->ganhador->numeroFormatado() }}</p>
                         <p class="text-sm mt-2">{{ $sorteio->ganhador->user?->name }} · {{ $sorteio->ganhador->user?->email }}</p>
-                        <p class="font-mono text-xs text-[var(--color-lab-muted)] mt-1">@{{ $sorteio->ganhador->instagram_username }}</p>
+                        <p class="font-mono text-xs text-[var(--color-lab-muted)] mt-1">{{ '@'.ltrim((string) $sorteio->ganhador->instagram_username, '@') }}</p>
                         @if($sorteio->resultadoPublicado())
                             <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mt-3">
                                 Publicado em {{ $sorteio->resultado_publicado_at->format('d/m/Y H:i') }}
@@ -89,7 +89,7 @@
                             <option value="">Selecione um participante</option>
                             @foreach($participantesParaResultado as $participante)
                                 <option value="{{ $participante->id }}" @selected((int) old('ganhador_participante_id', $sorteio->ganhador_participante_id) === (int) $participante->id)>
-                                    #{{ $participante->numeroFormatado() }} - {{ $participante->user?->name }} (@{{ $participante->instagram_username }})
+                                    #{{ $participante->numeroFormatado() }} - {{ $participante->user?->name }} ({{ '@'.ltrim((string) $participante->instagram_username, '@') }})
                                 </option>
                             @endforeach
                         </select>
@@ -214,8 +214,8 @@
                                 <p class="font-mono text-xs text-[var(--color-lab-muted)]">{{ $participante->user?->phone ?: '-' }}</p>
                             </td>
                             <td class="px-4 py-4 align-top">
-                                <p class="font-mono">@{{ $participante->instagram_username }}</p>
-                                <p class="font-mono text-xs text-[var(--color-lab-muted)]">@{{ $participante->instagram_friend_1 }} / @{{ $participante->instagram_friend_2 }}</p>
+                                <p class="font-mono">{{ '@'.ltrim((string) $participante->instagram_username, '@') }}</p>
+                                <p class="font-mono text-xs text-[var(--color-lab-muted)]">{{ '@'.ltrim((string) $participante->instagram_friend_1, '@') }} / {{ '@'.ltrim((string) $participante->instagram_friend_2, '@') }}</p>
                             </td>
                             <td class="px-4 py-4 align-top">
                                 <span class="inline-flex px-2 py-1 font-mono text-[10px] uppercase tracking-widest border {{ $participante->status === \App\Models\SorteioParticipante::STATUS_VALIDADO ? 'border-black text-black' : ($participante->status === \App\Models\SorteioParticipante::STATUS_DESCLASSIFICADO ? 'border-red-300 text-red-600' : 'border-gray-300 text-gray-500') }}">

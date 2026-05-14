@@ -84,7 +84,7 @@ class OrderStatusNotificationService
 
     protected function shouldNotify(Pedido $pedido): bool
     {
-        return in_array($pedido->status, PedidoStatus::notificationValues(), true);
+        return in_array($pedido->status, PedidoStatus::webhookNotificationValues(), true);
     }
 
     protected function buildPayload(Pedido $pedido): array

@@ -32,4 +32,13 @@ class ErrorPagesTest extends TestCase
         $this->assertStringContainsString('EM MANUTENÇÃO', $view);
         $this->assertStringContainsString('VOLTAMOS EM BREVE', $view);
     }
+
+    public function test_419_page_renders_recovery_controls(): void
+    {
+        $view = view('errors.419')->render();
+
+        $this->assertStringContainsString('419', $view);
+        $this->assertStringContainsString('Sessão Expirada', $view);
+        $this->assertStringContainsString('csrf-return-button', $view);
+    }
 }

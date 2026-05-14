@@ -33,6 +33,26 @@
         <changefreq>monthly</changefreq>
     </url>
 
+    {{-- Páginas de suporte --}}
+    <url>
+        <loc>{{ url('/garantia') }}</loc>
+        <lastmod>2026-05-04</lastmod>
+        <priority>0.5</priority>
+        <changefreq>monthly</changefreq>
+    </url>
+    <url>
+        <loc>{{ url('/trocas-e-devolucoes') }}</loc>
+        <lastmod>2026-05-04</lastmod>
+        <priority>0.5</priority>
+        <changefreq>monthly</changefreq>
+    </url>
+    <url>
+        <loc>{{ url('/rastreamento') }}</loc>
+        <lastmod>2026-05-04</lastmod>
+        <priority>0.5</priority>
+        <changefreq>monthly</changefreq>
+    </url>
+
     {{-- Produtos ativos --}}
     @foreach($produtos as $produto)
     <url>

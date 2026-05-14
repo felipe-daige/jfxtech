@@ -396,41 +396,35 @@ class SiteController extends Controller
         $cupons = $usuario->cupons()->orderBy('codigo')->get();
         // $codes é derivado dos mesmos cupons já carregados — evita segunda query ao service
         $codes = $cupons->pluck('codigo')->filter()->values();
-        $progress = $this->couponPartnerProgressService->progressForUser($usuario);
+        $couponProgress = $this->couponPartnerProgressService->progressForCouponCodes($codes);
+        $requestedCode = strtoupper(trim((string) request('cupom', '')));
+        $selectedCouponCode = $codes->contains($requestedCode)
+            ? $requestedCode
+            : $codes->first();
+        $progress = $couponProgress->get($selectedCouponCode)
+            ?? $this->couponPartnerProgressService->progressForUser($usuario);
+        $progressAggregate = $this->couponPartnerProgressService->progressForUser($usuario);
 
         $allSales = Pedido::query()
-            ->where('status', PedidoStatus::PAGO)
+            ->whereIn('status', $this->couponPartnerProgressService->eligibleOrderStatuses())
             ->whereIn('cupom_codigo', $codes->all())
             ->orderByDesc('created_at')
             ->get(['id', 'cupom_codigo', 'valor_total', 'valor_desconto', 'created_at']);
 
-        $taxa = $progress['current_rate'] / 100;
         $totalLiquido = $allSales->sum('valor_total');
-        $comissaoAcumulada = $totalLiquido * $taxa;
+        $comissaoAcumulada = $allSales->sum(function (Pedido $sale) use ($couponProgress): float {
+            $rate = (float) ($couponProgress->get($sale->cupom_codigo)['current_rate'] ?? 0);
+
+            return (float) $sale->valor_total * ($rate / 100);
+        });
         $mediaPorPedido = $allSales->count() > 0
             ? $totalLiquido / $allSales->count()
             : 0.0;
-
-        // Barra de progressão dentro do tier atual
-        $currentTier = collect($progress['tiers'])
-            ->first(fn($t) => $t['rate'] === $progress['current_rate'])
-            ?? $progress['tiers'][0];
-        $tierMin = $currentTier['min'];
-        $tierMax = $currentTier['max'];
-
-        if ($tierMax === null) {
-            $progressPct = 100;
-        } else {
-            $range = $tierMax - $tierMin;
-            $progressPct = $range > 0
-                ? (int) round(($progress['total_sales'] - $tierMin) / $range * 100)
-                : 100;
-            $progressPct = min(100, max(0, $progressPct));
-        }
+        $progressPct = $progress['progress_pct'] ?? 0;
 
         return view('site.cupom', compact(
-            'usuario', 'cupons', 'progress', 'allSales',
-            'taxa', 'totalLiquido', 'comissaoAcumulada', 'mediaPorPedido', 'progressPct'
+            'usuario', 'cupons', 'progress', 'progressAggregate', 'couponProgress', 'selectedCouponCode', 'allSales',
+            'totalLiquido', 'comissaoAcumulada', 'mediaPorPedido', 'progressPct'
         ));
     }
 

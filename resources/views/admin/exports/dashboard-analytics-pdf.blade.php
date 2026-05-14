@@ -124,6 +124,34 @@
     </div>
 
     <div class="section">
+        <h2>Custos Operacionais Recentes</h2>
+        <table class="grid">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Tipo</th>
+                    <th>Nome</th>
+                    <th class="text-right">Valor</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($analytics['custos_operacionais'] as $custo)
+                    <tr>
+                        <td>{{ $custo->data_referencia->format('d/m/Y') }}</td>
+                        <td>{{ $analytics['custo_operacional_tipos'][$custo->tipo] ?? ucfirst($custo->tipo) }}</td>
+                        <td>{{ $custo->nome }}</td>
+                        <td class="text-right">R$ {{ number_format($custo->valor, 2, ',', '.') }}</td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="4" class="muted">Nenhum custo operacional registrado.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
         <h2>Lista de Produtos</h2>
         <table class="grid">
             <thead>

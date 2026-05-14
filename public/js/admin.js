@@ -338,8 +338,7 @@ function mostrarImagensExistentes(imagens) {
                 })
                 .then(r => {
                     if (r.status === 419) {
-                        alert('Sessão expirada. A página será recarregada.');
-                        window.location.reload();
+                        window.JfxCsrfRecovery?.recover();
                     }
                 })
                 .catch(() => {});
@@ -427,8 +426,7 @@ function _executarRemocaoImagem(imagemId) {
     })
         .then(r => {
             if (r.status === 419) {
-                alert('Sessão expirada. A página será recarregada.');
-                window.location.reload();
+                window.JfxCsrfRecovery?.recover();
                 return null;
             }
             return r.json();
@@ -473,8 +471,7 @@ function confirmarSubstituir(imagemId) {
     })
         .then(r => {
             if (r.status === 419) {
-                alert('Sessão expirada. A página será recarregada.');
-                window.location.reload();
+                window.JfxCsrfRecovery?.recover();
                 return null;
             }
             return r.json();
@@ -605,14 +602,50 @@ function fecharModalCategoria() {
 // ===== FUNÇÕES DE PEDIDOS =====
 
 function aplicarFiltros() {
-    const status = document.getElementById('filtroStatus').value;
-    const data = document.getElementById('filtroData').value;
+    const status = document.getElementById('filtroStatus')?.value || '';
+    const data = document.getElementById('filtroData')?.value || '';
+    const cupom = (document.getElementById('filtroCupom')?.value || '').trim().toUpperCase();
 
     let url = new URL(window.location);
-    if (status) url.searchParams.set('status', status);
-    if (data) url.searchParams.set('data', data);
+    if (status) {
+        url.searchParams.set('status', status);
+    } else {
+        url.searchParams.delete('status');
+    }
+
+    if (data) {
+        url.searchParams.set('data', data);
+    } else {
+        url.searchParams.delete('data');
+    }
+
+    if (cupom) {
+        url.searchParams.set('cupom', cupom);
+    } else {
+        url.searchParams.delete('cupom');
+    }
 
     window.location.href = url.toString();
+}
+
+function resolveAdminRoute(routeTemplate, params = {}) {
+    let route = routeTemplate || '';
+
+    Object.entries(params).forEach(([key, value]) => {
+        route = route.replace(':' + key, encodeURIComponent(value));
+    });
+
+    try {
+        const url = new URL(route, window.location.origin);
+
+        if (url.origin !== window.location.origin) {
+            return url.pathname + url.search + url.hash;
+        }
+
+        return url.toString();
+    } catch (error) {
+        return route;
+    }
 }
 
 function verDetalhes(pedidoId) {
@@ -660,29 +693,47 @@ function verDetalhes(pedidoId) {
     `;
     modal.classList.remove('hidden');
 
-    fetch(window.routes.adminPedidosDetalhes.replace(':id', pedidoId))
-        .then(r => r.json())
-        .then(data => {
-            if (data && data.html) {
-                conteudo.innerHTML = data.html;
+    fetch(resolveAdminRoute(window.routes.adminPedidosDetalhes, { id: pedidoId }), {
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+    })
+        .then(async response => {
+            const contentType = response.headers.get('content-type') || '';
+            const payload = contentType.includes('application/json') ? await response.json() : null;
 
-                // Read status from rendered content and show action button
-                const statusFromContent = conteudo.querySelector('[data-status]')?.dataset?.status ?? '';
-                modal.dataset.pedidoStatus = statusFromContent;
-                if (btnStatus) btnStatus.classList.remove('hidden');
-            } else {
-                conteudo.innerHTML = '<p class="text-red-600">Não foi possível carregar os detalhes.</p>';
+            if (!response.ok) {
+                throw new Error(payload?.error || 'Falha ao carregar o pedido.');
             }
+
+            if (!payload || !payload.html) {
+                throw new Error('Resposta inválida ao carregar o pedido.');
+            }
+
+            return payload;
         })
-        .catch(() => {
-            conteudo.innerHTML = '<p class="text-red-600">Erro ao carregar os detalhes.</p>';
+        .then(data => {
+            conteudo.innerHTML = data.html;
+
+            // Read status from rendered content and show action button
+            const statusFromContent = conteudo.querySelector('[data-status]')?.dataset?.status ?? '';
+            modal.dataset.pedidoStatus = statusFromContent;
+            if (btnStatus) btnStatus.classList.remove('hidden');
+        })
+        .catch(error => {
+            console.error('Erro ao carregar detalhes do pedido:', error);
+            conteudo.innerHTML = '<div class="border border-red-200 bg-red-50 p-4 text-sm text-red-700">Erro ao carregar os detalhes do pedido. Atualize a página e tente novamente.</div>';
         });
 }
 
 function alterarStatus(pedidoId, statusAtual) {
-    document.getElementById('formStatus').action = window.routes.adminPedidosStatus.replace(':id', pedidoId);
+    const form = document.getElementById('formStatus');
+    form.action = resolveAdminRoute(window.routes.adminPedidosStatus, { id: pedidoId });
+    form.dataset.pedidoId = pedidoId;
     document.getElementById('novoStatus').value = statusAtual;
     alternarCampoCodigoRastreio(statusAtual);
+    alternarCampoCustosPreparacao(statusAtual);
     document.getElementById('modalStatus').classList.remove('hidden');
 }
 
@@ -731,6 +782,167 @@ function alternarCampoCodigoRastreio(status) {
     }
 }
 
+async function carregarCustosPreparacao(pedidoId) {
+    const container = document.getElementById('preparacaoCustosConteudo');
+    const notaAtual = document.getElementById('notaFiscalAtual');
+
+    if (!container || !pedidoId || !window.routes.adminPedidosPreparacaoCustos) {
+        return;
+    }
+
+    container.innerHTML = '<p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Carregando itens...</p>';
+    if (notaAtual) {
+        notaAtual.classList.add('hidden');
+        notaAtual.innerHTML = '';
+    }
+
+    try {
+        const response = await fetch(resolveAdminRoute(window.routes.adminPedidosPreparacaoCustos, { id: pedidoId }), {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        });
+        const payload = await response.json();
+
+        if (!response.ok) {
+            throw new Error(payload?.error || 'Falha ao carregar custos');
+        }
+
+        container.innerHTML = '';
+
+        if (notaAtual && payload.nota_fiscal_imagem_url) {
+            notaAtual.innerHTML = '<a href="' + payload.nota_fiscal_imagem_url + '" target="_blank" rel="noopener" class="underline hover:text-black">Nota fiscal atual anexada</a>';
+            notaAtual.classList.remove('hidden');
+        }
+
+        if (!payload.items || payload.items.length === 0) {
+            container.innerHTML = '<p class="font-mono text-[10px] uppercase tracking-widest text-red-600">Pedido sem itens.</p>';
+            return;
+        }
+
+        payload.items.forEach(function (item) {
+            const row = document.createElement('div');
+            row.className = 'border border-[var(--color-lab-border)] bg-white p-3';
+
+            const header = document.createElement('div');
+            header.className = 'flex items-start justify-between gap-3 mb-2';
+
+            const title = document.createElement('div');
+            title.className = 'min-w-0';
+            title.innerHTML =
+                '<p class="font-mono text-xs font-bold text-black break-words"></p>' +
+                '<p class="font-mono text-[10px] text-[var(--color-lab-muted)] mt-0.5"></p>';
+            title.querySelector('p:first-child').textContent = item.produto_nome;
+            title.querySelector('p:last-child').textContent = 'Qtd ' + item.quantidade + (item.variant_label ? ' · ' + item.variant_label : '');
+
+            const source = document.createElement('span');
+            source.className = 'shrink-0 font-mono text-[9px] uppercase tracking-widest border border-[var(--color-lab-border)] px-2 py-1 text-[var(--color-lab-muted)]';
+            source.textContent = (item.source || 'sem_custo').replace('_', ' ');
+
+            header.appendChild(title);
+            header.appendChild(source);
+
+            const statusLabel = document.createElement('label');
+            statusLabel.className = 'font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-1';
+            statusLabel.textContent = 'Confirmação do item';
+
+            const statusSelect = document.createElement('select');
+            statusSelect.name = 'itens[' + item.id + '][status_preparacao]';
+            statusSelect.className = 'w-full mb-3 px-3 py-2 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black bg-white';
+            [
+                ['pendente', 'Pendente'],
+                ['confirmado', 'Comprado / vai entregar'],
+                ['cancelado', 'Cancelado / estorno'],
+            ].forEach(function (optionData) {
+                const option = document.createElement('option');
+                option.value = optionData[0];
+                option.textContent = optionData[1];
+                option.selected = (item.status_preparacao || 'pendente') === optionData[0];
+                statusSelect.appendChild(option);
+            });
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.name = 'itens[' + item.id + '][custo_unitario_declarado]';
+            input.dataset.costInput = '1';
+            input.dataset.suggestedCost = item.suggested_cost !== null && item.suggested_cost !== undefined ? String(item.suggested_cost) : '';
+            input.value = item.value !== null && item.value !== undefined ? formatCurrencyInput(item.value) : '';
+            input.placeholder = 'ex: 599,90';
+            input.className = 'w-full px-3 py-2 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black bg-white';
+
+            const meta = document.createElement('p');
+            meta.className = 'mt-2 font-mono text-[10px] text-[var(--color-lab-muted)]';
+            meta.textContent = item.suggested_cost !== null && item.suggested_cost !== undefined
+                ? 'Sugestão do cadastro: R$ ' + formatCurrencyInput(item.suggested_cost)
+                : 'Sem custo cadastrado no produto. Informe o custo real pago.';
+
+            row.appendChild(header);
+            row.appendChild(statusLabel);
+            row.appendChild(statusSelect);
+            row.appendChild(input);
+            row.appendChild(meta);
+            container.appendChild(row);
+
+            function syncCostRequirement() {
+                input.required = statusSelect.value !== 'cancelado';
+                input.disabled = statusSelect.value === 'cancelado';
+                if (statusSelect.value === 'cancelado') {
+                    input.value = '';
+                    meta.textContent = 'Este item será tratado como estorno da separação.';
+                } else if (!input.value && input.dataset.suggestedCost !== '') {
+                    input.value = formatCurrencyInput(input.dataset.suggestedCost);
+                    meta.textContent = input.dataset.suggestedCost !== ''
+                        ? 'Sugestão do cadastro: R$ ' + formatCurrencyInput(input.dataset.suggestedCost)
+                        : 'Sem custo cadastrado no produto. Informe o custo real pago.';
+                } else {
+                    meta.textContent = input.dataset.suggestedCost !== ''
+                        ? 'Sugestão do cadastro: R$ ' + formatCurrencyInput(input.dataset.suggestedCost)
+                        : 'Sem custo cadastrado no produto. Informe o custo real pago.';
+                }
+            }
+
+            statusSelect.addEventListener('change', syncCostRequirement);
+            syncCostRequirement();
+        });
+    } catch (error) {
+        container.innerHTML = '<p class="font-mono text-[10px] uppercase tracking-widest text-red-600">Erro ao carregar custos do pedido.</p>';
+    }
+}
+
+function alternarCampoCustosPreparacao(status) {
+    const wrapper = document.getElementById('preparacaoCustosWrapper');
+    const form = document.getElementById('formStatus');
+
+    if (!wrapper || !form) {
+        return;
+    }
+
+    const requiresCosts = status === 'processando';
+    wrapper.classList.toggle('hidden', !requiresCosts);
+    wrapper.querySelectorAll('[data-cost-input]').forEach(function (input) {
+        input.required = requiresCosts;
+    });
+
+    if (requiresCosts) {
+        carregarCustosPreparacao(form.dataset.pedidoId);
+    }
+}
+
+function aplicarCustosCatalogoNaPreparacao() {
+    document.querySelectorAll('#preparacaoCustosConteudo [data-cost-input]').forEach(function (input) {
+        if (!input.disabled && input.dataset.suggestedCost !== '') {
+            input.value = formatCurrencyInput(input.dataset.suggestedCost);
+        }
+    });
+}
+
+function formatCurrencyInput(value) {
+    const number = parseFloat(String(value).replace(',', '.'));
+    if (Number.isNaN(number)) {
+        return '';
+    }
+
+    return number.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 // ===== EVENT LISTENERS GLOBAIS =====
 
 // Fechar modal de categorias ao clicar no overlay
@@ -774,27 +986,53 @@ document.addEventListener('DOMContentLoaded', function () {
     const novoStatus = document.getElementById('novoStatus');
     const formStatus = document.getElementById('formStatus');
     const codigoRastreioStatus = document.getElementById('codigoRastreioStatus');
+    const btnUsarCustosCatalogo = document.getElementById('btnUsarCustosCatalogo');
 
     if (novoStatus) {
         alternarCampoCodigoRastreio(novoStatus.value);
+        alternarCampoCustosPreparacao(novoStatus.value);
 
         novoStatus.addEventListener('change', function () {
             alternarCampoCodigoRastreio(this.value);
+            alternarCampoCustosPreparacao(this.value);
         });
     }
 
-    if (formStatus && novoStatus && codigoRastreioStatus) {
+    if (btnUsarCustosCatalogo) {
+        btnUsarCustosCatalogo.addEventListener('click', aplicarCustosCatalogoNaPreparacao);
+    }
+
+    if (formStatus && novoStatus) {
         formStatus.addEventListener('submit', function (e) {
-            if (novoStatus.value !== 'enviado') {
-                return;
+            if (novoStatus.value === 'enviado' && codigoRastreioStatus) {
+                codigoRastreioStatus.value = codigoRastreioStatus.value.trim().toUpperCase();
+
+                if (!codigoRastreioStatus.value) {
+                    e.preventDefault();
+                    alert('O código de rastreio é obrigatório para marcar o pedido como enviado.');
+                    codigoRastreioStatus.focus();
+                    return;
+                }
             }
 
-            codigoRastreioStatus.value = codigoRastreioStatus.value.trim().toUpperCase();
+            if (novoStatus.value === 'processando') {
+                const costInputs = Array.from(document.querySelectorAll('#preparacaoCustosConteudo [data-cost-input]:not(:disabled)'));
+                const emptyCost = costInputs.find(function (input) {
+                    return !input.value.trim();
+                });
 
-            if (!codigoRastreioStatus.value) {
-                e.preventDefault();
-                alert('O código de rastreio é obrigatório para marcar o pedido como enviado.');
-                codigoRastreioStatus.focus();
+                if (costInputs.length === 0 || emptyCost) {
+                    e.preventDefault();
+                    alert('Informe o custo real unitário de todos os itens para marcar como Em preparação.');
+                    if (emptyCost) {
+                        emptyCost.focus();
+                    }
+                    return;
+                }
+            }
+
+            if (novoStatus.value !== 'enviado' && codigoRastreioStatus) {
+                codigoRastreioStatus.value = '';
             }
         });
     }
@@ -1789,7 +2027,7 @@ window.salvarRastreio = async function(pedidoId) {
     btn.textContent = '...';
 
     try {
-        var url = (window.routes.adminPedidosRastreio || '').replace(':id', pedidoId);
+        var url = resolveAdminRoute(window.routes.adminPedidosRastreio || '', { id: pedidoId });
         var res = await fetch(url, {
             method: 'PATCH',
             headers: {

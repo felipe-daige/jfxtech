@@ -1,22 +1,25 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\SiteController;
-use App\Http\Controllers\PedidosController;
-use App\Http\Controllers\FavoritosController;
-use App\Http\Controllers\CarrinhoController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminSorteioController;
 use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\CarrinhoController;
+use App\Http\Controllers\FavoritosController;
 use App\Http\Controllers\MercadoPagoCheckoutController;
 use App\Http\Controllers\PasswordResetController;
+use App\Http\Controllers\PedidosController;
+use App\Http\Controllers\SiteController;
 use App\Http\Controllers\SorteioController;
 use App\Models\User;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', [SiteController::class, 'index'])->name('site.index');
 Route::get('/produtos', [SiteController::class, 'produtos'])->name('site.produtos');
 Route::get('/produto/{slug}', [SiteController::class, 'produto_detalhes'])->name('site.produto.detalhes');
 Route::get('/contato', [SiteController::class, 'contato'])->name('site.contato');
+Route::view('/garantia', 'site.garantia')->name('site.garantia');
+Route::view('/trocas-e-devolucoes', 'site.trocas-devolucoes')->name('site.trocas-devolucoes');
+Route::view('/rastreamento', 'site.rastreamento')->name('site.rastreamento');
 Route::get('/busca-rapida', [SiteController::class, 'buscaRapida'])->name('site.busca_rapida');
 
 // Blog
@@ -93,13 +96,8 @@ Route::prefix('admin')->middleware('auth')->name('admin.')->group(function () {
     Route::middleware('admin')->group(function () {
         // Dashboard
         Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
-        Route::get('/analytics', [AdminController::class, 'analytics'])->name('analytics');
-        Route::get('/analytics/produtos/busca', [AdminController::class, 'analyticsProductSearch'])->name('analytics.products.search');
-        Route::get('/analytics/produtos/{produto}', [AdminController::class, 'analyticsProductShow'])->name('analytics.products.show');
-        Route::get('/dashboard/exportar/csv', [AdminController::class, 'exportarAnalyticsCsv'])->name('dashboard.exportar.csv');
-        Route::get('/dashboard/exportar/pdf', [AdminController::class, 'exportarAnalyticsPdf'])->name('dashboard.exportar.pdf');
-        Route::post('/dashboard/simulador-promocao', [AdminController::class, 'simulatePromotion'])->name('dashboard.simulator');
-        Route::get('/simulador-promocao', [AdminController::class, 'simuladorPromocao'])->name('simulador');
+        Route::post('/analytics/custos', [AdminController::class, 'storeCustoOperacional'])->name('analytics.custos.store');
+        Route::delete('/analytics/custos/{id}', [AdminController::class, 'destroyCustoOperacional'])->name('analytics.custos.destroy');
 
         // Usuarios
         Route::get('/usuarios', [AdminUserController::class, 'index'])->name('usuarios.index');
@@ -119,26 +117,38 @@ Route::prefix('admin')->middleware('auth')->name('admin.')->group(function () {
         // Pedidos
         Route::get('/pedidos', [AdminController::class, 'pedidos'])->name('pedidos');
         Route::get('/pedidos/{id}', [AdminController::class, 'detalhesPedido'])->name('pedidos.detalhes');
+        Route::get('/pedidos/{id}/preparacao-custos', [AdminController::class, 'preparacaoCustosPedido'])->name('pedidos.preparacao-custos');
+        Route::post('/pedidos/{id}/preparacao', [AdminController::class, 'atualizarPreparacaoPedido'])->name('pedidos.preparacao');
         Route::post('/pedidos/{id}/status', [AdminController::class, 'atualizarStatusPedido'])->name('pedidos.status');
         Route::post('/pedidos/{id}/quick-status', [AdminController::class, 'quickStatusPedido'])->name('pedidos.quick-status');
         Route::patch('/pedidos/{id}/rastreio', [AdminController::class, 'atualizarRastreio'])->name('pedidos.rastreio');
 
         // Cupons
-        Route::get('/cupons',              [App\Http\Controllers\AdminCupomController::class, 'index'])->name('cupons.index');
+        Route::get('/cupons', [App\Http\Controllers\AdminCupomController::class, 'index'])->name('cupons.index');
         Route::get('/cupons/buscar-usuarios', [App\Http\Controllers\AdminCupomController::class, 'buscarUsuarios'])->name('cupons.buscarUsuarios');
-        Route::post('/cupons',             [App\Http\Controllers\AdminCupomController::class, 'store'])->name('cupons.store');
-        Route::put('/cupons/{id}',         [App\Http\Controllers\AdminCupomController::class, 'update'])->name('cupons.update');
-        Route::delete('/cupons/{id}',      [App\Http\Controllers\AdminCupomController::class, 'destroy'])->name('cupons.destroy');
+        Route::post('/cupons', [App\Http\Controllers\AdminCupomController::class, 'store'])->name('cupons.store');
+        Route::put('/cupons/{id}', [App\Http\Controllers\AdminCupomController::class, 'update'])->name('cupons.update');
+        Route::delete('/cupons/{id}', [App\Http\Controllers\AdminCupomController::class, 'destroy'])->name('cupons.destroy');
         Route::post('/cupons/{id}/toggle', [App\Http\Controllers\AdminCupomController::class, 'toggle'])->name('cupons.toggle');
 
-        Route::get('/cupons/{id}/pagamentos',          [App\Http\Controllers\AdminCupomController::class, 'pagamentos'])->name('cupons.pagamentos');
-        Route::post('/cupons/{id}/pagamentos',         [App\Http\Controllers\AdminCupomController::class, 'storePagamento'])->name('cupons.pagamentos.store');
-        Route::put('/cupons/{id}/pagamentos/{pid}',    [App\Http\Controllers\AdminCupomController::class, 'updatePagamento'])->name('cupons.pagamentos.update');
+        Route::get('/cupons/{id}/pagamentos', [App\Http\Controllers\AdminCupomController::class, 'pagamentos'])->name('cupons.pagamentos');
+        Route::post('/cupons/{id}/pagamentos', [App\Http\Controllers\AdminCupomController::class, 'storePagamento'])->name('cupons.pagamentos.store');
+        Route::put('/cupons/{id}/pagamentos/{pid}', [App\Http\Controllers\AdminCupomController::class, 'updatePagamento'])->name('cupons.pagamentos.update');
         Route::delete('/cupons/{id}/pagamentos/{pid}', [App\Http\Controllers\AdminCupomController::class, 'destroyPagamento'])->name('cupons.pagamentos.destroy');
-        Route::get('/cupons/{id}/usos-pendentes',      [App\Http\Controllers\AdminCupomController::class, 'usosPendentes'])->name('cupons.usosPendentes');
+        Route::get('/cupons/{id}/usos-pendentes', [App\Http\Controllers\AdminCupomController::class, 'usosPendentes'])->name('cupons.usosPendentes');
     });
 
-    Route::middleware('admin:' . User::ADMIN_PERMISSION_CATALOG)->group(function () {
+    Route::middleware('admin:'.User::ADMIN_PERMISSION_ANALYTICS)->group(function () {
+        Route::get('/analytics', [AdminController::class, 'analytics'])->name('analytics');
+        Route::get('/analytics/produtos/busca', [AdminController::class, 'analyticsProductSearch'])->name('analytics.products.search');
+        Route::get('/analytics/produtos/{produto}', [AdminController::class, 'analyticsProductShow'])->name('analytics.products.show');
+        Route::get('/dashboard/exportar/csv', [AdminController::class, 'exportarAnalyticsCsv'])->name('dashboard.exportar.csv');
+        Route::get('/dashboard/exportar/pdf', [AdminController::class, 'exportarAnalyticsPdf'])->name('dashboard.exportar.pdf');
+        Route::post('/dashboard/simulador-promocao', [AdminController::class, 'simulatePromotion'])->name('dashboard.simulator');
+        Route::get('/simulador-promocao', [AdminController::class, 'simuladorPromocao'])->name('simulador');
+    });
+
+    Route::middleware('admin:'.User::ADMIN_PERMISSION_CATALOG)->group(function () {
         // Produtos
         Route::get('/produtos', [AdminController::class, 'produtos'])->name('produtos');
         Route::get('/produtos/search', [AdminController::class, 'pesquisarProdutos'])->name('produtos.search');
@@ -188,4 +198,4 @@ Route::post('/webhooks/mercado-pago', [MercadoPagoCheckoutController::class, 'we
     ->name('site.checkout.mercadopago.webhook');
 
 // Mail preview routes (dev/testing only)
-require __DIR__ . '/mail-preview.php';
+require __DIR__.'/mail-preview.php';

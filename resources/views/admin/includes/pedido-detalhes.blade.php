@@ -1,9 +1,12 @@
 @php
     use App\Enums\PedidoStatus;
+    use App\Models\ItemPedido;
 
     $summary = $analytics['summary'];
     $items = $analytics['items'];
     $paymentMix = $analytics['payment_mix'];
+    $costComparison = $analytics['cost_comparison'] ?? ['summary' => [], 'rows' => collect(), 'recent' => collect()];
+    $costComparisonSummary = $costComparison['summary'] ?? [];
     $badgeClass = PedidoStatus::badgeClass($pedido->status);
     $productMargin = $summary['margem_produtos_percentual'];
     $ticketMargin = $summary['margem_ticket_percentual'];
@@ -14,6 +17,9 @@
     $hasPartnerCommission = $partnerCommissionTotal !== null;
     $partnerRate = $summary['parceiro_taxa_percentual'] ?? null;
     $partnerName = $summary['parceiro_nome'] ?? null;
+    $hasDeclaredCosts = ($summary['itens_com_custo_declarado'] ?? 0) > 0;
+    $costModeLabel = $hasDeclaredCosts ? 'Real/declarado' : 'Estimado';
+    $preparationStatusLabels = ItemPedido::preparationStatusLabels();
 
     $couponCode = trim((string) ($pedido->cupom_codigo ?? ''));
     $hasCoupon = $couponCode !== '';
@@ -45,14 +51,16 @@
                             <span class="inline-flex items-center px-3 py-1 border font-mono text-[10px] uppercase tracking-widest {{ $badgeClass }}">
                                 {{ PedidoStatus::label($pedido->status) }}
                             </span>
-                            <a href="{{ route('admin.pedidos.detalhes', $pedido->id) }}"
-                               class="inline-flex items-center gap-1.5 px-3 py-1 border border-black font-mono text-[10px] uppercase tracking-widest text-black hover:bg-black hover:text-white transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                                Ver pedido
-                            </a>
+                            @if(empty($isFullOrderPage))
+                                <a href="{{ route('admin.pedidos.detalhes', $pedido->id) }}"
+                                   class="inline-flex items-center gap-1.5 px-3 py-1 border border-black font-mono text-[10px] uppercase tracking-widest text-black hover:bg-black hover:text-white transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                                    Ver pedido
+                                </a>
+                            @endif
                         </div>
                         <p class="mt-3 max-w-2xl text-sm text-[var(--color-lab-muted)]">
-                            Leitura operacional da venda com ticket, cupom, frete, margem por produto e alertas de custo do catálogo atual.
+                            Leitura operacional da venda com ticket, cupom, frete, margem por produto e custo declarado no preparo quando informado.
                         </p>
                     </div>
 
@@ -87,6 +95,10 @@
                         <p class="font-mono text-[9px] uppercase tracking-[0.18em] text-[var(--color-lab-muted)]">Ticket</p>
                         <p class="mt-2 font-mono text-xl font-bold text-black">R$ {{ number_format($summary['valor_total_pedido'], 2, ',', '.') }}</p>
                         <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">{{ $summary['unidades'] }} un. em {{ $summary['linhas'] }} linha(s)</p>
+                        @if(($summary['estorno_total'] ?? 0) > 0)
+                            <p class="mt-1 font-mono text-[10px] text-red-700">Estorno: - R$ {{ number_format($summary['estorno_total'], 2, ',', '.') }}</p>
+                            <p class="mt-0.5 font-mono text-[10px] text-[var(--color-lab-muted)]">Original: R$ {{ number_format($summary['valor_total_original'] ?? $pedido->valor_total, 2, ',', '.') }}</p>
+                        @endif
                     </div>
                     <div class="border border-[var(--color-lab-border)] bg-white px-4 py-4">
                         <p class="font-mono text-[9px] uppercase tracking-[0.18em] text-[var(--color-lab-muted)]">Cupom</p>
@@ -114,13 +126,18 @@
             <div class="px-5 py-6 sm:px-6 sm:py-7 bg-[var(--color-lab-bg)]">
                 <div class="flex items-center justify-between gap-3 mb-4">
                     <p class="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--color-lab-muted)]">Snapshot financeiro</p>
-                    <span class="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--color-lab-muted)]">Estimado</span>
+                    <span class="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--color-lab-muted)]">{{ $costModeLabel }}</span>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div class="border border-[var(--color-lab-border)] bg-white px-4 py-4">
                         <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Receita itens</p>
                         <p class="mt-2 font-mono text-lg font-bold text-black">R$ {{ number_format($summary['receita_itens'], 2, ',', '.') }}</p>
+                    </div>
+                    <div class="border border-[var(--color-lab-border)] {{ ($summary['estorno_total'] ?? 0) > 0 ? 'bg-red-50 border-red-200' : 'bg-white' }} px-4 py-4">
+                        <p class="font-mono text-xs uppercase tracking-[0.16em] {{ ($summary['estorno_total'] ?? 0) > 0 ? 'text-red-700' : 'text-[var(--color-lab-muted)]' }}">Estornos</p>
+                        <p class="mt-2 font-mono text-lg font-bold {{ ($summary['estorno_total'] ?? 0) > 0 ? 'text-red-700' : 'text-black' }}">R$ {{ number_format($summary['estorno_total'] ?? 0, 2, ',', '.') }}</p>
+                        <p class="mt-1 font-mono text-[10px] {{ ($summary['estorno_total'] ?? 0) > 0 ? 'text-red-700' : 'text-[var(--color-lab-muted)]' }}">Itens cancelados na separação</p>
                     </div>
                     <div class="border border-[var(--color-lab-border)] bg-white px-4 py-4">
                         <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Custo total</p>
@@ -227,18 +244,21 @@
             @foreach($items as $item)
                 @php
                     $toneClasses = match ($item['health']) {
+                        'canceled' => 'border-gray-300 bg-[linear-gradient(135deg,#f3f4f6_0%,#ffffff_100%)]',
                         'negative' => 'border-red-200 bg-[linear-gradient(135deg,#fff5f5_0%,#ffffff_100%)]',
                         'low' => 'border-yellow-200 bg-[linear-gradient(135deg,#fffceb_0%,#ffffff_100%)]',
                         'missing_cost' => 'border-blue-200 bg-[linear-gradient(135deg,#eff6ff_0%,#ffffff_100%)]',
                         default => 'border-[var(--color-lab-border)] bg-white',
                     };
                     $barClass = match ($item['health']) {
+                        'canceled' => 'bg-gray-300',
                         'negative' => 'bg-red-500',
                         'low' => 'bg-yellow-500',
                         'missing_cost' => 'bg-blue-500',
                         default => 'bg-black',
                     };
                     $badgeText = match ($item['health']) {
+                        'canceled' => 'Cancelado',
                         'negative' => 'Margem negativa',
                         'low' => 'Margem baixa',
                         'missing_cost' => 'Sem custo',
@@ -263,11 +283,14 @@
                                     <div class="min-w-0">
                                         <div class="flex flex-wrap items-center gap-2">
                                             <h5 class="text-base font-bold text-black break-words">{{ $item['produto_nome'] }}</h5>
-                                            <span class="inline-flex items-center px-2 py-1 font-mono text-[10px] uppercase tracking-widest border {{ $item['health'] === 'negative' ? 'border-red-300 text-red-700 bg-red-50' : ($item['health'] === 'low' ? 'border-yellow-300 text-yellow-700 bg-yellow-50' : ($item['health'] === 'missing_cost' ? 'border-blue-300 text-blue-700 bg-blue-50' : 'border-emerald-300 text-emerald-700 bg-emerald-50')) }}">
+                                            <span class="inline-flex items-center px-2 py-1 font-mono text-[10px] uppercase tracking-widest border {{ $item['health'] === 'canceled' ? 'border-gray-300 text-gray-500 bg-gray-50' : ($item['health'] === 'negative' ? 'border-red-300 text-red-700 bg-red-50' : ($item['health'] === 'low' ? 'border-yellow-300 text-yellow-700 bg-yellow-50' : ($item['health'] === 'missing_cost' ? 'border-blue-300 text-blue-700 bg-blue-50' : 'border-emerald-300 text-emerald-700 bg-emerald-50'))) }}">
                                                 {{ $badgeText }}
                                             </span>
-                                            @if($item['is_top_profit'])
-                                                <span class="inline-flex items-center px-2 py-1 font-mono text-[10px] uppercase tracking-widest border border-black bg-black text-white">Top lucro</span>
+                                            <span class="inline-flex items-center px-2 py-1 font-mono text-[10px] uppercase tracking-widest border border-[var(--color-lab-border)] text-[var(--color-lab-muted)] bg-white">
+                                                {{ $item['status_preparacao_label'] }}
+                                            </span>
+                                            @if($item['is_top_price'])
+                                                <span class="inline-flex items-center px-2 py-1 font-mono text-[10px] uppercase tracking-widest border border-black bg-black text-white">Top preço</span>
                                             @endif
                                             @if($item['is_worst_margin'])
                                                 <span class="inline-flex items-center px-2 py-1 font-mono text-[10px] uppercase tracking-widest border border-red-300 bg-white text-red-600">Pior margem</span>
@@ -285,9 +308,9 @@
                                             </div>
                                             <div class="border border-[var(--color-lab-border)] bg-white px-3 py-3 min-w-0 overflow-hidden">
                                                 <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)] truncate">Venda un.</p>
-                                                <p class="mt-1 font-mono text-sm font-bold {{ $item['desconto_rateado'] > 0 ? 'text-[var(--color-lab-muted)] line-through' : 'text-black' }} truncate">R$ {{ number_format($item['preco_unitario'], 2, ',', '.') }}</p>
+                                                <p class="mt-1 font-mono text-sm font-bold {{ !$item['is_canceled'] && $item['desconto_rateado'] > 0 ? 'text-[var(--color-lab-muted)] line-through' : 'text-black' }} truncate">R$ {{ number_format($item['preco_unitario'], 2, ',', '.') }}</p>
                                             </div>
-                                            @if($item['desconto_rateado'] > 0)
+                                            @if(!$item['is_canceled'] && $item['desconto_rateado'] > 0)
                                             <div class="border border-emerald-200 bg-emerald-50 px-3 py-3 min-w-0 overflow-hidden">
                                                 <p class="font-mono text-xs uppercase tracking-[0.16em] text-emerald-700 truncate">Pago un.</p>
                                                 <p class="mt-1 font-mono text-sm font-bold text-emerald-800 truncate">R$ {{ number_format($item['receita_liquida'] / $item['quantidade'], 2, ',', '.') }}</p>
@@ -301,6 +324,12 @@
                                                 <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)] truncate">Receita</p>
                                                 <p class="mt-1 font-mono text-sm font-bold text-black truncate">R$ {{ number_format($item['receita'], 2, ',', '.') }}</p>
                                             </div>
+                                            @if($item['is_canceled'])
+                                            <div class="border border-red-200 bg-red-50 px-3 py-3 min-w-0 overflow-hidden">
+                                                <p class="font-mono text-xs uppercase tracking-[0.16em] text-red-700 truncate">Estorno</p>
+                                                <p class="mt-1 font-mono text-sm font-bold text-red-700 truncate">- R$ {{ number_format($item['estorno'], 2, ',', '.') }}</p>
+                                            </div>
+                                            @endif
                                             <div class="border border-[var(--color-lab-border)] bg-white px-3 py-3 min-w-0 overflow-hidden">
                                                 <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)] truncate">Fonte custo</p>
                                                 <p class="mt-1 font-mono text-sm font-bold text-black truncate">{{ strtoupper(str_replace('_', ' ', $item['cost_source'])) }}</p>
@@ -374,8 +403,8 @@
                                     <div class="h-full {{ $barClass }}" style="width: {{ $item['margin_bar_percent'] }}%;"></div>
                                 </div>
                                 <div class="mt-3 flex items-center justify-between gap-3 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-lab-muted)]">
-                                    <span>Rank lucro #{{ $item['rank_receita'] }}</span>
-                                    <span>Rank margem #{{ $item['rank_margem'] }}</span>
+                                    <span>Rank preço {{ $item['rank_preco'] ? '#' . $item['rank_preco'] : 'N/A' }}</span>
+                                    <span>Rank margem {{ $item['rank_margem'] ? '#' . $item['rank_margem'] : 'N/A' }}</span>
                                 </div>
                                 <p class="mt-2 font-mono text-[10px] text-[var(--color-lab-muted)]">
                                     Margem apenas deste SKU contra custo cadastrado. Comissão calculada sobre item líquido após desconto.
@@ -391,6 +420,86 @@
                     </div>
                 </article>
             @endforeach
+        </div>
+    </section>
+
+    <section class="border border-[var(--color-lab-border)] bg-white">
+        <div class="px-5 py-4 sm:px-6 border-b border-[var(--color-lab-border)]">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <p class="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--color-lab-muted)]">Custo real vs sistema</p>
+                    <h4 class="mt-1 text-lg font-bold tracking-tight text-black">Comparativo do preço confirmado</h4>
+                </div>
+                <p class="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">{{ $costComparisonSummary['items_count'] ?? 0 }} item(ns) com custo real</p>
+            </div>
+        </div>
+
+        <div class="p-4 sm:p-6 space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+                <div class="border border-[var(--color-lab-border)] bg-[var(--color-lab-bg)] px-4 py-4">
+                    <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Custo real</p>
+                    <p class="mt-2 font-mono text-xl font-bold text-black">R$ {{ number_format($costComparisonSummary['real_total'] ?? 0, 2, ',', '.') }}</p>
+                </div>
+                <div class="border border-[var(--color-lab-border)] bg-[var(--color-lab-bg)] px-4 py-4">
+                    <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Custo sistema</p>
+                    <p class="mt-2 font-mono text-xl font-bold text-black">R$ {{ number_format($costComparisonSummary['catalog_total'] ?? 0, 2, ',', '.') }}</p>
+                </div>
+                <div class="border border-[var(--color-lab-border)] bg-[var(--color-lab-bg)] px-4 py-4">
+                    @php $deltaPedido = $costComparisonSummary['delta_total'] ?? 0; @endphp
+                    <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Diferença</p>
+                    <p class="mt-2 font-mono text-xl font-bold {{ $deltaPedido > 0 ? 'text-red-600' : ($deltaPedido < 0 ? 'text-emerald-700' : 'text-black') }}">
+                        {{ $deltaPedido > 0 ? '+ ' : ($deltaPedido < 0 ? '- ' : '') }}R$ {{ number_format(abs($deltaPedido), 2, ',', '.') }}
+                    </p>
+                </div>
+                <div class="border border-[var(--color-lab-border)] bg-[var(--color-lab-bg)] px-4 py-4">
+                    <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Sem custo sistema</p>
+                    <p class="mt-2 font-mono text-xl font-bold text-black">{{ $costComparisonSummary['missing_catalog_count'] ?? 0 }}</p>
+                </div>
+            </div>
+
+            @if(($costComparison['rows'] ?? collect())->count())
+                <div class="overflow-x-auto border border-[var(--color-lab-border)]">
+                    <table class="w-full min-w-[780px] text-sm">
+                        <thead>
+                            <tr class="border-b border-[var(--color-lab-border)] bg-[var(--color-lab-bg)]">
+                                <th class="px-4 py-3 text-left font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Produto</th>
+                                <th class="px-4 py-3 text-right font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Qtd</th>
+                                <th class="px-4 py-3 text-right font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Real un.</th>
+                                <th class="px-4 py-3 text-right font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Sistema un.</th>
+                                <th class="px-4 py-3 text-right font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Dif. total</th>
+                                <th class="px-4 py-3 text-right font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">%</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($costComparison['rows'] as $row)
+                                <tr class="border-b border-[var(--color-lab-border)] last:border-b-0">
+                                    <td class="px-4 py-3">
+                                        <p class="font-mono text-xs font-bold text-black break-words">{{ $row['produto_nome'] }}</p>
+                                        <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">{{ $row['variant_label'] ?: $row['status_preparacao_label'] }}</p>
+                                    </td>
+                                    <td class="px-4 py-3 text-right font-mono text-xs text-black">{{ $row['quantidade'] }}</td>
+                                    <td class="px-4 py-3 text-right font-mono text-xs text-black">R$ {{ number_format($row['real_unit_cost'], 2, ',', '.') }}</td>
+                                    <td class="px-4 py-3 text-right font-mono text-xs {{ $row['catalog_unit_cost'] === null ? 'text-gray-400' : 'text-black' }}">
+                                        {{ $row['catalog_unit_cost'] !== null ? 'R$ ' . number_format($row['catalog_unit_cost'], 2, ',', '.') : 'Sem custo' }}
+                                    </td>
+                                    <td class="px-4 py-3 text-right font-mono text-xs font-bold {{ $row['delta_total'] > 0 ? 'text-red-600' : ($row['delta_total'] < 0 ? 'text-emerald-700' : 'text-black') }}">
+                                        @if($row['delta_total'] === null)
+                                            N/A
+                                        @else
+                                            {{ $row['delta_total'] > 0 ? '+ ' : ($row['delta_total'] < 0 ? '- ' : '') }}R$ {{ number_format(abs($row['delta_total']), 2, ',', '.') }}
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 text-right font-mono text-xs text-[var(--color-lab-muted)]">
+                                        {{ $row['delta_percent'] !== null ? number_format($row['delta_percent'], 1, ',', '.') . '%' : 'N/A' }}
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <p class="font-mono text-xs text-[var(--color-lab-muted)]">Nenhum custo real confirmado para comparar neste pedido.</p>
+            @endif
         </div>
     </section>
 
@@ -447,6 +556,76 @@
                     </div>
                 </div>
             @endif
+
+            <div class="border border-[var(--color-lab-border)] bg-white p-5">
+                <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-3">Preparação e custos</p>
+                <form method="POST" action="{{ route('admin.pedidos.preparacao', $pedido) }}" enctype="multipart/form-data" class="space-y-4">
+                    @csrf
+
+                    <div class="space-y-2 font-mono text-[10px] text-[var(--color-lab-muted)]">
+                        <p>
+                            <span class="text-black font-bold">{{ $summary['itens_com_custo_declarado'] ?? 0 }}</span>
+                            linha(s) com custo real declarado
+                        </p>
+                        <p>
+                            <span class="text-black font-bold">{{ $summary['itens_cancelados'] ?? 0 }}</span>
+                            linha(s) cancelada(s) na preparação
+                        </p>
+                        @if($pedido->nota_fiscal_imagem_path)
+                            <a href="{{ asset('storage/' . $pedido->nota_fiscal_imagem_path) }}"
+                               target="_blank"
+                               rel="noopener"
+                               class="inline-flex items-center gap-1 underline hover:text-black">
+                                Ver comprovante / nota fiscal &#8599;
+                            </a>
+                        @else
+                            <p>Nenhum comprovante ou nota fiscal anexado.</p>
+                        @endif
+                    </div>
+
+                    <div>
+                        <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Comprovante / imagem da nota fiscal</label>
+                        <input type="file" name="nota_fiscal_imagem" accept="image/jpeg,image/png,image/webp"
+                               class="w-full px-3 py-2 border border-[var(--color-lab-border)] text-xs font-mono bg-white focus:outline-none focus:border-black">
+                    </div>
+
+                    <div class="space-y-3">
+                        @foreach($items as $item)
+                            <div class="border border-[var(--color-lab-border)] bg-[var(--color-lab-bg)] p-3">
+                                <div class="flex items-start justify-between gap-3 mb-2">
+                                    <div class="min-w-0">
+                                        <p class="font-mono text-xs font-bold text-black break-words">{{ $item['produto_nome'] }}</p>
+                                        <p class="mt-0.5 font-mono text-[10px] text-[var(--color-lab-muted)]">
+                                            Qtd {{ $item['quantidade'] }}{{ $item['variant_label'] ? ' · ' . $item['variant_label'] : '' }}
+                                        </p>
+                                    </div>
+                                    <span class="shrink-0 font-mono text-[9px] uppercase tracking-widest border border-[var(--color-lab-border)] px-2 py-1 text-[var(--color-lab-muted)]">
+                                        {{ strtoupper(str_replace('_', ' ', $item['cost_source'])) }}
+                                    </span>
+                                </div>
+                                <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-1">Confirmação do item</label>
+                                <select name="itens[{{ $item['id'] }}][status_preparacao]"
+                                        class="w-full mb-3 px-3 py-2 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black bg-white">
+                                    @foreach($preparationStatusLabels as $status => $label)
+                                        <option value="{{ $status }}" @selected($item['status_preparacao'] === $status)>{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                                <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-1">Custo real unitário</label>
+                                <input name="itens[{{ $item['id'] }}][custo_unitario_declarado]"
+                                       value="{{ $item['custo_unitario'] !== null ? number_format($item['custo_unitario'], 2, ',', '.') : '' }}"
+                                       placeholder="ex: 599,90"
+                                       class="w-full px-3 py-2 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black bg-white">
+                                <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">Obrigatório para itens comprados/entregues. Item cancelado entra como estorno da separação.</p>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    <button type="submit"
+                            class="w-full bg-black text-white px-4 py-2.5 text-xs font-bold tracking-widest uppercase hover:bg-gray-800 transition-colors">
+                        Salvar preparação
+                    </button>
+                </form>
+            </div>
 
             <div class="border border-[var(--color-lab-border)] bg-white p-5">
                 <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-3">Rastreamento (Correios)</p>

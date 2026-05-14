@@ -267,7 +267,7 @@
                                                 <span class="font-mono text-sm font-black uppercase tracking-wide">Frete Grátis</span>
                                                 <span class="bg-white text-black text-[9px] font-mono font-black uppercase tracking-widest px-1.5 py-0.5 leading-none">Promoção</span>
                                             </div>
-                                            <div class="text-xs text-white/70 mt-0.5 leading-tight">5&ndash;7 dias úteis &middot; tempo limitado</div>
+                                            <div class="text-xs text-white/70 mt-0.5 leading-tight">7&ndash;12 dias úteis &middot; tempo limitado</div>
                                         </div>
                                         <div class="flex-shrink-0 text-right">
                                             <div class="font-mono text-base font-black" id="gratis-valor">R$ 0,00</div>
@@ -278,7 +278,7 @@
                                         <input type="radio" name="frete" value="pac" class="mr-3 text-black focus:ring-black">
                                         <div class="flex-1">
                                             <div class="font-mono text-sm font-bold">PAC</div>
-                                            <div class="text-sm text-gray-600">Entrega em até 7 dias úteis</div>
+                                            <div class="text-sm text-gray-600">Entrega em 4&ndash;7 dias úteis</div>
                                         </div>
                                         <div class="text-right">
                                             <div class="font-mono font-bold" id="pac-valor">-</div>
@@ -288,7 +288,7 @@
                                         <input type="radio" name="frete" value="sedex" class="mr-3 text-black focus:ring-black">
                                         <div class="flex-1">
                                             <div class="font-mono text-sm font-bold">SEDEX</div>
-                                            <div class="text-sm text-gray-600">Entrega em até 3 dias úteis</div>
+                                            <div class="text-sm text-gray-600">Entrega em 4&ndash;7 dias úteis</div>
                                         </div>
                                         <div class="text-right">
                                             <div class="font-mono font-bold" id="sedex-valor">-</div>

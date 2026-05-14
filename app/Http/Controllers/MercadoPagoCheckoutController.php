@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Endereco;
 use App\Models\Pagamento;
 use App\Enums\PedidoStatus;
+use App\Models\Cupom;
+use App\Models\CupomUso;
 use App\Models\Pedido;
 use App\Services\CheckoutOrderService;
 use App\Services\MercadoPagoService;
@@ -223,6 +225,15 @@ class MercadoPagoCheckoutController extends Controller
             ], 422);
         }
 
+        $couponValidationError = $this->validateAppliedCoupon($pedido);
+
+        if ($couponValidationError !== null) {
+            return response()->json([
+                'success' => false,
+                'message' => $couponValidationError,
+            ], 422);
+        }
+
         if (!$pedido->customer_email) {
             $pedido->forceFill([
                 'customer_email' => data_get($validated, 'payer.email'),
@@ -419,21 +430,71 @@ class MercadoPagoCheckoutController extends Controller
         $pedido->update(['status' => $newStatus]);
 
         if ($newStatus === PedidoStatus::PAGO) {
-            if ($pedido->cupom_codigo) {
-                \App\Models\Cupom::whereRaw('UPPER(codigo) = ?', [strtoupper($pedido->cupom_codigo)])
-                    ->increment('usos_realizados');
-
-                $cupomObj = \App\Models\Cupom::whereRaw('UPPER(codigo) = ?', [strtoupper($pedido->cupom_codigo)])->first();
-                if ($cupomObj) {
-                    \App\Models\CupomUso::firstOrCreate(
-                        ['cupom_id' => $cupomObj->id, 'pedido_id' => $pedido->id],
-                        ['user_id'  => $pedido->user_id]
-                    );
-                }
-            }
+            $this->recordCouponUse($pedido);
         }
 
         return $pagamento;
+    }
+
+    private function validateAppliedCoupon(Pedido $pedido): ?string
+    {
+        $couponCode = trim((string) ($pedido->cupom_codigo ?? ''));
+
+        if ($couponCode === '') {
+            return null;
+        }
+
+        $coupon = Cupom::whereRaw('UPPER(codigo) = ?', [Str::upper($couponCode)])->first();
+
+        if (! $coupon) {
+            return 'Cupom inválido.';
+        }
+
+        if (! $coupon->ativo) {
+            return 'Este cupom está inativo.';
+        }
+
+        if ($coupon->valido_ate && $coupon->valido_ate->isPast()) {
+            return 'Este cupom está expirado.';
+        }
+
+        $alreadyRecordedForOrder = CupomUso::where('cupom_id', $coupon->id)
+            ->where('pedido_id', $pedido->id)
+            ->exists();
+
+        if (
+            ! $alreadyRecordedForOrder
+            && $coupon->limite_usos !== null
+            && $coupon->usos_realizados >= $coupon->limite_usos
+        ) {
+            return 'Este cupom atingiu o limite de usos.';
+        }
+
+        return null;
+    }
+
+    private function recordCouponUse(Pedido $pedido): void
+    {
+        $couponCode = trim((string) ($pedido->cupom_codigo ?? ''));
+
+        if ($couponCode === '') {
+            return;
+        }
+
+        $coupon = Cupom::whereRaw('UPPER(codigo) = ?', [Str::upper($couponCode)])->first();
+
+        if (! $coupon) {
+            return;
+        }
+
+        $usage = CupomUso::firstOrCreate(
+            ['cupom_id' => $coupon->id, 'pedido_id' => $pedido->id],
+            ['user_id'  => $pedido->user_id]
+        );
+
+        if ($usage->wasRecentlyCreated) {
+            $coupon->increment('usos_realizados');
+        }
     }
 
     protected function cancelPendingPayments(Pedido $pedido): void
@@ -475,7 +536,7 @@ class MercadoPagoCheckoutController extends Controller
                 'tipo' => 'gratis',
                 'label' => 'FRETE GRÁTIS',
                 'valor' => 0.00,
-                'prazo' => '5-7 dias úteis',
+                'prazo' => '7-12 dias úteis',
             ];
         }
 

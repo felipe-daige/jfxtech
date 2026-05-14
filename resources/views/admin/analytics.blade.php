@@ -3,6 +3,13 @@
 @section('title', 'Analytics')
 
 @section('content')
+@php
+    $analyticsUser = Auth::user();
+    $analyticsIsSuperAdmin = $analyticsUser?->isSuperAdmin() ?? false;
+    $analyticsCanManageCatalog = $analyticsUser?->hasAdminPermission(\App\Models\User::ADMIN_PERMISSION_CATALOG) ?? false;
+    $costComparison = $cost_comparison ?? ['summary' => [], 'rows' => collect(), 'top_overruns' => collect(), 'top_savings' => collect(), 'recent' => collect()];
+    $costComparisonSummary = $costComparison['summary'] ?? [];
+@endphp
 <div class="space-y-4 lg:space-y-6">
 
     <div class="border border-[var(--color-lab-border)] bg-white">
@@ -20,8 +27,10 @@
                    class="px-4 py-2 bg-black text-white font-mono text-[10px] uppercase tracking-widest hover:bg-gray-800 transition-colors">PDF</a>
                 <a href="{{ route('admin.dashboard.exportar.csv') }}"
                    class="px-4 py-2 border border-[var(--color-lab-border)] font-mono text-[10px] uppercase tracking-widest text-black hover:border-black transition-colors">CSV</a>
-                <a href="{{ route('admin.dashboard') }}"
-                   class="px-4 py-2 border border-[var(--color-lab-border)] font-mono text-[10px] uppercase tracking-widest text-black hover:border-black transition-colors">Dashboard</a>
+                @if($analyticsIsSuperAdmin)
+                    <a href="{{ route('admin.dashboard') }}"
+                       class="px-4 py-2 border border-[var(--color-lab-border)] font-mono text-[10px] uppercase tracking-widest text-black hover:border-black transition-colors">Dashboard</a>
+                @endif
             </div>
         </div>
         <div class="px-5 py-3 relative">
@@ -36,6 +45,84 @@
         </div>
     </div>
 
+    <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)] gap-4">
+        <div class="border border-[var(--color-lab-border)] bg-white p-5">
+            <div class="flex items-start justify-between gap-3 mb-4">
+                <div>
+                    <p class="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--color-lab-muted)]">Custos Operacionais</p>
+                    <h2 class="mt-1 text-lg font-bold text-black tracking-tight">Criar custo</h2>
+                </div>
+                <div class="text-right">
+                    <p class="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--color-lab-muted)]">Total lançado</p>
+                    <p class="font-mono text-sm font-bold text-black">R$ {{ number_format($custos_operacionais_total, 2, ',', '.') }}</p>
+                </div>
+            </div>
+
+            @if($analyticsIsSuperAdmin)
+                <form method="POST" action="{{ route('admin.analytics.custos.store') }}" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    @csrf
+                    <div>
+                        <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-1">Tipo</label>
+                        <select name="tipo" class="w-full border border-[var(--color-lab-border)] px-3 py-2.5 text-sm font-mono bg-white focus:outline-none focus:border-black" required>
+                            @foreach($custo_operacional_tipos as $key => $label)
+                                <option value="{{ $key }}" @selected(old('tipo', 'transporte') === $key)>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-1">Valor</label>
+                        <input name="valor" value="{{ old('valor') }}" placeholder="ex: 89,90" class="w-full border border-[var(--color-lab-border)] px-3 py-2.5 text-sm font-mono bg-white focus:outline-none focus:border-black" required>
+                    </div>
+                    <div>
+                        <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-1">Nome</label>
+                        <input name="nome" value="{{ old('nome') }}" placeholder="Transporte fornecedor" maxlength="120" class="w-full border border-[var(--color-lab-border)] px-3 py-2.5 text-sm font-mono bg-white focus:outline-none focus:border-black" required>
+                    </div>
+                    <div>
+                        <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-1">Data</label>
+                        <input type="date" name="data_referencia" value="{{ old('data_referencia', now()->toDateString()) }}" class="w-full border border-[var(--color-lab-border)] px-3 py-2.5 text-sm font-mono bg-white focus:outline-none focus:border-black">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-1">Observação</label>
+                        <input name="observacoes" value="{{ old('observacoes') }}" maxlength="1000" placeholder="Opcional" class="w-full border border-[var(--color-lab-border)] px-3 py-2.5 text-sm font-mono bg-white focus:outline-none focus:border-black">
+                    </div>
+                    <div class="md:col-span-2 flex justify-end">
+                        <button class="bg-black text-white px-5 py-2.5 text-xs font-bold tracking-widest uppercase hover:bg-gray-800 transition-colors">Registrar custo</button>
+                    </div>
+                </form>
+            @else
+                <div class="border border-[var(--color-lab-border)] bg-[var(--color-lab-bg)] p-4">
+                    <p class="font-mono text-xs text-black">Você pode consultar custos operacionais e impacto na margem. Criar ou remover custos continua restrito ao administrador total.</p>
+                </div>
+            @endif
+        </div>
+
+        <div class="border border-[var(--color-lab-border)] bg-white p-5">
+            <p class="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--color-lab-muted)] mb-4">Últimos custos</p>
+            <div class="space-y-3">
+                @forelse($custos_operacionais as $custo)
+                    <div class="flex items-start justify-between gap-3 border-b border-[var(--color-lab-border)] pb-3 last:border-b-0 last:pb-0">
+                        <div class="min-w-0">
+                            <p class="font-mono text-xs font-bold text-black break-words">{{ $custo->nome }}</p>
+                            <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">{{ $custo_operacional_tipos[$custo->tipo] ?? ucfirst($custo->tipo) }} · {{ $custo->data_referencia->format('d/m/Y') }}</p>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <p class="font-mono text-xs font-bold text-black">R$ {{ number_format($custo->valor, 2, ',', '.') }}</p>
+                            @if($analyticsIsSuperAdmin)
+                                <form method="POST" action="{{ route('admin.analytics.custos.destroy', $custo) }}" onsubmit="return confirm('Remover este custo?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="mt-1 font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] hover:text-red-600">Remover</button>
+                                </form>
+                            @endif
+                        </div>
+                    </div>
+                @empty
+                    <p class="font-mono text-xs text-[var(--color-lab-muted)]">Nenhum custo operacional registrado.</p>
+                @endforelse
+            </div>
+        </div>
+    </div>
+
     {{-- KPI Strip + Tabs + Content --}}
     <div class="border border-[var(--color-lab-border)] bg-white">
 
@@ -43,9 +130,16 @@
         <div class="flex flex-wrap items-center gap-x-5 gap-y-2 px-5 py-3 border-b border-[var(--color-lab-border)]">
             <span class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Receita <strong class="text-black text-sm font-bold ml-1 normal-case tracking-normal">R$&nbsp;{{ number_format($receita_total, 2, ',', '.') }}</strong></span>
             <span class="font-mono text-[10px] text-[var(--color-lab-muted)] hidden sm:inline select-none">│</span>
-            <span class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Lucro <strong class="text-sm font-bold ml-1 normal-case tracking-normal {{ $lucro_bruto_total >= 0 ? 'text-black' : 'text-red-600' }}">R$&nbsp;{{ number_format($lucro_bruto_total, 2, ',', '.') }}</strong></span>
+            <span class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Estornos <strong class="text-sm font-bold ml-1 normal-case tracking-normal {{ ($estornos_total ?? 0) > 0 ? 'text-red-600' : 'text-black' }}">R$&nbsp;{{ number_format($estornos_total ?? 0, 2, ',', '.') }}</strong></span>
             <span class="font-mono text-[10px] text-[var(--color-lab-muted)] hidden sm:inline select-none">│</span>
-            <span class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Margem <strong class="text-sm font-bold ml-1 normal-case tracking-normal @if($margem_bruta_percentual >= 20) text-black @elseif($margem_bruta_percentual >= 0) text-yellow-600 @else text-red-600 @endif">{{ number_format($margem_bruta_percentual, 1, ',', '.') }}%</strong></span>
+            <span class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Lucro líquido <strong class="text-sm font-bold ml-1 normal-case tracking-normal {{ $lucro_liquido_total >= 0 ? 'text-black' : 'text-red-600' }}">R$&nbsp;{{ number_format($lucro_liquido_total, 2, ',', '.') }}</strong></span>
+            <span class="font-mono text-[10px] text-[var(--color-lab-muted)] hidden sm:inline select-none">│</span>
+            @php $costDeltaStrip = $costComparisonSummary['delta_total'] ?? 0; @endphp
+            <span class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Custo real x sistema <strong class="text-sm font-bold ml-1 normal-case tracking-normal {{ $costDeltaStrip > 0 ? 'text-red-600' : ($costDeltaStrip < 0 ? 'text-emerald-700' : 'text-black') }}">{{ $costDeltaStrip > 0 ? '+ ' : ($costDeltaStrip < 0 ? '- ' : '') }}R$&nbsp;{{ number_format(abs($costDeltaStrip), 2, ',', '.') }}</strong></span>
+            <span class="font-mono text-[10px] text-[var(--color-lab-muted)] hidden sm:inline select-none">│</span>
+            <span class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Custos op. <strong class="text-black text-sm font-bold ml-1 normal-case tracking-normal">R$&nbsp;{{ number_format($custos_operacionais_total, 2, ',', '.') }}</strong></span>
+            <span class="font-mono text-[10px] text-[var(--color-lab-muted)] hidden sm:inline select-none">│</span>
+            <span class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Margem líquida <strong class="text-sm font-bold ml-1 normal-case tracking-normal @if($margem_liquida_percentual >= 20) text-black @elseif($margem_liquida_percentual >= 0) text-yellow-600 @else text-red-600 @endif">{{ number_format($margem_liquida_percentual, 1, ',', '.') }}%</strong></span>
             <span class="font-mono text-[10px] text-[var(--color-lab-muted)] hidden sm:inline select-none">│</span>
             <span class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Sem custo <strong class="text-black text-sm font-bold ml-1 normal-case tracking-normal">{{ $itens_sem_custo }}</strong></span>
         </div>
@@ -54,6 +148,7 @@
         <div class="flex border-b border-[var(--color-lab-border)]">
             <button data-tab="alertas" class="tab-btn px-5 py-3 font-mono text-[10px] uppercase tracking-widest border-b-2 -mb-px transition-colors">Alertas</button>
             <button data-tab="rankings" class="tab-btn px-5 py-3 font-mono text-[10px] uppercase tracking-widest border-b-2 -mb-px transition-colors">Rankings</button>
+            <button data-tab="custo-real" class="tab-btn px-5 py-3 font-mono text-[10px] uppercase tracking-widest border-b-2 -mb-px transition-colors">Custo Real</button>
             <button data-tab="tabela" class="tab-btn px-5 py-3 font-mono text-[10px] uppercase tracking-widest border-b-2 -mb-px transition-colors">Tabela</button>
             <button data-tab="visao-geral" class="tab-btn px-5 py-3 font-mono text-[10px] uppercase tracking-widest border-b-2 -mb-px transition-colors">Visão Geral</button>
         </div>
@@ -104,16 +199,21 @@
                                 <span class="font-mono text-xs text-black">{{ $item->nome }}</span>
                                 <span class="font-mono text-[10px] text-[var(--color-lab-muted)] ml-3">{{ $infoText }}</span>
                             </div>
-                            @if($group['fn'] === 'editar')
-                            <button onclick="editarProduto({{ $item->id }})"
-                                    class="shrink-0 font-mono text-[10px] uppercase tracking-widest px-3 py-1.5 border border-[var(--color-lab-border)] text-black hover:border-black transition-colors">
-                                {{ $group['button'] }}
-                            </button>
+                            @if($analyticsCanManageCatalog && $group['fn'] === 'editar')
+                                <button onclick="editarProduto({{ $item->id }})"
+                                        class="shrink-0 font-mono text-[10px] uppercase tracking-widest px-3 py-1.5 border border-[var(--color-lab-border)] text-black hover:border-black transition-colors">
+                                    {{ $group['button'] }}
+                                </button>
+                            @elseif($analyticsCanManageCatalog)
+                                <button onclick="abrirQuickFix({{ $item->id }}, '{{ addslashes($item->nome) }}', '{{ $item->custo_compra ?? '' }}', {{ $item->estoque }})"
+                                        class="shrink-0 font-mono text-[10px] uppercase tracking-widest px-3 py-1.5 border border-[var(--color-lab-border)] text-black hover:border-black transition-colors">
+                                    {{ $group['button'] }}
+                                </button>
                             @else
-                            <button onclick="abrirQuickFix({{ $item->id }}, '{{ addslashes($item->nome) }}', '{{ $item->custo_compra ?? '' }}', {{ $item->estoque }})"
-                                    class="shrink-0 font-mono text-[10px] uppercase tracking-widest px-3 py-1.5 border border-[var(--color-lab-border)] text-black hover:border-black transition-colors">
-                                {{ $group['button'] }}
-                            </button>
+                                <a href="{{ route('admin.analytics.products.show', $item) }}"
+                                   class="shrink-0 font-mono text-[10px] uppercase tracking-widest px-3 py-1.5 border border-[var(--color-lab-border)] text-black hover:border-black transition-colors">
+                                    Ver analytics
+                                </a>
                             @endif
                         </div>
                         @endforeach
@@ -135,11 +235,14 @@
                 $maxLucro    = max((float) ($topLucroInsights->max('lucro_bruto_unitario') ?? 0), 1);
                 $maxExclusivo = max((float) ($topExclusiveInsights->max('lucro_bruto_unitario') ?? 0), 1);
             @endphp
+            <div class="mb-6">
+                <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Produtos com Mais Margem e Exclusividade</p>
+            </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
                 @foreach([
-                    ['title' => 'Top lucro unitário',   'items' => $topLucroInsights,    'max' => $maxLucro,    'metric' => 'lucro'],
-                    ['title' => 'Top margem %',          'items' => $topMargemInsights,   'max' => 100,          'metric' => 'margem'],
-                    ['title' => 'Piores margens',        'items' => $topWorstInsights,    'max' => 100,          'metric' => 'margem_ruim'],
+                    ['title' => 'Top 10 por lucro',      'items' => $topLucroInsights,    'max' => $maxLucro,    'metric' => 'lucro'],
+                    ['title' => 'Top 10 por margem',     'items' => $topMargemInsights,   'max' => 100,          'metric' => 'margem'],
+                    ['title' => 'Top 10 menores margens', 'items' => $topWorstInsights,   'max' => 100,          'metric' => 'margem_ruim'],
                     ['title' => 'Exclusivos / premium',  'items' => $topExclusiveInsights,'max' => $maxExclusivo,'metric' => 'exclusive'],
                 ] as $card)
                 <div>
@@ -169,6 +272,14 @@
                                 <div class="mt-1.5 h-0.5 bg-gray-100">
                                     <div class="h-0.5 {{ $card['metric'] === 'margem_ruim' ? 'bg-red-500' : 'bg-black' }}" style="width: {{ max(2, min(100, $barWidth)) }}%"></div>
                                 </div>
+                                <div class="mt-1.5 flex flex-wrap gap-1.5">
+                                    @if(!empty($item['exclusive_reason']))
+                                        <span class="font-mono text-[9px] uppercase tracking-widest text-[var(--color-lab-muted)]">{{ $item['exclusive_reason'] }}</span>
+                                    @endif
+                                    @if(($item['estoque'] ?? 0) <= 5)
+                                        <span class="font-mono text-[9px] uppercase tracking-widest text-yellow-700">Estoque baixo</span>
+                                    @endif
+                                </div>
                             </div>
                         </li>
                         @empty
@@ -177,6 +288,108 @@
                     </ol>
                 </div>
                 @endforeach
+            </div>
+        </div>
+
+        {{-- Tab: Custo Real --}}
+        <div data-tab-content="custo-real" class="p-4 sm:p-6 hidden">
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 mb-6">
+                <div class="border border-[var(--color-lab-border)] bg-[var(--color-lab-bg)] px-4 py-4">
+                    <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Custo real confirmado</p>
+                    <p class="mt-2 font-mono text-xl font-bold text-black">R$ {{ number_format($costComparisonSummary['real_total'] ?? 0, 2, ',', '.') }}</p>
+                    <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">{{ $costComparisonSummary['units_count'] ?? 0 }} unidade(s)</p>
+                </div>
+                <div class="border border-[var(--color-lab-border)] bg-[var(--color-lab-bg)] px-4 py-4">
+                    <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Custo no sistema</p>
+                    <p class="mt-2 font-mono text-xl font-bold text-black">R$ {{ number_format($costComparisonSummary['catalog_total'] ?? 0, 2, ',', '.') }}</p>
+                    <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">{{ $costComparisonSummary['missing_catalog_count'] ?? 0 }} sem custo cadastrado</p>
+                </div>
+                <div class="border border-[var(--color-lab-border)] bg-[var(--color-lab-bg)] px-4 py-4">
+                    @php $deltaCustoReal = $costComparisonSummary['delta_total'] ?? 0; @endphp
+                    <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Diferença total</p>
+                    <p class="mt-2 font-mono text-xl font-bold {{ $deltaCustoReal > 0 ? 'text-red-600' : ($deltaCustoReal < 0 ? 'text-emerald-700' : 'text-black') }}">
+                        {{ $deltaCustoReal > 0 ? '+ ' : ($deltaCustoReal < 0 ? '- ' : '') }}R$ {{ number_format(abs($deltaCustoReal), 2, ',', '.') }}
+                    </p>
+                    <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">{{ ($costComparisonSummary['avg_delta_percent'] ?? null) !== null ? number_format($costComparisonSummary['avg_delta_percent'], 1, ',', '.') . '% médio' : 'sem base percentual' }}</p>
+                </div>
+                <div class="border border-[var(--color-lab-border)] bg-[var(--color-lab-bg)] px-4 py-4">
+                    <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Estornos</p>
+                    <p class="mt-2 font-mono text-xl font-bold {{ ($estornos_total ?? 0) > 0 ? 'text-red-600' : 'text-black' }}">R$ {{ number_format($estornos_total ?? 0, 2, ',', '.') }}</p>
+                    <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">itens cancelados na separação</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
+                @foreach([
+                    ['title' => 'Maiores estouros', 'items' => $costComparison['top_overruns'] ?? collect(), 'empty' => 'Nenhum custo real acima do sistema.'],
+                    ['title' => 'Maiores economias', 'items' => $costComparison['top_savings'] ?? collect(), 'empty' => 'Nenhum custo real abaixo do sistema.'],
+                ] as $block)
+                    <div class="border border-[var(--color-lab-border)] bg-white">
+                        <div class="px-4 py-3 border-b border-[var(--color-lab-border)] bg-[var(--color-lab-bg)]">
+                            <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">{{ $block['title'] }}</p>
+                        </div>
+                        <div class="p-4 space-y-3">
+                            @forelse($block['items'] as $row)
+                                <div class="flex items-start justify-between gap-4 border-b border-[var(--color-lab-border)] pb-3 last:border-b-0 last:pb-0">
+                                    <div class="min-w-0">
+                                        <a href="{{ $row['produto_url'] }}" class="font-mono text-xs font-bold text-black hover:underline break-words">{{ $row['produto_nome'] }}</a>
+                                        <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">Pedido #{{ $row['pedido_id'] }} · {{ $row['quantidade'] }} un.</p>
+                                    </div>
+                                    <div class="text-right shrink-0">
+                                        <p class="font-mono text-xs font-bold {{ $row['delta_total'] > 0 ? 'text-red-600' : 'text-emerald-700' }}">
+                                            {{ $row['delta_total'] > 0 ? '+ ' : '- ' }}R$ {{ number_format(abs($row['delta_total']), 2, ',', '.') }}
+                                        </p>
+                                        <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">real R$ {{ number_format($row['real_unit_cost'], 2, ',', '.') }}</p>
+                                    </div>
+                                </div>
+                            @empty
+                                <p class="font-mono text-xs text-[var(--color-lab-muted)]">{{ $block['empty'] }}</p>
+                            @endforelse
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            <div class="overflow-x-auto border border-[var(--color-lab-border)]">
+                <table class="w-full min-w-[980px] text-sm">
+                    <thead>
+                        <tr class="border-b border-[var(--color-lab-border)] bg-[var(--color-lab-bg)]">
+                            <th class="px-4 py-3 text-left font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Confirmação</th>
+                            <th class="px-4 py-3 text-left font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Produto</th>
+                            <th class="px-4 py-3 text-right font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Real un.</th>
+                            <th class="px-4 py-3 text-right font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Sistema un.</th>
+                            <th class="px-4 py-3 text-right font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Diferença</th>
+                            <th class="px-4 py-3 text-right font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Pedido</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($costComparison['recent'] ?? collect() as $row)
+                            <tr class="border-b border-[var(--color-lab-border)] last:border-b-0">
+                                <td class="px-4 py-3 font-mono text-xs text-[var(--color-lab-muted)]">{{ $row['confirmed_at'] ? $row['confirmed_at']->format('d/m/Y H:i') : 'N/A' }}</td>
+                                <td class="px-4 py-3">
+                                    <a href="{{ $row['produto_url'] }}" class="font-mono text-xs font-bold text-black hover:underline break-words">{{ $row['produto_nome'] }}</a>
+                                    <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">{{ $row['variant_label'] ?: $row['status_preparacao_label'] }}</p>
+                                </td>
+                                <td class="px-4 py-3 text-right font-mono text-xs text-black">R$ {{ number_format($row['real_unit_cost'], 2, ',', '.') }}</td>
+                                <td class="px-4 py-3 text-right font-mono text-xs {{ $row['catalog_unit_cost'] === null ? 'text-gray-400' : 'text-black' }}">{{ $row['catalog_unit_cost'] !== null ? 'R$ ' . number_format($row['catalog_unit_cost'], 2, ',', '.') : 'Sem custo' }}</td>
+                                <td class="px-4 py-3 text-right font-mono text-xs font-bold {{ $row['delta_total'] > 0 ? 'text-red-600' : ($row['delta_total'] < 0 ? 'text-emerald-700' : 'text-black') }}">
+                                    @if($row['delta_total'] === null)
+                                        N/A
+                                    @else
+                                        {{ $row['delta_total'] > 0 ? '+ ' : ($row['delta_total'] < 0 ? '- ' : '') }}R$ {{ number_format(abs($row['delta_total']), 2, ',', '.') }}
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3 text-right">
+                                    <a href="{{ $row['pedido_url'] }}" class="font-mono text-xs text-black hover:underline">#{{ $row['pedido_id'] }}</a>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="px-4 py-6 font-mono text-xs text-[var(--color-lab-muted)]">Nenhum custo real confirmado ainda.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -240,11 +453,18 @@
                                 </span>
                             </td>
                             <td class="px-4 py-3 text-center">
-                                <button onclick="abrirQuickFix({{ $p->id }}, '{{ addslashes($p->nome) }}', '{{ $p->custo_compra ?? '' }}', {{ $p->estoque }})"
-                                        class="font-mono text-[10px] px-2 py-1 border border-[var(--color-lab-border)] text-[var(--color-lab-muted)] hover:border-black hover:text-black transition-colors"
-                                        title="Editar custo e estoque">
-                                    &#9998;
-                                </button>
+                                @if($analyticsCanManageCatalog)
+                                    <button onclick="abrirQuickFix({{ $p->id }}, '{{ addslashes($p->nome) }}', '{{ $p->custo_compra ?? '' }}', {{ $p->estoque }})"
+                                            class="font-mono text-[10px] px-2 py-1 border border-[var(--color-lab-border)] text-[var(--color-lab-muted)] hover:border-black hover:text-black transition-colors"
+                                            title="Editar custo e estoque">
+                                        &#9998;
+                                    </button>
+                                @else
+                                    <a href="{{ route('admin.analytics.products.show', $p) }}"
+                                       class="font-mono text-[10px] px-2 py-1 border border-[var(--color-lab-border)] text-[var(--color-lab-muted)] hover:border-black hover:text-black transition-colors">
+                                        Ver
+                                    </a>
+                                @endif
                             </td>
                         </tr>
                         @endforeach
@@ -313,6 +533,7 @@
 
 </div>
 
+@if($analyticsCanManageCatalog)
 @include('admin.includes.modal-produto')
 
 <div id="modal-quickfix" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-50" onclick="fecharQuickFix()">
@@ -345,6 +566,7 @@
         </div>
     </div>
 </div>
+@endif
 
 <script>
 (function () {

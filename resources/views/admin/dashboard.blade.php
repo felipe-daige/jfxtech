@@ -75,12 +75,12 @@
         </div>
         <div class="border border-[var(--color-lab-border)] bg-white p-5 sm:p-6">
             <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-2">Lucro Líquido</p>
-            <p class="text-lg sm:text-2xl font-bold font-mono {{ $lucro_bruto_total >= 0 ? 'text-black' : 'text-red-600' }}">R$&nbsp;{{ number_format($lucro_bruto_total, 2, ',', '.') }}</p>
-            <p class="font-mono text-[10px] text-[var(--color-lab-muted)] mt-1">receita de produtos &minus; custo</p>
+            <p class="text-lg sm:text-2xl font-bold font-mono {{ $lucro_liquido_total >= 0 ? 'text-black' : 'text-red-600' }}">R$&nbsp;{{ number_format($lucro_liquido_total, 2, ',', '.') }}</p>
+            <p class="font-mono text-[10px] text-[var(--color-lab-muted)] mt-1">bruto R$ {{ number_format($lucro_bruto_total, 2, ',', '.') }} &minus; custos op.</p>
         </div>
         <div class="border border-[var(--color-lab-border)] bg-white p-5 sm:p-6">
-            <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-2">Margem Bruta</p>
-            <p class="text-2xl sm:text-3xl font-bold font-mono @if($margem_bruta_percentual >= 20) text-black @elseif($margem_bruta_percentual >= 0) text-yellow-600 @else text-red-600 @endif">{{ number_format($margem_bruta_percentual, 1, ',', '.') }}%</p>
+            <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-2">Margem Líquida</p>
+            <p class="text-2xl sm:text-3xl font-bold font-mono @if($margem_liquida_percentual >= 20) text-black @elseif($margem_liquida_percentual >= 0) text-yellow-600 @else text-red-600 @endif">{{ number_format($margem_liquida_percentual, 1, ',', '.') }}%</p>
             <p class="font-mono text-[10px] text-[var(--color-lab-muted)] mt-1">sobre receita</p>
         </div>
         <div class="border border-[var(--color-lab-border)] bg-white p-5 sm:p-6">
@@ -138,6 +138,10 @@
                         <div class="flex items-center justify-between">
                             <span class="font-mono text-sm text-black">Receita total</span>
                             <span class="font-mono text-sm font-bold text-black">R$ {{ number_format($receita_total, 2, ',', '.') }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="font-mono text-sm text-black">Custos operacionais</span>
+                            <span class="font-mono text-sm font-bold text-black">R$ {{ number_format($custos_operacionais_total, 2, ',', '.') }}</span>
                         </div>
                     </div>
                 </div>
@@ -541,6 +545,10 @@
         try {
             var payload = { status: novoStatus };
 
+            if (novoStatus === 'processando') {
+                payload.use_catalog_costs = true;
+            }
+
             if (novoStatus === 'enviado') {
                 var trackingCode = window.prompt('Informe o código de rastreio para marcar o pedido como enviado:', '');
 
@@ -596,6 +604,8 @@
             btn.textContent = original;
             if (err && err.message === 'codigo_rastreio_obrigatorio') {
                 alert('O código de rastreio é obrigatório para marcar o pedido como enviado.');
+            } else if (novoStatus === 'processando') {
+                alert('Não foi possível separar o pedido. Abra Pedidos e informe o custo real dos itens.');
             } else {
                 alert('Erro ao atualizar status.');
             }

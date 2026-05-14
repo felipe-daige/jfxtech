@@ -5,6 +5,7 @@
 @section('content')
 @php
     $catalogPermission = \App\Models\User::ADMIN_PERMISSION_CATALOG;
+    $analyticsPermission = \App\Models\User::ADMIN_PERMISSION_ANALYTICS;
 @endphp
 
 <div class="space-y-6 lg:space-y-8">
@@ -22,7 +23,7 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
         <div class="border border-[var(--color-lab-border)] bg-white p-5">
             <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-2">Base total</p>
             <p class="font-mono text-2xl font-bold text-black">{{ $summary['total'] }}</p>
@@ -36,6 +37,10 @@
             <p class="font-mono text-2xl font-bold text-black">{{ $summary['catalog_managers'] }}</p>
         </div>
         <div class="border border-[var(--color-lab-border)] bg-white p-5">
+            <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-2">Analytics</p>
+            <p class="font-mono text-2xl font-bold text-black">{{ $summary['analytics_managers'] }}</p>
+        </div>
+        <div class="border border-[var(--color-lab-border)] bg-white p-5">
             <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-2">Portal de cupom</p>
             <p class="font-mono text-2xl font-bold text-black">{{ $summary['portal_enabled'] }}</p>
         </div>
@@ -43,7 +48,7 @@
 
     <form method="GET" action="{{ route('admin.usuarios.index') }}" class="border border-[var(--color-lab-border)] bg-white p-4 sm:p-6">
         <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-4">Filtros</p>
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-[minmax(0,1.4fr)_repeat(4,minmax(0,0.75fr))_auto_auto] gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-[minmax(0,1.4fr)_repeat(5,minmax(0,0.75fr))_auto_auto] gap-4">
             <input
                 type="text"
                 name="q"
@@ -62,6 +67,12 @@
                 <option value="">Catálogo</option>
                 <option value="1" @selected(request('catalog_filter') === '1')>Liberado</option>
                 <option value="0" @selected(request('catalog_filter') === '0')>Bloqueado</option>
+            </select>
+
+            <select name="analytics_filter" class="w-full border border-[var(--color-lab-border)] px-4 py-3 text-sm font-mono focus:outline-none focus:border-black bg-white">
+                <option value="">Analytics</option>
+                <option value="1" @selected(request('analytics_filter') === '1')>Liberado</option>
+                <option value="0" @selected(request('analytics_filter') === '0')>Bloqueado</option>
             </select>
 
             <select name="portal_filter" class="w-full border border-[var(--color-lab-border)] px-4 py-3 text-sm font-mono focus:outline-none focus:border-black bg-white">
@@ -112,6 +123,7 @@
                                 'cpf' => $user->cpf,
                                 'admin' => (bool) $user->admin,
                                 'catalog_manage' => in_array($catalogPermission, $user->adminPermissions(), true),
+                                'analytics_view' => in_array($analyticsPermission, $user->adminPermissions(), true),
                                 'coupon_portal_enabled' => (bool) $user->coupon_portal_enabled,
                                 'must_change_password' => (bool) $user->must_change_password,
                             ];
@@ -134,6 +146,9 @@
                                     </span>
                                     <span class="inline-block px-2 py-0.5 font-mono text-[10px] border {{ $user->hasAdminPermission($catalogPermission) ? 'border-black text-black' : 'border-[var(--color-lab-border)] text-[var(--color-lab-muted)]' }}">
                                         {{ $user->hasAdminPermission($catalogPermission) ? 'Produtos/estoque' : 'Sem catálogo' }}
+                                    </span>
+                                    <span class="inline-block px-2 py-0.5 font-mono text-[10px] border {{ $user->hasAdminPermission($analyticsPermission) ? 'border-black text-black' : 'border-[var(--color-lab-border)] text-[var(--color-lab-muted)]' }}">
+                                        {{ $user->hasAdminPermission($analyticsPermission) ? 'Analytics' : 'Sem analytics' }}
                                     </span>
                                     <span class="inline-block px-2 py-0.5 font-mono text-[10px] border {{ $user->coupon_portal_enabled ? 'border-black text-black' : 'border-[var(--color-lab-border)] text-[var(--color-lab-muted)]' }}">
                                         {{ $user->coupon_portal_enabled ? 'Portal cupom' : 'Sem portal' }}
@@ -188,6 +203,7 @@
                         'cpf' => $user->cpf,
                         'admin' => (bool) $user->admin,
                         'catalog_manage' => in_array($catalogPermission, $user->adminPermissions(), true),
+                        'analytics_view' => in_array($analyticsPermission, $user->adminPermissions(), true),
                         'coupon_portal_enabled' => (bool) $user->coupon_portal_enabled,
                         'must_change_password' => (bool) $user->must_change_password,
                     ];
@@ -233,6 +249,9 @@
                         </span>
                         <span class="inline-block px-2 py-0.5 font-mono text-[10px] border {{ $user->hasAdminPermission($catalogPermission) ? 'border-black text-black' : 'border-[var(--color-lab-border)] text-[var(--color-lab-muted)]' }}">
                             {{ $user->hasAdminPermission($catalogPermission) ? 'Produtos/estoque' : 'Sem catálogo' }}
+                        </span>
+                        <span class="inline-block px-2 py-0.5 font-mono text-[10px] border {{ $user->hasAdminPermission($analyticsPermission) ? 'border-black text-black' : 'border-[var(--color-lab-border)] text-[var(--color-lab-muted)]' }}">
+                            {{ $user->hasAdminPermission($analyticsPermission) ? 'Analytics' : 'Sem analytics' }}
                         </span>
                         <span class="inline-block px-2 py-0.5 font-mono text-[10px] border {{ $user->coupon_portal_enabled ? 'border-black text-black' : 'border-[var(--color-lab-border)] text-[var(--color-lab-muted)]' }}">
                             {{ $user->coupon_portal_enabled ? 'Portal cupom' : 'Sem portal' }}
@@ -305,6 +324,10 @@
                         <span class="font-mono text-xs text-black">Gerenciar produtos, estoque, categorias e fornecedores</span>
                     </label>
                     <label class="flex items-center gap-3">
+                        <input type="checkbox" name="analytics_view" id="user-analytics-view" value="1" class="h-4 w-4 border-[var(--color-lab-border)] text-black focus:ring-black">
+                        <span class="font-mono text-xs text-black">Acessar analytics, métricas de preço, exportações e simulador</span>
+                    </label>
+                    <label class="flex items-center gap-3">
                         <input type="checkbox" name="coupon_portal_enabled" id="user-coupon-portal" value="1" class="h-4 w-4 border-[var(--color-lab-border)] text-black focus:ring-black">
                         <span class="font-mono text-xs text-black">Liberar portal /cupom</span>
                     </label>
@@ -336,6 +359,7 @@
         'cpf' => old('cpf'),
         'admin' => old('admin') ? true : false,
         'catalog_manage' => old('catalog_manage') ? true : false,
+        'analytics_view' => old('analytics_view') ? true : false,
         'coupon_portal_enabled' => old('coupon_portal_enabled') ? true : false,
         'must_change_password' => old('must_change_password') ? true : false,
     ] : null;
@@ -360,6 +384,7 @@
         document.getElementById('user-cpf').value = user.cpf || '';
         document.getElementById('user-admin').checked = !!user.admin;
         document.getElementById('user-catalog-manage').checked = !!user.catalog_manage;
+        document.getElementById('user-analytics-view').checked = !!user.analytics_view;
         document.getElementById('user-coupon-portal').checked = !!user.coupon_portal_enabled;
         document.getElementById('user-force-password').checked = !!user.must_change_password;
     }

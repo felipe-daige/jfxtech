@@ -24,17 +24,17 @@ class AdminUserController extends Controller
 
             $query->where(function ($builder) use ($term, $termLower, $digits) {
                 $builder
-                    ->whereRaw('LOWER(name) LIKE ?', ['%' . $termLower . '%'])
-                    ->orWhereRaw('LOWER(email) LIKE ?', ['%' . $termLower . '%']);
+                    ->whereRaw('LOWER(name) LIKE ?', ['%'.$termLower.'%'])
+                    ->orWhereRaw('LOWER(email) LIKE ?', ['%'.$termLower.'%']);
 
                 if ($term !== '') {
-                    $builder->orWhere('phone', 'like', '%' . $term . '%');
+                    $builder->orWhere('phone', 'like', '%'.$term.'%');
                 }
 
                 if ($digits !== '') {
                     $builder
-                        ->orWhereRaw("regexp_replace(coalesce(phone, ''), '\\D', '', 'g') LIKE ?", ['%' . $digits . '%'])
-                        ->orWhereRaw("regexp_replace(coalesce(cpf, ''), '\\D', '', 'g') LIKE ?", ['%' . $digits . '%']);
+                        ->orWhereRaw("regexp_replace(coalesce(phone, ''), '\\D', '', 'g') LIKE ?", ['%'.$digits.'%'])
+                        ->orWhereRaw("regexp_replace(coalesce(cpf, ''), '\\D', '', 'g') LIKE ?", ['%'.$digits.'%']);
                 }
             });
         }
@@ -57,6 +57,24 @@ class AdminUserController extends Controller
                         $builder
                             ->whereNull('admin_permissions')
                             ->orWhereJsonDoesntContain('admin_permissions', User::ADMIN_PERMISSION_CATALOG);
+                    });
+            }
+        }
+
+        if ($request->filled('analytics_filter')) {
+            if ($request->get('analytics_filter') === '1') {
+                $query->where(function ($builder) {
+                    $builder
+                        ->where('admin', true)
+                        ->orWhereJsonContains('admin_permissions', User::ADMIN_PERMISSION_ANALYTICS);
+                });
+            } elseif ($request->get('analytics_filter') === '0') {
+                $query
+                    ->where('admin', false)
+                    ->where(function ($builder) {
+                        $builder
+                            ->whereNull('admin_permissions')
+                            ->orWhereJsonDoesntContain('admin_permissions', User::ADMIN_PERMISSION_ANALYTICS);
                     });
             }
         }
@@ -85,6 +103,11 @@ class AdminUserController extends Controller
                 $builder
                     ->where('admin', true)
                     ->orWhereJsonContains('admin_permissions', User::ADMIN_PERMISSION_CATALOG);
+            })->count(),
+            'analytics_managers' => User::where(function ($builder) {
+                $builder
+                    ->where('admin', true)
+                    ->orWhereJsonContains('admin_permissions', User::ADMIN_PERMISSION_ANALYTICS);
             })->count(),
             'portal_enabled' => User::where('coupon_portal_enabled', true)->count(),
         ];
@@ -129,6 +152,7 @@ class AdminUserController extends Controller
             ],
             'admin' => ['nullable', 'boolean'],
             'catalog_manage' => ['nullable', 'boolean'],
+            'analytics_view' => ['nullable', 'boolean'],
             'coupon_portal_enabled' => ['nullable', 'boolean'],
             'must_change_password' => ['nullable', 'boolean'],
         ], [
@@ -148,16 +172,17 @@ class AdminUserController extends Controller
         }
 
         $validated = $validator->validated();
-        $adminPermissions = $request->boolean('catalog_manage')
-            ? [User::ADMIN_PERMISSION_CATALOG]
-            : null;
+        $adminPermissions = array_values(array_filter([
+            $request->boolean('catalog_manage') ? User::ADMIN_PERMISSION_CATALOG : null,
+            $request->boolean('analytics_view') ? User::ADMIN_PERMISSION_ANALYTICS : null,
+        ]));
 
         $user->update([
             'name' => trim($validated['name']),
             'phone' => $this->emptyToNull($validated['phone'] ?? null),
             'cpf' => $this->emptyToNull($validated['cpf'] ?? null),
             'admin' => $request->boolean('admin'),
-            'admin_permissions' => $adminPermissions,
+            'admin_permissions' => $adminPermissions === [] ? null : $adminPermissions,
             'coupon_portal_enabled' => $request->boolean('coupon_portal_enabled'),
             'must_change_password' => $request->boolean('must_change_password'),
         ]);

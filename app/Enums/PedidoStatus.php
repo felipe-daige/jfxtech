@@ -51,6 +51,13 @@ final class PedidoStatus
         self::CANCELADO,
     ];
 
+    private const WEBHOOK_NOTIFICATION_STATUS = [
+        self::PAGO,
+        self::PROCESSANDO,
+        self::ENVIADO,
+        self::ENTREGUE,
+    ];
+
     private const BADGE_CLASSES = [
         self::CARRINHO => 'border-gray-400 text-gray-600',
         self::PENDENTE => 'border-yellow-500 text-yellow-700',
@@ -84,6 +91,11 @@ final class PedidoStatus
     public static function notificationValues(): array
     {
         return self::NOTIFICATION_STATUS;
+    }
+
+    public static function webhookNotificationValues(): array
+    {
+        return self::WEBHOOK_NOTIFICATION_STATUS;
     }
 
     public static function labels(): array

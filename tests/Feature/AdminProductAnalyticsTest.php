@@ -106,6 +106,30 @@ class AdminProductAnalyticsTest extends TestCase
             });
     }
 
+    public function test_product_analytics_detail_filters_sales_by_coupon(): void
+    {
+        $admin = User::factory()->create(['admin' => true]);
+        $produto = Produto::factory()->create([
+            'nome' => 'Mouse com Cupom',
+            'custo_compra' => 50.00,
+        ]);
+
+        $this->createOrderWithItem($admin, $produto, 1, 100.00, 'entregue', now()->subDays(5), 'ALPHA10');
+        $this->createOrderWithItem($admin, $produto, 2, 120.00, 'entregue', now()->subDays(5), 'BETA10');
+
+        $this->actingAs($admin)
+            ->get(route('admin.analytics.products.show', ['produto' => $produto->id, 'period' => 'total', 'cupom' => 'alpha10']))
+            ->assertOk()
+            ->assertViewHas('selected_coupon', 'ALPHA10')
+            ->assertViewHas('product_metrics', function (array $metrics) {
+                return $metrics['receita_total'] === 100.0
+                    && $metrics['unidades_vendidas'] === 1
+                    && $metrics['pedidos_count'] === 1
+                    && $metrics['lucro_bruto_total'] === 50.0
+                    && $metrics['ticket_medio_produto'] === 100.0;
+            });
+    }
+
     public function test_product_analytics_detail_handles_product_without_sales(): void
     {
         $admin = User::factory()->create(['admin' => true]);
@@ -127,12 +151,88 @@ class AdminProductAnalyticsTest extends TestCase
             });
     }
 
-    private function createOrderWithItem(User $user, Produto $produto, int $quantidade, float $preco, string $status, \DateTimeInterface $createdAt): void
+    public function test_product_analytics_prioritizes_declared_item_cost(): void
+    {
+        $admin = User::factory()->create(['admin' => true]);
+        $produto = Produto::factory()->create([
+            'nome' => 'Produto com Custo Real',
+            'preco' => 120.00,
+            'custo_compra' => 60.00,
+        ]);
+
+        $pedido = Pedido::create([
+            'user_id' => $admin->id,
+            'status' => 'processando',
+            'valor_total' => 200.00,
+        ]);
+
+        ItemPedido::create([
+            'pedido_id' => $pedido->id,
+            'produto_id' => $produto->id,
+            'quantidade' => 2,
+            'preco' => 100.00,
+            'custo_unitario_declarado' => 80.00,
+            'custo_declarado_em' => now(),
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.analytics.products.show', ['produto' => $produto->id, 'period' => 'total']))
+            ->assertOk()
+            ->assertViewHas('product_metrics', function (array $metrics) {
+                return $metrics['receita_total'] === 200.0
+                    && $metrics['custo_total'] === 160.0
+                    && $metrics['lucro_bruto_total'] === 40.0
+                    && $metrics['margem_bruta_percentual'] === 20.0;
+            })
+            ->assertViewHas('cost_comparison', function (array $comparison) {
+                return $comparison['summary']['real_total'] === 160.0
+                    && $comparison['summary']['catalog_total'] === 120.0
+                    && $comparison['summary']['delta_total'] === 40.0
+                    && $comparison['summary']['overrun_count'] === 1;
+            });
+    }
+
+    public function test_product_analytics_ignores_canceled_order_items(): void
+    {
+        $admin = User::factory()->create(['admin' => true]);
+        $produto = Produto::factory()->create([
+            'nome' => 'Produto Cancelado',
+            'preco' => 120.00,
+            'custo_compra' => 60.00,
+        ]);
+
+        $pedido = Pedido::create([
+            'user_id' => $admin->id,
+            'status' => 'processando',
+            'valor_total' => 120.00,
+        ]);
+
+        ItemPedido::create([
+            'pedido_id' => $pedido->id,
+            'produto_id' => $produto->id,
+            'quantidade' => 1,
+            'preco' => 120.00,
+            'status_preparacao' => ItemPedido::STATUS_PREPARACAO_CANCELADO,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.analytics.products.show', ['produto' => $produto->id, 'period' => 'total']))
+            ->assertOk()
+            ->assertViewHas('product_metrics', function (array $metrics) {
+                return $metrics['receita_total'] === 0.0
+                    && $metrics['unidades_vendidas'] === 0
+                    && $metrics['pedidos_count'] === 0
+                    && $metrics['lucro_bruto_total'] === 0.0;
+            });
+    }
+
+    private function createOrderWithItem(User $user, Produto $produto, int $quantidade, float $preco, string $status, \DateTimeInterface $createdAt, ?string $couponCode = null): void
     {
         $pedido = Pedido::create([
             'user_id' => $user->id,
             'status' => $status,
             'valor_total' => $preco * $quantidade,
+            'cupom_codigo' => $couponCode,
         ]);
 
         $pedido->forceFill([

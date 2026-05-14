@@ -33,9 +33,9 @@
             <h4 class="font-mono text-xs font-bold uppercase tracking-widest mb-4">Suporte</h4>
             <ul class="space-y-2 text-sm text-gray-600">
                 <li><a href="{{ route('site.contato') }}" class="hover:text-black transition-colors">Fale Conosco</a></li>
-                <li><a href="#" class="hover:text-black transition-colors">Garantia</a></li>
-                <li><a href="#" class="hover:text-black transition-colors">Trocas e Devoluções</a></li>
-                <li><a href="#" class="hover:text-black transition-colors">Rastreamento</a></li>
+                <li><a href="{{ route('site.garantia') }}" class="hover:text-black transition-colors">Garantia</a></li>
+                <li><a href="{{ route('site.trocas-devolucoes') }}" class="hover:text-black transition-colors">Trocas e Devoluções</a></li>
+                <li><a href="{{ route('site.rastreamento') }}" class="hover:text-black transition-colors">Rastreamento</a></li>
                 <li><a href="mailto:contato@jfxtech.com.br" class="hover:text-black transition-colors">contato@jfxtech.com.br</a></li>
             </ul>
         </div>

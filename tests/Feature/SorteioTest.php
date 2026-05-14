@@ -336,6 +336,9 @@ class SorteioTest extends TestCase
             ->get(route('admin.sorteios.show', $sorteio))
             ->assertOk()
             ->assertSee('Cliente Sorteio')
+            ->assertSee('@cliente')
+            ->assertSee('@amigo1 / @amigo2')
+            ->assertDontSee('{{ $participante->instagram_username }}', false)
             ->assertSee('Publicar resultado final');
     }
 }

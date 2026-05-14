@@ -73,6 +73,7 @@
                         $authUser = Auth::user();
                         $authIsSuperAdmin = $authUser->isSuperAdmin();
                         $authCanManageCatalog = $authUser->hasAdminPermission(\App\Models\User::ADMIN_PERMISSION_CATALOG);
+                        $authCanViewAnalytics = $authUser->hasAdminPermission(\App\Models\User::ADMIN_PERMISSION_ANALYTICS);
                     @endphp
                     {{-- User Dropdown --}}
                     <div class="user-dropdown relative">
@@ -134,6 +135,18 @@
                                             <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
                                             Dashboard
                                         </a>
+                                    @endif
+                                    @if($authCanViewAnalytics)
+                                        <a href="{{ route('admin.analytics') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-black transition-colors">
+                                            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                                            Analytics
+                                        </a>
+                                        <a href="{{ route('admin.simulador') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-black transition-colors">
+                                            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" x2="5" y1="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
+                                            Simulador
+                                        </a>
+                                    @endif
+                                    @if($authIsSuperAdmin)
                                         <a href="{{ route('admin.sorteios.index') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-black transition-colors">
                                             <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="m9 16 2 2 4-4"/></svg>
                                             Sorteios
@@ -310,6 +323,7 @@
 <div id="cart-overlay" class="fixed inset-0 bg-black/50 z-40 opacity-0 invisible transition-all duration-300"></div>
 
 {{-- Scripts --}}
+<script src="{{ asset('js/csrf-recovery.js') }}?v={{ filemtime(public_path('js/csrf-recovery.js')) }}"></script>
 <script src="{{ asset('js/dropdowns.js') }}?v={{ filemtime(public_path('js/dropdowns.js')) }}"></script>
 <script src="{{ asset('js/cart.js') }}?v={{ filemtime(public_path('js/cart.js')) }}"></script>
 <script src="{{ asset('js/topbar.js') }}?v=2"></script>
