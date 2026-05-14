@@ -11,6 +11,7 @@ use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\MercadoPagoCheckoutController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\SorteioController;
+use App\Models\User;
 
 Route::get('/', [SiteController::class, 'index'])->name('site.index');
 Route::get('/produtos', [SiteController::class, 'produtos'])->name('site.produtos');
@@ -87,84 +88,88 @@ Route::post('/pedidos/{pedido}/confirmar-entrega', [App\Http\Controllers\PedidoC
 Route::post('/pedidos/{pedido}/cancelar', [App\Http\Controllers\PedidoController::class, 'cancelar'])->name('site.pedidos.cancelar');
 Route::get('/pedidos/{pedido}/reembolso', [App\Http\Controllers\PedidoController::class, 'reembolso'])->name('site.pedidos.reembolso');
 
-// Rotas administrativas (apenas para admins)
-Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(function () {
-    // Dashboard
-    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
-    Route::get('/analytics', [AdminController::class, 'analytics'])->name('analytics');
-    Route::get('/analytics/produtos/busca', [AdminController::class, 'analyticsProductSearch'])->name('analytics.products.search');
-    Route::get('/analytics/produtos/{produto}', [AdminController::class, 'analyticsProductShow'])->name('analytics.products.show');
-    Route::post('/dashboard/simulador-promocao', [AdminController::class, 'simulatePromotion'])->name('dashboard.simulator');
-    Route::get('/simulador-promocao', [AdminController::class, 'simuladorPromocao'])->name('simulador');
+// Rotas administrativas
+Route::prefix('admin')->middleware('auth')->name('admin.')->group(function () {
+    Route::middleware('admin')->group(function () {
+        // Dashboard
+        Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+        Route::get('/analytics', [AdminController::class, 'analytics'])->name('analytics');
+        Route::get('/analytics/produtos/busca', [AdminController::class, 'analyticsProductSearch'])->name('analytics.products.search');
+        Route::get('/analytics/produtos/{produto}', [AdminController::class, 'analyticsProductShow'])->name('analytics.products.show');
+        Route::get('/dashboard/exportar/csv', [AdminController::class, 'exportarAnalyticsCsv'])->name('dashboard.exportar.csv');
+        Route::get('/dashboard/exportar/pdf', [AdminController::class, 'exportarAnalyticsPdf'])->name('dashboard.exportar.pdf');
+        Route::post('/dashboard/simulador-promocao', [AdminController::class, 'simulatePromotion'])->name('dashboard.simulator');
+        Route::get('/simulador-promocao', [AdminController::class, 'simuladorPromocao'])->name('simulador');
 
-    // Usuarios
-    Route::get('/usuarios', [AdminUserController::class, 'index'])->name('usuarios.index');
-    Route::put('/usuarios/{id}', [AdminUserController::class, 'update'])->name('usuarios.update');
+        // Usuarios
+        Route::get('/usuarios', [AdminUserController::class, 'index'])->name('usuarios.index');
+        Route::put('/usuarios/{id}', [AdminUserController::class, 'update'])->name('usuarios.update');
 
-    // Sorteios
-    Route::get('/sorteios', [AdminSorteioController::class, 'index'])->name('sorteios.index');
-    Route::post('/sorteios', [AdminSorteioController::class, 'store'])->name('sorteios.store');
-    Route::get('/sorteios/{sorteio}', [AdminSorteioController::class, 'show'])->name('sorteios.show');
-    Route::put('/sorteios/{sorteio}', [AdminSorteioController::class, 'update'])->name('sorteios.update');
-    Route::delete('/sorteios/{sorteio}', [AdminSorteioController::class, 'destroy'])->name('sorteios.destroy');
-    Route::post('/sorteios/{sorteio}/sortear', [AdminSorteioController::class, 'sortearCandidato'])->name('sorteios.sortear');
-    Route::post('/sorteios/{sorteio}/resultado', [AdminSorteioController::class, 'publicarResultado'])->name('sorteios.resultado');
-    Route::delete('/sorteios/{sorteio}/resultado', [AdminSorteioController::class, 'limparResultado'])->name('sorteios.resultado.limpar');
-    Route::put('/sorteios/{sorteio}/participantes/{participante}', [AdminSorteioController::class, 'updateParticipante'])->name('sorteios.participantes.update');
-    
-    // Produtos
-    Route::get('/produtos', [AdminController::class, 'produtos'])->name('produtos');
-    Route::get('/produtos/search', [AdminController::class, 'pesquisarProdutos'])->name('produtos.search');
-    Route::post('/produtos/bulk', [AdminController::class, 'bulkActionProdutos'])->name('produtos.bulk');
-    Route::post('/produtos/exportar', [AdminController::class, 'exportarProdutos'])->name('produtos.exportar');
-    Route::get('/fornecedores', [AdminController::class, 'listarFornecedores'])->name('fornecedores.index');
-    Route::get('/dashboard/exportar/csv', [AdminController::class, 'exportarAnalyticsCsv'])->name('dashboard.exportar.csv');
-    Route::get('/dashboard/exportar/pdf', [AdminController::class, 'exportarAnalyticsPdf'])->name('dashboard.exportar.pdf');
-    Route::post('/produtos/imagens/{id}/excluir', [AdminController::class, 'excluirImagem'])->name('produtos.imagens.excluir');
-    Route::get('/produtos/imagens/{id}/download', [AdminController::class, 'downloadImagem'])->name('produtos.imagens.download');
-    Route::post('/produtos/imagens/{id}/substituir', [AdminController::class, 'substituirImagem'])->name('produtos.imagens.substituir');
-    Route::post('/produtos/{id}/imagens/reordenar', [AdminController::class, 'reordenarImagens'])->name('produtos.imagens.reordenar');
-    Route::get('/produtos/{id}/ver', [AdminController::class, 'verProduto'])->name('produtos.ver');
-    Route::get('/produtos/{id}/opcoes', [AdminController::class, 'buscarOpcoesProduto'])->name('produtos.opcoes');
-    Route::get('/produtos/{id}/fornecedores', [AdminController::class, 'buscarProdutoFornecedores'])->name('produtos.fornecedores');
-    Route::put('/produtos/{id}/fornecedores', [AdminController::class, 'salvarProdutoFornecedores'])->name('produtos.fornecedores.salvar');
-    Route::post('/produtos/{id}/opcao-grupos', [AdminController::class, 'salvarOpcaoGrupos'])->name('produtos.opcao-grupos');
-    Route::post('/produtos/{id}/variantes/gerar', [AdminController::class, 'gerarVariantes'])->name('produtos.variantes.gerar');
-    Route::put('/produtos/{id}/variantes', [AdminController::class, 'salvarVariantes'])->name('produtos.variantes.salvar');
-    Route::get('/produtos/{id}', [AdminController::class, 'buscarProduto'])->name('produtos.buscar');
-    Route::post('/produtos', [AdminController::class, 'criarProduto'])->name('produtos.criar');
-    Route::post('/produtos/{id}/editar', [AdminController::class, 'editarProduto'])->name('produtos.editar');
-    Route::post('/produtos/{id}/status', [AdminController::class, 'alterarStatusProduto'])->name('produtos.alterar-status');
-    Route::post('/produtos/{id}/destaque', [AdminController::class, 'alterarDestaqueProduto'])->name('produtos.alterar-destaque');
-    Route::post('/produtos/{id}/excluir', [AdminController::class, 'excluirProduto'])->name('produtos.excluir');
-    Route::post('/produtos/{id}/quick-edit', [AdminController::class, 'quickEditProduto'])->name('produtos.quick-edit');
+        // Sorteios
+        Route::get('/sorteios', [AdminSorteioController::class, 'index'])->name('sorteios.index');
+        Route::post('/sorteios', [AdminSorteioController::class, 'store'])->name('sorteios.store');
+        Route::get('/sorteios/{sorteio}', [AdminSorteioController::class, 'show'])->name('sorteios.show');
+        Route::put('/sorteios/{sorteio}', [AdminSorteioController::class, 'update'])->name('sorteios.update');
+        Route::delete('/sorteios/{sorteio}', [AdminSorteioController::class, 'destroy'])->name('sorteios.destroy');
+        Route::post('/sorteios/{sorteio}/sortear', [AdminSorteioController::class, 'sortearCandidato'])->name('sorteios.sortear');
+        Route::post('/sorteios/{sorteio}/resultado', [AdminSorteioController::class, 'publicarResultado'])->name('sorteios.resultado');
+        Route::delete('/sorteios/{sorteio}/resultado', [AdminSorteioController::class, 'limparResultado'])->name('sorteios.resultado.limpar');
+        Route::put('/sorteios/{sorteio}/participantes/{participante}', [AdminSorteioController::class, 'updateParticipante'])->name('sorteios.participantes.update');
 
-    // Pedidos
-    Route::get('/pedidos', [AdminController::class, 'pedidos'])->name('pedidos');
-    Route::get('/pedidos/{id}', [AdminController::class, 'detalhesPedido'])->name('pedidos.detalhes');
-    Route::post('/pedidos/{id}/status', [AdminController::class, 'atualizarStatusPedido'])->name('pedidos.status');
-    Route::post('/pedidos/{id}/quick-status', [AdminController::class, 'quickStatusPedido'])->name('pedidos.quick-status');
-    Route::patch('/pedidos/{id}/rastreio', [AdminController::class, 'atualizarRastreio'])->name('pedidos.rastreio');
+        // Pedidos
+        Route::get('/pedidos', [AdminController::class, 'pedidos'])->name('pedidos');
+        Route::get('/pedidos/{id}', [AdminController::class, 'detalhesPedido'])->name('pedidos.detalhes');
+        Route::post('/pedidos/{id}/status', [AdminController::class, 'atualizarStatusPedido'])->name('pedidos.status');
+        Route::post('/pedidos/{id}/quick-status', [AdminController::class, 'quickStatusPedido'])->name('pedidos.quick-status');
+        Route::patch('/pedidos/{id}/rastreio', [AdminController::class, 'atualizarRastreio'])->name('pedidos.rastreio');
 
-    // Categorias
-    Route::get('/categorias', [AdminController::class, 'categorias'])->name('categorias');
-    Route::post('/categorias', [AdminController::class, 'criarCategoria'])->name('categorias.criar');
-    Route::post('/categorias/{id}/editar', [AdminController::class, 'editarCategoria'])->name('categorias.editar');
-    Route::post('/categorias/{id}/excluir', [AdminController::class, 'excluirCategoria'])->name('categorias.excluir');
+        // Cupons
+        Route::get('/cupons',              [App\Http\Controllers\AdminCupomController::class, 'index'])->name('cupons.index');
+        Route::get('/cupons/buscar-usuarios', [App\Http\Controllers\AdminCupomController::class, 'buscarUsuarios'])->name('cupons.buscarUsuarios');
+        Route::post('/cupons',             [App\Http\Controllers\AdminCupomController::class, 'store'])->name('cupons.store');
+        Route::put('/cupons/{id}',         [App\Http\Controllers\AdminCupomController::class, 'update'])->name('cupons.update');
+        Route::delete('/cupons/{id}',      [App\Http\Controllers\AdminCupomController::class, 'destroy'])->name('cupons.destroy');
+        Route::post('/cupons/{id}/toggle', [App\Http\Controllers\AdminCupomController::class, 'toggle'])->name('cupons.toggle');
 
-    // Cupons
-    Route::get('/cupons',              [App\Http\Controllers\AdminCupomController::class, 'index'])->name('cupons.index');
-    Route::get('/cupons/buscar-usuarios', [App\Http\Controllers\AdminCupomController::class, 'buscarUsuarios'])->name('cupons.buscarUsuarios');
-    Route::post('/cupons',             [App\Http\Controllers\AdminCupomController::class, 'store'])->name('cupons.store');
-    Route::put('/cupons/{id}',         [App\Http\Controllers\AdminCupomController::class, 'update'])->name('cupons.update');
-    Route::delete('/cupons/{id}',      [App\Http\Controllers\AdminCupomController::class, 'destroy'])->name('cupons.destroy');
-    Route::post('/cupons/{id}/toggle', [App\Http\Controllers\AdminCupomController::class, 'toggle'])->name('cupons.toggle');
+        Route::get('/cupons/{id}/pagamentos',          [App\Http\Controllers\AdminCupomController::class, 'pagamentos'])->name('cupons.pagamentos');
+        Route::post('/cupons/{id}/pagamentos',         [App\Http\Controllers\AdminCupomController::class, 'storePagamento'])->name('cupons.pagamentos.store');
+        Route::put('/cupons/{id}/pagamentos/{pid}',    [App\Http\Controllers\AdminCupomController::class, 'updatePagamento'])->name('cupons.pagamentos.update');
+        Route::delete('/cupons/{id}/pagamentos/{pid}', [App\Http\Controllers\AdminCupomController::class, 'destroyPagamento'])->name('cupons.pagamentos.destroy');
+        Route::get('/cupons/{id}/usos-pendentes',      [App\Http\Controllers\AdminCupomController::class, 'usosPendentes'])->name('cupons.usosPendentes');
+    });
 
-    Route::get('/cupons/{id}/pagamentos',          [App\Http\Controllers\AdminCupomController::class, 'pagamentos'])->name('cupons.pagamentos');
-    Route::post('/cupons/{id}/pagamentos',         [App\Http\Controllers\AdminCupomController::class, 'storePagamento'])->name('cupons.pagamentos.store');
-    Route::put('/cupons/{id}/pagamentos/{pid}',    [App\Http\Controllers\AdminCupomController::class, 'updatePagamento'])->name('cupons.pagamentos.update');
-    Route::delete('/cupons/{id}/pagamentos/{pid}', [App\Http\Controllers\AdminCupomController::class, 'destroyPagamento'])->name('cupons.pagamentos.destroy');
-    Route::get('/cupons/{id}/usos-pendentes',      [App\Http\Controllers\AdminCupomController::class, 'usosPendentes'])->name('cupons.usosPendentes');
+    Route::middleware('admin:' . User::ADMIN_PERMISSION_CATALOG)->group(function () {
+        // Produtos
+        Route::get('/produtos', [AdminController::class, 'produtos'])->name('produtos');
+        Route::get('/produtos/search', [AdminController::class, 'pesquisarProdutos'])->name('produtos.search');
+        Route::post('/produtos/bulk', [AdminController::class, 'bulkActionProdutos'])->name('produtos.bulk');
+        Route::post('/produtos/exportar', [AdminController::class, 'exportarProdutos'])->name('produtos.exportar');
+        Route::get('/fornecedores', [AdminController::class, 'listarFornecedores'])->name('fornecedores.index');
+        Route::post('/produtos/imagens/{id}/excluir', [AdminController::class, 'excluirImagem'])->name('produtos.imagens.excluir');
+        Route::get('/produtos/imagens/{id}/download', [AdminController::class, 'downloadImagem'])->name('produtos.imagens.download');
+        Route::post('/produtos/imagens/{id}/substituir', [AdminController::class, 'substituirImagem'])->name('produtos.imagens.substituir');
+        Route::post('/produtos/{id}/imagens/reordenar', [AdminController::class, 'reordenarImagens'])->name('produtos.imagens.reordenar');
+        Route::get('/produtos/{id}/ver', [AdminController::class, 'verProduto'])->name('produtos.ver');
+        Route::get('/produtos/{id}/opcoes', [AdminController::class, 'buscarOpcoesProduto'])->name('produtos.opcoes');
+        Route::get('/produtos/{id}/fornecedores', [AdminController::class, 'buscarProdutoFornecedores'])->name('produtos.fornecedores');
+        Route::put('/produtos/{id}/fornecedores', [AdminController::class, 'salvarProdutoFornecedores'])->name('produtos.fornecedores.salvar');
+        Route::post('/produtos/{id}/opcao-grupos', [AdminController::class, 'salvarOpcaoGrupos'])->name('produtos.opcao-grupos');
+        Route::post('/produtos/{id}/variantes/gerar', [AdminController::class, 'gerarVariantes'])->name('produtos.variantes.gerar');
+        Route::put('/produtos/{id}/variantes', [AdminController::class, 'salvarVariantes'])->name('produtos.variantes.salvar');
+        Route::get('/produtos/{id}', [AdminController::class, 'buscarProduto'])->name('produtos.buscar');
+        Route::post('/produtos', [AdminController::class, 'criarProduto'])->name('produtos.criar');
+        Route::post('/produtos/{id}/editar', [AdminController::class, 'editarProduto'])->name('produtos.editar');
+        Route::post('/produtos/{id}/status', [AdminController::class, 'alterarStatusProduto'])->name('produtos.alterar-status');
+        Route::post('/produtos/{id}/destaque', [AdminController::class, 'alterarDestaqueProduto'])->name('produtos.alterar-destaque');
+        Route::post('/produtos/{id}/excluir', [AdminController::class, 'excluirProduto'])->name('produtos.excluir');
+        Route::post('/produtos/{id}/quick-edit', [AdminController::class, 'quickEditProduto'])->name('produtos.quick-edit');
+
+        // Categorias
+        Route::get('/categorias', [AdminController::class, 'categorias'])->name('categorias');
+        Route::post('/categorias', [AdminController::class, 'criarCategoria'])->name('categorias.criar');
+        Route::post('/categorias/{id}/editar', [AdminController::class, 'editarCategoria'])->name('categorias.editar');
+        Route::post('/categorias/{id}/excluir', [AdminController::class, 'excluirCategoria'])->name('categorias.excluir');
+    });
 });
 
 // Rota para buscar CEP (pública)

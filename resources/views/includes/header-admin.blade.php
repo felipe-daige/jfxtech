@@ -1,3 +1,9 @@
+@php
+    $adminUser = Auth::user();
+    $isSuperAdmin = $adminUser?->isSuperAdmin() ?? false;
+    $canManageCatalog = $adminUser?->hasAdminPermission(\App\Models\User::ADMIN_PERMISSION_CATALOG) ?? false;
+@endphp
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -113,65 +119,73 @@
             <nav class="p-4">
                 <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-4 px-3">Menu</p>
                 <ul class="space-y-1">
-                    <li>
-                        <a href="{{ route('admin.dashboard') }}"
-                           data-admin-nav="dashboard"
-                           class="flex items-center space-x-3 px-3 py-2.5 font-mono text-xs uppercase tracking-widest transition-colors {{ request()->routeIs('admin.dashboard') ? 'bg-black text-white' : 'text-[var(--color-lab-muted)] hover:bg-gray-100 hover:text-black' }}">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
-                            <span>Dashboard</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('admin.analytics') }}"
-                           data-admin-nav="analytics"
-                           class="flex items-center space-x-3 px-3 py-2.5 font-mono text-xs uppercase tracking-widest transition-colors {{ request()->routeIs('admin.analytics') ? 'bg-black text-white' : 'text-[var(--color-lab-muted)] hover:bg-gray-100 hover:text-black' }}">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-                            <span>Analytics</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('admin.usuarios.index') }}" class="flex items-center space-x-3 px-3 py-2.5 font-mono text-xs uppercase tracking-widest transition-colors {{ request()->routeIs('admin.usuarios*') ? 'bg-black text-white' : 'text-[var(--color-lab-muted)] hover:bg-gray-100 hover:text-black' }}">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                            <span>Usuários</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('admin.sorteios.index') }}" class="flex items-center space-x-3 px-3 py-2.5 font-mono text-xs uppercase tracking-widest transition-colors {{ request()->routeIs('admin.sorteios*') ? 'bg-black text-white' : 'text-[var(--color-lab-muted)] hover:bg-gray-100 hover:text-black' }}">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="m9 16 2 2 4-4"/></svg>
-                            <span>Sorteios</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('admin.produtos') }}" class="flex items-center space-x-3 px-3 py-2.5 font-mono text-xs uppercase tracking-widest transition-colors {{ request()->routeIs('admin.produtos*') ? 'bg-black text-white' : 'text-[var(--color-lab-muted)] hover:bg-gray-100 hover:text-black' }}">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
-                            <span>Produtos</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('admin.simulador') }}"
-                           class="flex items-center space-x-3 px-3 py-2.5 font-mono text-xs uppercase tracking-widest transition-colors {{ request()->routeIs('admin.simulador') ? 'bg-black text-white' : 'text-[var(--color-lab-muted)] hover:bg-gray-100 hover:text-black' }}">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" x2="5" y1="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
-                            <span>Simulador</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('admin.pedidos') }}" class="flex items-center space-x-3 px-3 py-2.5 font-mono text-xs uppercase tracking-widest transition-colors {{ request()->routeIs('admin.pedidos*') ? 'bg-black text-white' : 'text-[var(--color-lab-muted)] hover:bg-gray-100 hover:text-black' }}">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-                            <span>Pedidos</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('admin.categorias') }}" class="flex items-center space-x-3 px-3 py-2.5 font-mono text-xs uppercase tracking-widest transition-colors {{ request()->routeIs('admin.categorias*') ? 'bg-black text-white' : 'text-[var(--color-lab-muted)] hover:bg-gray-100 hover:text-black' }}">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>
-                            <span>Categorias</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('admin.cupons.index') }}" class="flex items-center space-x-3 px-3 py-2.5 font-mono text-xs uppercase tracking-widest transition-colors {{ request()->routeIs('admin.cupons*') ? 'bg-black text-white' : 'text-[var(--color-lab-muted)] hover:bg-gray-100 hover:text-black' }}">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H2v7l6.29 6.29c.94.94 2.48.94 3.42 0l3.58-3.58c.94-.94.94-2.48 0-3.42L9 5Z"/><path d="M6 9.01V9"/><path d="m15 5 6.3 6.3a2.4 2.4 0 0 1 0 3.4L17 19"/></svg>
-                            <span>Cupons</span>
-                        </a>
-                    </li>
+                    @if($isSuperAdmin)
+                        <li>
+                            <a href="{{ route('admin.dashboard') }}"
+                               data-admin-nav="dashboard"
+                               class="flex items-center space-x-3 px-3 py-2.5 font-mono text-xs uppercase tracking-widest transition-colors {{ request()->routeIs('admin.dashboard') ? 'bg-black text-white' : 'text-[var(--color-lab-muted)] hover:bg-gray-100 hover:text-black' }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('admin.analytics') }}"
+                               data-admin-nav="analytics"
+                               class="flex items-center space-x-3 px-3 py-2.5 font-mono text-xs uppercase tracking-widest transition-colors {{ request()->routeIs('admin.analytics') ? 'bg-black text-white' : 'text-[var(--color-lab-muted)] hover:bg-gray-100 hover:text-black' }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                                <span>Analytics</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('admin.usuarios.index') }}" class="flex items-center space-x-3 px-3 py-2.5 font-mono text-xs uppercase tracking-widest transition-colors {{ request()->routeIs('admin.usuarios*') ? 'bg-black text-white' : 'text-[var(--color-lab-muted)] hover:bg-gray-100 hover:text-black' }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                <span>Usuários</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('admin.sorteios.index') }}" class="flex items-center space-x-3 px-3 py-2.5 font-mono text-xs uppercase tracking-widest transition-colors {{ request()->routeIs('admin.sorteios*') ? 'bg-black text-white' : 'text-[var(--color-lab-muted)] hover:bg-gray-100 hover:text-black' }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="m9 16 2 2 4-4"/></svg>
+                                <span>Sorteios</span>
+                            </a>
+                        </li>
+                    @endif
+
+                    @if($canManageCatalog)
+                        <li>
+                            <a href="{{ route('admin.produtos') }}" class="flex items-center space-x-3 px-3 py-2.5 font-mono text-xs uppercase tracking-widest transition-colors {{ request()->routeIs('admin.produtos*') ? 'bg-black text-white' : 'text-[var(--color-lab-muted)] hover:bg-gray-100 hover:text-black' }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                                <span>Produtos</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('admin.categorias') }}" class="flex items-center space-x-3 px-3 py-2.5 font-mono text-xs uppercase tracking-widest transition-colors {{ request()->routeIs('admin.categorias*') ? 'bg-black text-white' : 'text-[var(--color-lab-muted)] hover:bg-gray-100 hover:text-black' }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>
+                                <span>Categorias</span>
+                            </a>
+                        </li>
+                    @endif
+
+                    @if($isSuperAdmin)
+                        <li>
+                            <a href="{{ route('admin.simulador') }}"
+                               class="flex items-center space-x-3 px-3 py-2.5 font-mono text-xs uppercase tracking-widest transition-colors {{ request()->routeIs('admin.simulador') ? 'bg-black text-white' : 'text-[var(--color-lab-muted)] hover:bg-gray-100 hover:text-black' }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" x2="5" y1="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
+                                <span>Simulador</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('admin.pedidos') }}" class="flex items-center space-x-3 px-3 py-2.5 font-mono text-xs uppercase tracking-widest transition-colors {{ request()->routeIs('admin.pedidos*') ? 'bg-black text-white' : 'text-[var(--color-lab-muted)] hover:bg-gray-100 hover:text-black' }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                                <span>Pedidos</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('admin.cupons.index') }}" class="flex items-center space-x-3 px-3 py-2.5 font-mono text-xs uppercase tracking-widest transition-colors {{ request()->routeIs('admin.cupons*') ? 'bg-black text-white' : 'text-[var(--color-lab-muted)] hover:bg-gray-100 hover:text-black' }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H2v7l6.29 6.29c.94.94 2.48.94 3.42 0l3.58-3.58c.94-.94.94-2.48 0-3.42L9 5Z"/><path d="M6 9.01V9"/><path d="m15 5 6.3 6.3a2.4 2.4 0 0 1 0 3.4L17 19"/></svg>
+                                <span>Cupons</span>
+                            </a>
+                        </li>
+                    @endif
                 </ul>
 
                 <div class="border-t border-[var(--color-lab-border)] mt-6 pt-4">

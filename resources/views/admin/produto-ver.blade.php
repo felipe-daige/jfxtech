@@ -25,10 +25,12 @@
         <span class="font-mono text-xs uppercase tracking-widest text-black truncate">{{ $produto->nome }}</span>
     </div>
     <div class="flex items-center gap-2 shrink-0 ml-4">
-        <a href="{{ route('admin.analytics.products.show', $produto->id) }}"
-           class="border border-[var(--color-lab-border)] px-4 py-2 font-mono text-xs uppercase tracking-widest hover:bg-gray-100 transition-colors">
-            Analytics
-        </a>
+        @if(Auth::user()?->isSuperAdmin())
+            <a href="{{ route('admin.analytics.products.show', $produto->id) }}"
+               class="border border-[var(--color-lab-border)] px-4 py-2 font-mono text-xs uppercase tracking-widest hover:bg-gray-100 transition-colors">
+                Analytics
+            </a>
+        @endif
         <button onclick="editarProduto({{ $produto->id }})"
                 class="bg-black text-white px-4 py-2 font-mono text-xs uppercase tracking-widest hover:bg-gray-900 transition-colors">
             Editar

@@ -15,7 +15,7 @@ class ProdutoVarianteTest extends TestCase
 
     private function actingAsAdmin()
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['admin' => true]);
         $this->actingAs($user);
         return $this;
     }

@@ -15,6 +15,12 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
+    public const ADMIN_PERMISSION_CATALOG = 'catalog.manage';
+
+    public const ADMIN_PERMISSION_LABELS = [
+        self::ADMIN_PERMISSION_CATALOG => 'Produtos e estoque',
+    ];
+
     /**
      * The attributes that are mass assignable.
      *
@@ -27,6 +33,7 @@ class User extends Authenticatable
         'cpf',
         'password',
         'admin',
+        'admin_permissions',
         'coupon_portal_enabled',
         'must_change_password',
     ];
@@ -52,9 +59,71 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'admin' => 'boolean',
+            'admin_permissions' => 'array',
             'coupon_portal_enabled' => 'boolean',
             'must_change_password' => 'boolean',
         ];
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return (bool) $this->admin;
+    }
+
+    public function adminPermissions(): array
+    {
+        $permissions = $this->admin_permissions ?? [];
+
+        if (!is_array($permissions)) {
+            return [];
+        }
+
+        return array_values(array_filter($permissions, 'is_string'));
+    }
+
+    public function hasAdminPermission(string $permission): bool
+    {
+        return $this->isSuperAdmin()
+            || in_array($permission, $this->adminPermissions(), true);
+    }
+
+    public function hasAnyAdminPermission(array $permissions = []): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        $userPermissions = $this->adminPermissions();
+
+        if ($permissions === []) {
+            return $userPermissions !== [];
+        }
+
+        foreach ($permissions as $permission) {
+            if (in_array($permission, $userPermissions, true)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function hasAdminAccess(): bool
+    {
+        return $this->isSuperAdmin() || $this->hasAnyAdminPermission();
+    }
+
+    public function canAccessAdminArea(array $permissions = []): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        if ($permissions === []) {
+            return false;
+        }
+
+        return $this->hasAnyAdminPermission($permissions);
     }
 
     /**

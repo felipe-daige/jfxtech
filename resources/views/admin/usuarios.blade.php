@@ -3,13 +3,17 @@
 @section('title', 'Usuários')
 
 @section('content')
+@php
+    $catalogPermission = \App\Models\User::ADMIN_PERMISSION_CATALOG;
+@endphp
+
 <div class="space-y-6 lg:space-y-8">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
             <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-1">Administração</p>
             <h1 class="text-2xl sm:text-3xl font-bold text-black tracking-tight">Usuários</h1>
             <p class="mt-2 max-w-2xl text-sm text-[var(--color-lab-muted)]">
-                Gerencie cadastro, privilégios administrativos e acesso comercial sem sair do painel.
+                Gerencie cadastro, privilégios administrativos, permissões de catálogo e acesso comercial sem sair do painel.
             </p>
         </div>
         <div class="inline-flex w-fit flex-col border border-[var(--color-lab-border)] bg-white px-4 py-3">
@@ -18,14 +22,18 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <div class="border border-[var(--color-lab-border)] bg-white p-5">
             <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-2">Base total</p>
             <p class="font-mono text-2xl font-bold text-black">{{ $summary['total'] }}</p>
         </div>
         <div class="border border-[var(--color-lab-border)] bg-white p-5">
-            <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-2">Admins</p>
+            <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-2">Admins totais</p>
             <p class="font-mono text-2xl font-bold text-black">{{ $summary['admins'] }}</p>
+        </div>
+        <div class="border border-[var(--color-lab-border)] bg-white p-5">
+            <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-2">Catálogo</p>
+            <p class="font-mono text-2xl font-bold text-black">{{ $summary['catalog_managers'] }}</p>
         </div>
         <div class="border border-[var(--color-lab-border)] bg-white p-5">
             <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-2">Portal de cupom</p>
@@ -35,7 +43,7 @@
 
     <form method="GET" action="{{ route('admin.usuarios.index') }}" class="border border-[var(--color-lab-border)] bg-white p-4 sm:p-6">
         <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-4">Filtros</p>
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,0.75fr))_auto_auto] gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-[minmax(0,1.4fr)_repeat(4,minmax(0,0.75fr))_auto_auto] gap-4">
             <input
                 type="text"
                 name="q"
@@ -46,8 +54,14 @@
 
             <select name="admin_filter" class="w-full border border-[var(--color-lab-border)] px-4 py-3 text-sm font-mono focus:outline-none focus:border-black bg-white">
                 <option value="">Todos os perfis</option>
-                <option value="1" @selected(request('admin_filter') === '1')>Admins</option>
+                <option value="1" @selected(request('admin_filter') === '1')>Admins totais</option>
                 <option value="0" @selected(request('admin_filter') === '0')>Clientes</option>
+            </select>
+
+            <select name="catalog_filter" class="w-full border border-[var(--color-lab-border)] px-4 py-3 text-sm font-mono focus:outline-none focus:border-black bg-white">
+                <option value="">Catálogo</option>
+                <option value="1" @selected(request('catalog_filter') === '1')>Liberado</option>
+                <option value="0" @selected(request('catalog_filter') === '0')>Bloqueado</option>
             </select>
 
             <select name="portal_filter" class="w-full border border-[var(--color-lab-border)] px-4 py-3 text-sm font-mono focus:outline-none focus:border-black bg-white">
@@ -97,6 +111,7 @@
                                 'phone' => $user->phone,
                                 'cpf' => $user->cpf,
                                 'admin' => (bool) $user->admin,
+                                'catalog_manage' => in_array($catalogPermission, $user->adminPermissions(), true),
                                 'coupon_portal_enabled' => (bool) $user->coupon_portal_enabled,
                                 'must_change_password' => (bool) $user->must_change_password,
                             ];
@@ -115,7 +130,10 @@
                             <td class="px-4 py-4">
                                 <div class="flex flex-wrap gap-2">
                                     <span class="inline-block px-2 py-0.5 font-mono text-[10px] border {{ $user->admin ? 'border-black bg-black text-white' : 'border-[var(--color-lab-border)] text-[var(--color-lab-muted)]' }}">
-                                        {{ $user->admin ? 'Admin' : 'Cliente' }}
+                                        {{ $user->admin ? 'Admin total' : 'Cliente' }}
+                                    </span>
+                                    <span class="inline-block px-2 py-0.5 font-mono text-[10px] border {{ $user->hasAdminPermission($catalogPermission) ? 'border-black text-black' : 'border-[var(--color-lab-border)] text-[var(--color-lab-muted)]' }}">
+                                        {{ $user->hasAdminPermission($catalogPermission) ? 'Produtos/estoque' : 'Sem catálogo' }}
                                     </span>
                                     <span class="inline-block px-2 py-0.5 font-mono text-[10px] border {{ $user->coupon_portal_enabled ? 'border-black text-black' : 'border-[var(--color-lab-border)] text-[var(--color-lab-muted)]' }}">
                                         {{ $user->coupon_portal_enabled ? 'Portal cupom' : 'Sem portal' }}
@@ -169,6 +187,7 @@
                         'phone' => $user->phone,
                         'cpf' => $user->cpf,
                         'admin' => (bool) $user->admin,
+                        'catalog_manage' => in_array($catalogPermission, $user->adminPermissions(), true),
                         'coupon_portal_enabled' => (bool) $user->coupon_portal_enabled,
                         'must_change_password' => (bool) $user->must_change_password,
                     ];
@@ -210,7 +229,10 @@
                     </div>
                     <div class="mt-4 flex flex-wrap gap-2">
                         <span class="inline-block px-2 py-0.5 font-mono text-[10px] border {{ $user->admin ? 'border-black bg-black text-white' : 'border-[var(--color-lab-border)] text-[var(--color-lab-muted)]' }}">
-                            {{ $user->admin ? 'Admin' : 'Cliente' }}
+                            {{ $user->admin ? 'Admin total' : 'Cliente' }}
+                        </span>
+                        <span class="inline-block px-2 py-0.5 font-mono text-[10px] border {{ $user->hasAdminPermission($catalogPermission) ? 'border-black text-black' : 'border-[var(--color-lab-border)] text-[var(--color-lab-muted)]' }}">
+                            {{ $user->hasAdminPermission($catalogPermission) ? 'Produtos/estoque' : 'Sem catálogo' }}
                         </span>
                         <span class="inline-block px-2 py-0.5 font-mono text-[10px] border {{ $user->coupon_portal_enabled ? 'border-black text-black' : 'border-[var(--color-lab-border)] text-[var(--color-lab-muted)]' }}">
                             {{ $user->coupon_portal_enabled ? 'Portal cupom' : 'Sem portal' }}
@@ -276,7 +298,11 @@
                     <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Permissões e estado</p>
                     <label class="flex items-center gap-3">
                         <input type="checkbox" name="admin" id="user-admin" value="1" class="h-4 w-4 border-[var(--color-lab-border)] text-black focus:ring-black">
-                        <span class="font-mono text-xs text-black">Administrador</span>
+                        <span class="font-mono text-xs text-black">Administrador total</span>
+                    </label>
+                    <label class="flex items-center gap-3">
+                        <input type="checkbox" name="catalog_manage" id="user-catalog-manage" value="1" class="h-4 w-4 border-[var(--color-lab-border)] text-black focus:ring-black">
+                        <span class="font-mono text-xs text-black">Gerenciar produtos, estoque, categorias e fornecedores</span>
                     </label>
                     <label class="flex items-center gap-3">
                         <input type="checkbox" name="coupon_portal_enabled" id="user-coupon-portal" value="1" class="h-4 w-4 border-[var(--color-lab-border)] text-black focus:ring-black">
@@ -309,6 +335,7 @@
         'phone' => old('phone'),
         'cpf' => old('cpf'),
         'admin' => old('admin') ? true : false,
+        'catalog_manage' => old('catalog_manage') ? true : false,
         'coupon_portal_enabled' => old('coupon_portal_enabled') ? true : false,
         'must_change_password' => old('must_change_password') ? true : false,
     ] : null;
@@ -332,6 +359,7 @@
         document.getElementById('user-phone').value = user.phone || '';
         document.getElementById('user-cpf').value = user.cpf || '';
         document.getElementById('user-admin').checked = !!user.admin;
+        document.getElementById('user-catalog-manage').checked = !!user.catalog_manage;
         document.getElementById('user-coupon-portal').checked = !!user.coupon_portal_enabled;
         document.getElementById('user-force-password').checked = !!user.must_change_password;
     }

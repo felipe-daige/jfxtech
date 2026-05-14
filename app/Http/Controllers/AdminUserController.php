@@ -43,6 +43,24 @@ class AdminUserController extends Controller
             $query->where('admin', $request->get('admin_filter') === '1');
         }
 
+        if ($request->filled('catalog_filter')) {
+            if ($request->get('catalog_filter') === '1') {
+                $query->where(function ($builder) {
+                    $builder
+                        ->where('admin', true)
+                        ->orWhereJsonContains('admin_permissions', User::ADMIN_PERMISSION_CATALOG);
+                });
+            } elseif ($request->get('catalog_filter') === '0') {
+                $query
+                    ->where('admin', false)
+                    ->where(function ($builder) {
+                        $builder
+                            ->whereNull('admin_permissions')
+                            ->orWhereJsonDoesntContain('admin_permissions', User::ADMIN_PERMISSION_CATALOG);
+                    });
+            }
+        }
+
         if ($request->filled('portal_filter')) {
             $query->where('coupon_portal_enabled', $request->get('portal_filter') === '1');
         }
@@ -63,6 +81,11 @@ class AdminUserController extends Controller
         $summary = [
             'total' => User::count(),
             'admins' => User::where('admin', true)->count(),
+            'catalog_managers' => User::where(function ($builder) {
+                $builder
+                    ->where('admin', true)
+                    ->orWhereJsonContains('admin_permissions', User::ADMIN_PERMISSION_CATALOG);
+            })->count(),
             'portal_enabled' => User::where('coupon_portal_enabled', true)->count(),
         ];
 
@@ -105,6 +128,7 @@ class AdminUserController extends Controller
                 Rule::unique('users', 'cpf')->ignore($user->id),
             ],
             'admin' => ['nullable', 'boolean'],
+            'catalog_manage' => ['nullable', 'boolean'],
             'coupon_portal_enabled' => ['nullable', 'boolean'],
             'must_change_password' => ['nullable', 'boolean'],
         ], [
@@ -124,12 +148,16 @@ class AdminUserController extends Controller
         }
 
         $validated = $validator->validated();
+        $adminPermissions = $request->boolean('catalog_manage')
+            ? [User::ADMIN_PERMISSION_CATALOG]
+            : null;
 
         $user->update([
             'name' => trim($validated['name']),
             'phone' => $this->emptyToNull($validated['phone'] ?? null),
             'cpf' => $this->emptyToNull($validated['cpf'] ?? null),
             'admin' => $request->boolean('admin'),
+            'admin_permissions' => $adminPermissions,
             'coupon_portal_enabled' => $request->boolean('coupon_portal_enabled'),
             'must_change_password' => $request->boolean('must_change_password'),
         ]);

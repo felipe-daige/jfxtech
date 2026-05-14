@@ -14,7 +14,7 @@ class AdminAuth
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next, string ...$permissions): Response
     {
         if (!Auth::check()) {
             return redirect()->route('site.login');
@@ -22,7 +22,7 @@ class AdminAuth
 
         $user = Auth::user();
 
-        if (!$user || !$user->admin) {
+        if (!$user || !$user->canAccessAdminArea($permissions)) {
             abort(403);
         }
 
