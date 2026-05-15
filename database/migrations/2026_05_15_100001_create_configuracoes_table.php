@@ -16,12 +16,10 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        DB::table('configuracoes')->insert([
-            'chave' => 'desconto_pix_global',
-            'valor' => '5.00',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        DB::table('configuracoes')->updateOrInsert(
+            ['chave' => 'desconto_pix_global'],
+            ['valor' => '5.00', 'created_at' => now(), 'updated_at' => now()]
+        );
     }
 
     public function down(): void
