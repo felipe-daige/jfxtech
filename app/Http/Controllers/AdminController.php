@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\PedidoStatus;
 use App\Exports\ProdutosExport;
 use App\Models\Categoria;
+use App\Models\Configuracao;
 use App\Models\Cupom;
 use App\Models\CustoOperacional;
 use App\Models\Fornecedor;
@@ -39,7 +40,10 @@ class AdminController extends Controller
             return redirect()->route('site.login');
         }
 
-        return view('admin.dashboard', $this->getDashboardAnalyticsData());
+        $data = $this->getDashboardAnalyticsData();
+        $data['desconto_pix_global'] = (float) Configuracao::get('desconto_pix_global', 5.0);
+
+        return view('admin.dashboard', $data);
     }
 
     public function analytics()
@@ -358,6 +362,7 @@ class AdminController extends Controller
             'largura' => $produto->largura ? number_format($produto->largura, 2, '.', '') : '',
             'altura' => $produto->altura ? number_format($produto->altura, 2, '.', '') : '',
             'desconto_percentual' => $produto->desconto_percentual,
+            'desconto_pix' => $produto->desconto_pix,
             'em_promocao' => $produto->em_promocao,
             'destaque' => $produto->destaque,
             'tags' => $produto->tags ?? [],
@@ -395,6 +400,7 @@ class AdminController extends Controller
             'categoria_id' => 'required|exists:categorias,id',
             'em_promocao' => 'nullable|boolean',
             'desconto_percentual' => 'nullable|numeric|min:0|max:100',
+            'desconto_pix' => 'nullable|numeric|min:0|max:100',
             'destaque' => 'nullable|boolean',
             'tags' => 'nullable|array|max:2',
             'tags.*' => 'string|max:50',
@@ -461,6 +467,7 @@ class AdminController extends Controller
             'altura' => $request->altura,
             'preco_original' => $emPromocao ? $preco : null, // Preço original (sem desconto)
             'desconto_percentual' => $descontoPercentual,
+            'desconto_pix' => $request->filled('desconto_pix') ? (float) $request->desconto_pix : null,
             'em_promocao' => $emPromocao,
             'destaque' => $destaque,
             'tags' => $request->input('tags', []),
@@ -508,6 +515,7 @@ class AdminController extends Controller
             'categoria_id' => 'required|exists:categorias,id',
             'em_promocao' => 'nullable|boolean',
             'desconto_percentual' => 'nullable|numeric|min:0|max:100',
+            'desconto_pix' => 'nullable|numeric|min:0|max:100',
             'destaque' => 'nullable|boolean',
             'tags' => 'nullable|array|max:2',
             'tags.*' => 'string|max:50',
@@ -575,6 +583,7 @@ class AdminController extends Controller
             'altura' => $request->altura,
             'preco_original' => $emPromocao ? $preco : null, // Preço original (sem desconto)
             'desconto_percentual' => $descontoPercentual,
+            'desconto_pix' => $request->filled('desconto_pix') ? (float) $request->desconto_pix : null,
             'em_promocao' => $emPromocao,
             'destaque' => $destaque,
             'tags' => $request->input('tags', []),
