@@ -30,6 +30,7 @@ class Produto extends Model
         'altura',
         'preco_original',
         'desconto_percentual',
+        'desconto_pix',
         'em_promocao',
         'destaque',
         'estoque',
@@ -45,6 +46,7 @@ class Produto extends Model
         'frete_compra' => 'decimal:2',
         'preco_original' => 'decimal:2',
         'desconto_percentual' => 'decimal:2',
+        'desconto_pix' => 'decimal:2',
         'em_promocao' => 'boolean',
         'destaque' => 'boolean',
         'estoque' => 'integer',
@@ -178,6 +180,11 @@ class Produto extends Model
             return $this->preco_original * (1 - $this->desconto_percentual / 100);
         }
         return $this->preco;
+    }
+
+    public function getDescontoPix(): float
+    {
+        return (float) ($this->desconto_pix ?? Configuracao::get('desconto_pix_global', 5.0));
     }
 
     public function getLucroBrutoUnitarioAttribute(): ?float
