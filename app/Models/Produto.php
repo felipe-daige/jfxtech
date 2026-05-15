@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Configuracao;
 use App\Services\FreteEstimativaService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
