@@ -209,6 +209,50 @@ class MercadoPagoCheckoutTest extends TestCase
             ->assertJsonPath('message', 'Este cupom atingiu o limite de usos.');
     }
 
+    public function test_pay_rejects_applied_coupon_restricted_to_another_user(): void
+    {
+        $authorized = User::factory()->create();
+        $buyer = User::factory()->create();
+        $pedido = $this->makeCart($buyer, 100.00, 1, 'pendente');
+        $pedido->update([
+            'cupom_codigo' => 'EXCLUSIVO10',
+            'valor_desconto' => 10.00,
+            'valor_total' => 90.00,
+        ]);
+
+        Cupom::create([
+            'codigo' => 'EXCLUSIVO10',
+            'restricted_user_id' => $authorized->id,
+            'tipo' => 'percentual',
+            'valor' => 10,
+            'ativo' => true,
+        ]);
+
+        $this->mock(MercadoPagoService::class, function ($mock): void {
+            $mock->shouldNotReceive('createPayment');
+        });
+
+        $response = $this->actingAs($buyer)->postJson(route('site.checkout.mercadopago.pay'), [
+            'pedido_id' => $pedido->id,
+            'payment_method_id' => 'visa',
+            'transaction_amount' => 90.00,
+            'installments' => 1,
+            'token' => 'test-token',
+            'issuer_id' => '123',
+            'payer' => [
+                'email' => $buyer->email,
+                'identification' => [
+                    'type' => 'CPF',
+                    'number' => '12345678901',
+                ],
+            ],
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('message', 'Este cupom é exclusivo para o usuário vinculado.');
+    }
+
     public function test_approved_payment_records_coupon_usage_only_once_for_duplicate_notifications(): void
     {
         $user = User::factory()->create();
@@ -347,7 +391,7 @@ class MercadoPagoCheckoutTest extends TestCase
             $mock->shouldReceive('createPayment')
                 ->once()
                 ->with(\Mockery::on(function (array $payload): bool {
-                    return !array_key_exists('notification_url', $payload);
+                    return ! array_key_exists('notification_url', $payload);
                 }))
                 ->andReturn([
                     'id' => 123456789,
@@ -843,7 +887,7 @@ class MercadoPagoCheckoutTest extends TestCase
                 ],
             ],
             [
-                'X-Signature' => 'ts=' . $timestamp . ',v1=' . $signature,
+                'X-Signature' => 'ts='.$timestamp.',v1='.$signature,
                 'X-Request-Id' => $requestId,
             ]
         );
@@ -916,7 +960,7 @@ class MercadoPagoCheckoutTest extends TestCase
                 'id' => $paymentId,
             ],
             [
-                'X-Signature' => 'ts=' . $timestamp . ',v1=' . $signature,
+                'X-Signature' => 'ts='.$timestamp.',v1='.$signature,
                 'X-Request-Id' => $requestId,
             ]
         );

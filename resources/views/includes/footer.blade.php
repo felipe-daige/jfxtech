@@ -40,16 +40,14 @@
             </ul>
         </div>
 
-        {{-- Newsletter --}}
+        {{-- Contact --}}
         <div>
-            <h4 class="font-mono text-xs font-bold uppercase tracking-widest mb-4">Newsletter</h4>
-            <p class="text-sm text-gray-500 mb-3">Receba novidades e ofertas exclusivas.</p>
-            <div class="flex">
-                <input type="email" name="newsletter_email" id="newsletter_email" placeholder="DIGITE SEU E-MAIL" class="bg-gray-50 border border-[var(--color-lab-border)] px-3 py-2 text-sm w-full focus:outline-none focus:border-black font-mono text-xs tracking-wider">
-                <button class="bg-black text-white px-4 py-2 text-sm font-bold hover:bg-gray-800 transition-colors flex-shrink-0">
-                    &rarr;
-                </button>
-            </div>
+            <h4 class="font-mono text-xs font-bold uppercase tracking-widest mb-4">Contato</h4>
+            <ul class="space-y-2 text-sm text-gray-600">
+                <li><a href="mailto:contato@jfxtech.com.br" class="hover:text-black transition-colors">contato@jfxtech.com.br</a></li>
+                <li><a href="{{ route('site.contato') }}" class="hover:text-black transition-colors">Formulário de contato</a></li>
+                <li class="text-gray-400 text-xs font-mono pt-1">Seg a Sex, 9h–18h</li>
+            </ul>
         </div>
     </div>
 
@@ -57,8 +55,8 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center text-xs text-gray-400 font-mono tracking-wider">
         <p>&copy; {{ date('Y') }} JFXTECH. TODOS OS DIREITOS RESERVADOS.</p>
         <div class="flex space-x-4 mt-4 md:mt-0">
-            <a href="#" class="hover:text-gray-900 transition-colors">TERMOS</a>
-            <a href="#" class="hover:text-gray-900 transition-colors">PRIVACIDADE</a>
+            <a href="{{ route('site.termos') }}" class="hover:text-gray-900 transition-colors">TERMOS</a>
+            <a href="{{ route('site.privacidade') }}" class="hover:text-gray-900 transition-colors">PRIVACIDADE</a>
         </div>
     </div>
 </footer>

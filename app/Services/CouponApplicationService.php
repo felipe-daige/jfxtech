@@ -12,7 +12,7 @@ class CouponApplicationService
 
     public function normalizeCode(mixed $codigo): ?string
     {
-        if (!is_string($codigo) && !is_numeric($codigo)) {
+        if (! is_string($codigo) && ! is_numeric($codigo)) {
             return null;
         }
 
@@ -29,7 +29,7 @@ class CouponApplicationService
     {
         $codigo = $this->normalizeCode($codigo);
 
-        if (!$codigo) {
+        if (! $codigo) {
             return $this->failure('Cupom inválido.');
         }
 
@@ -38,16 +38,20 @@ class CouponApplicationService
         $subtotal = $carrinho->itens->sum(fn ($item) => (float) $item->preco * (int) $item->quantidade);
         $cupom = Cupom::whereRaw('UPPER(codigo) = ?', [$codigo])->first();
 
-        if (!$cupom) {
+        if (! $cupom) {
             return $this->failure('Cupom inválido.');
         }
 
-        if (!$cupom->ativo) {
+        if (! $cupom->ativo) {
             return $this->failure('Este cupom está inativo.');
         }
 
         if ($cupom->valido_ate && $cupom->valido_ate->isPast()) {
             return $this->failure('Este cupom está expirado.');
+        }
+
+        if ($cupom->isRestrictedToDifferentUser($userId)) {
+            return $this->failure('Este cupom é exclusivo para o usuário vinculado.');
         }
 
         if ($cupom->limite_usos !== null && $cupom->usos_realizados >= $cupom->limite_usos) {
@@ -81,8 +85,8 @@ class CouponApplicationService
         $novoTotal = max(0, round($subtotal - $desconto + $freteValor, 2));
 
         $tipoLabel = $cupom->tipo === 'percentual'
-            ? number_format((float) $cupom->valor, 0) . '% de desconto'
-            : 'R$ ' . number_format((float) $cupom->valor, 2, ',', '.') . ' de desconto';
+            ? number_format((float) $cupom->valor, 0).'% de desconto'
+            : 'R$ '.number_format((float) $cupom->valor, 2, ',', '.').' de desconto';
 
         return [
             'success' => true,

@@ -19,30 +19,31 @@ class CupomCheckoutTest extends TestCase
     private function makeCart(User $user, float $preco = 100.00, int $qtd = 1): Pedido
     {
         $produto = Produto::factory()->create(['preco' => $preco, 'estoque' => 10, 'ativo' => true]);
-        $pedido  = Pedido::create([
-            'user_id'        => $user->id,
-            'status'         => 'carrinho',
-            'valor_total'    => $preco * $qtd,
+        $pedido = Pedido::create([
+            'user_id' => $user->id,
+            'status' => 'carrinho',
+            'valor_total' => $preco * $qtd,
             'valor_desconto' => 0,
         ]);
         ItemPedido::create([
             'pedido_id' => $pedido->id,
             'produto_id' => $produto->id,
-            'preco'     => $preco,
+            'preco' => $preco,
             'quantidade' => $qtd,
         ]);
+
         return $pedido;
     }
 
     private function makeCupom(array $attrs = []): Cupom
     {
         return Cupom::create(array_merge([
-            'codigo'              => 'PROMO10',
-            'tipo'                => 'percentual',
-            'valor'               => 10,
-            'ativo'               => true,
-            'valido_ate'          => null,
-            'limite_usos'         => null,
+            'codigo' => 'PROMO10',
+            'tipo' => 'percentual',
+            'valor' => 10,
+            'ativo' => true,
+            'valido_ate' => null,
+            'limite_usos' => null,
             'valor_minimo_pedido' => null,
         ], $attrs));
     }
@@ -113,13 +114,13 @@ class CupomCheckoutTest extends TestCase
 
     public function test_usuario_nao_pode_reusar_cupom(): void
     {
-        $user   = User::factory()->create();
+        $user = User::factory()->create();
         $pedido = $this->makeCart($user);
-        $cupom  = $this->makeCupom();
+        $cupom = $this->makeCupom();
 
         CupomUso::create([
-            'cupom_id'  => $cupom->id,
-            'user_id'   => $user->id,
+            'cupom_id' => $cupom->id,
+            'user_id' => $user->id,
             'pedido_id' => $pedido->id,
         ]);
 
@@ -147,7 +148,7 @@ class CupomCheckoutTest extends TestCase
 
     public function test_remover_cupom_zera_desconto(): void
     {
-        $user   = User::factory()->create();
+        $user = User::factory()->create();
         $pedido = $this->makeCart($user);
         $pedido->update(['cupom_codigo' => 'PROMO10', 'valor_desconto' => 10]);
 
@@ -180,6 +181,38 @@ class CupomCheckoutTest extends TestCase
             ->assertOk()
             ->assertJsonPath('success', true)
             ->assertJsonPath('desconto', '10,00');
+    }
+
+    public function test_cupom_restrito_so_pode_ser_usado_pelo_usuario_autorizado(): void
+    {
+        $authorized = User::factory()->create();
+        $other = User::factory()->create();
+
+        $authorizedCart = $this->makeCart($authorized, 100.00);
+        $otherCart = $this->makeCart($other, 100.00);
+
+        $this->makeCupom([
+            'codigo' => 'EXCLUSIVO10',
+            'restricted_user_id' => $authorized->id,
+            'tipo' => 'percentual',
+            'valor' => 10,
+        ]);
+
+        $this->actingAs($other)
+            ->postJson(route('cupom.aplicar'), ['codigo' => 'EXCLUSIVO10'])
+            ->assertStatus(422)
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('message', 'Este cupom é exclusivo para o usuário vinculado.');
+
+        $this->assertNull($otherCart->fresh()->cupom_codigo);
+
+        $this->actingAs($authorized)
+            ->postJson(route('cupom.aplicar'), ['codigo' => 'EXCLUSIVO10'])
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('desconto', '10,00');
+
+        $this->assertSame('EXCLUSIVO10', $authorizedCart->fresh()->cupom_codigo);
     }
 
     public function test_link_com_cupom_salva_codigo_pendente_na_sessao(): void

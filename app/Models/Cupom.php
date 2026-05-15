@@ -13,6 +13,7 @@ class Cupom extends Model
     protected $fillable = [
         'codigo',
         'user_id',
+        'restricted_user_id',
         'tipo',
         'valor',
         'valor_minimo_pedido',
@@ -24,11 +25,12 @@ class Cupom extends Model
     ];
 
     protected $casts = [
-        'ativo'                => 'boolean',
-        'valido_ate'           => 'date',
-        'valor'                => 'decimal:2',
-        'valor_minimo_pedido'  => 'decimal:2',
-        'comissao_percentual'  => 'decimal:2',
+        'ativo' => 'boolean',
+        'restricted_user_id' => 'integer',
+        'valido_ate' => 'date',
+        'valor' => 'decimal:2',
+        'valor_minimo_pedido' => 'decimal:2',
+        'comissao_percentual' => 'decimal:2',
     ];
 
     public function setCodigoAttribute(string $value): void
@@ -49,6 +51,20 @@ class Cupom extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function restrictedUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'restricted_user_id');
+    }
+
+    public function isRestrictedToDifferentUser(?int $userId): bool
+    {
+        if ($this->restricted_user_id === null) {
+            return false;
+        }
+
+        return $userId === null || (int) $this->restricted_user_id !== $userId;
     }
 
     /**

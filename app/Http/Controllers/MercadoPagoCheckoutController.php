@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Endereco;
-use App\Models\Pagamento;
 use App\Enums\PedidoStatus;
 use App\Models\Cupom;
 use App\Models\CupomUso;
+use App\Models\Endereco;
+use App\Models\Pagamento;
 use App\Models\Pedido;
 use App\Services\CheckoutOrderService;
 use App\Services\MercadoPagoService;
@@ -24,8 +24,7 @@ class MercadoPagoCheckoutController extends Controller
     public function __construct(
         protected MercadoPagoService $mercadoPagoService,
         protected CheckoutOrderService $checkoutOrderService,
-    ) {
-    }
+    ) {}
 
     public function prepare(Request $request)
     {
@@ -53,7 +52,7 @@ class MercadoPagoCheckoutController extends Controller
 
         $pedido = $this->checkoutOrderService->resolveActiveOrder($request, ['itens.produto', 'endereco'], [PedidoStatus::CARRINHO, PedidoStatus::PENDENTE]);
 
-        if (!$pedido || $pedido->itens->isEmpty()) {
+        if (! $pedido || $pedido->itens->isEmpty()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Seu carrinho está vazio.',
@@ -66,7 +65,7 @@ class MercadoPagoCheckoutController extends Controller
             $validated['frete_tipo']
         );
 
-        if (!$frete) {
+        if (! $frete) {
             return response()->json([
                 'success' => false,
                 'message' => 'Não foi possível calcular o frete selecionado.',
@@ -211,7 +210,7 @@ class MercadoPagoCheckoutController extends Controller
             ->with('pagamentos')
             ->first();
 
-        if (!$pedido || !$this->checkoutOrderService->canAccessOrder($request, $pedido)) {
+        if (! $pedido || ! $this->checkoutOrderService->canAccessOrder($request, $pedido)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Pedido não encontrado.',
@@ -234,7 +233,7 @@ class MercadoPagoCheckoutController extends Controller
             ], 422);
         }
 
-        if (!$pedido->customer_email) {
+        if (! $pedido->customer_email) {
             $pedido->forceFill([
                 'customer_email' => data_get($validated, 'payer.email'),
             ])->save();
@@ -246,7 +245,7 @@ class MercadoPagoCheckoutController extends Controller
             data_set($validated, 'payer.identification.number', $payerDocument);
         }
 
-        if (!data_get($validated, 'payer.identification.type') && data_get($validated, 'payer.identification.number')) {
+        if (! data_get($validated, 'payer.identification.type') && data_get($validated, 'payer.identification.number')) {
             data_set($validated, 'payer.identification.type', 'CPF');
         }
 
@@ -257,9 +256,9 @@ class MercadoPagoCheckoutController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Informe um CPF válido para concluir o pagamento via ' . $paymentMethodLabel . '.',
+                'message' => 'Informe um CPF válido para concluir o pagamento via '.$paymentMethodLabel.'.',
                 'errors' => [
-                    'payer.identification.number' => ['O CPF do pagador é obrigatório para ' . $paymentMethodLabel . '.'],
+                    'payer.identification.number' => ['O CPF do pagador é obrigatório para '.$paymentMethodLabel.'.'],
                 ],
             ], 422);
         }
@@ -271,7 +270,7 @@ class MercadoPagoCheckoutController extends Controller
 
         $payload = [
             'transaction_amount' => (float) $pedido->valor_total,
-            'description' => 'Pedido #' . $pedido->id,
+            'description' => 'Pedido #'.$pedido->id,
             'payment_method_id' => $validated['payment_method_id'],
             'installments' => (int) ($validated['installments'] ?? 1),
             'payer' => $payer,
@@ -283,11 +282,11 @@ class MercadoPagoCheckoutController extends Controller
             $payload['notification_url'] = $notificationUrl;
         }
 
-        if (!empty($validated['token'])) {
+        if (! empty($validated['token'])) {
             $payload['token'] = $validated['token'];
         }
 
-        if (!empty($validated['issuer_id'])) {
+        if (! empty($validated['issuer_id'])) {
             $payload['issuer_id'] = $validated['issuer_id'];
         }
 
@@ -336,7 +335,7 @@ class MercadoPagoCheckoutController extends Controller
 
     public function status(Request $request, Pedido $pedido)
     {
-        if (!$this->checkoutOrderService->canAccessOrder($request, $pedido)) {
+        if (! $this->checkoutOrderService->canAccessOrder($request, $pedido)) {
             abort(403);
         }
 
@@ -361,7 +360,7 @@ class MercadoPagoCheckoutController extends Controller
 
     public function webhook(Request $request)
     {
-        if (!$this->webhookSignatureIsValid($request)) {
+        if (! $this->webhookSignatureIsValid($request)) {
             Log::warning('mercado_pago.webhook.invalid_signature', [
                 'x_signature' => $request->header('x-signature'),
                 'x_request_id' => $request->header('x-request-id'),
@@ -383,7 +382,7 @@ class MercadoPagoCheckoutController extends Controller
         );
         $topic = (string) ($request->query('topic') ?? $request->input('type') ?? $request->input('topic'));
 
-        if ($paymentId === '' || !in_array($topic, ['', 'payment'], true)) {
+        if ($paymentId === '' || ! in_array($topic, ['', 'payment'], true)) {
             return response()->json(['received' => true]);
         }
 
@@ -396,7 +395,7 @@ class MercadoPagoCheckoutController extends Controller
         $externalReference = (string) ($gatewayResponse['external_reference'] ?? '');
         $pedido = Pedido::find($externalReference);
 
-        if (!$pedido) {
+        if (! $pedido) {
             return response()->json(['received' => true]);
         }
 
@@ -458,6 +457,10 @@ class MercadoPagoCheckoutController extends Controller
             return 'Este cupom está expirado.';
         }
 
+        if ($coupon->isRestrictedToDifferentUser($pedido->user_id)) {
+            return 'Este cupom é exclusivo para o usuário vinculado.';
+        }
+
         $alreadyRecordedForOrder = CupomUso::where('cupom_id', $coupon->id)
             ->where('pedido_id', $pedido->id)
             ->exists();
@@ -489,7 +492,7 @@ class MercadoPagoCheckoutController extends Controller
 
         $usage = CupomUso::firstOrCreate(
             ['cupom_id' => $coupon->id, 'pedido_id' => $pedido->id],
-            ['user_id'  => $pedido->user_id]
+            ['user_id' => $pedido->user_id]
         );
 
         if ($usage->wasRecentlyCreated) {
@@ -521,12 +524,12 @@ class MercadoPagoCheckoutController extends Controller
     protected function resolveFrete(Pedido $pedido, string $cep, string $tipo): ?array
     {
         if ($tipo === 'gratis') {
-            if (!config('services.frete_gratis_ativo', false)) {
+            if (! config('services.frete_gratis_ativo', false)) {
                 return null;
             }
 
             $minimoFrete = (float) config('services.frete_gratis_minimo', 0);
-            $subtotal = $pedido->itens->sum(fn($item) => $item->preco * $item->quantidade);
+            $subtotal = $pedido->itens->sum(fn ($item) => $item->preco * $item->quantidade);
 
             if ($minimoFrete > 0 && $subtotal < $minimoFrete) {
                 return null;
@@ -553,7 +556,7 @@ class MercadoPagoCheckoutController extends Controller
 
         $data = $response->getData(true);
 
-        if (!($data['success'] ?? false) || !isset($data['opcoes'][$tipo])) {
+        if (! ($data['success'] ?? false) || ! isset($data['opcoes'][$tipo])) {
             return null;
         }
 
@@ -610,7 +613,7 @@ class MercadoPagoCheckoutController extends Controller
     {
         $authenticatedUser = Auth::user();
 
-        if (!$authenticatedUser || !empty($authenticatedUser->cpf) || empty($cpf)) {
+        if (! $authenticatedUser || ! empty($authenticatedUser->cpf) || empty($cpf)) {
             return;
         }
 
@@ -672,7 +675,7 @@ class MercadoPagoCheckoutController extends Controller
         $document = data_get($validated, 'payer.identification.number')
             ?: Auth::user()?->cpf;
 
-        if (!is_string($document) || $document === '') {
+        if (! is_string($document) || $document === '') {
             return null;
         }
 
@@ -713,11 +716,11 @@ class MercadoPagoCheckoutController extends Controller
 
     protected function isValidHttpsUrl(mixed $value): bool
     {
-        if (!is_string($value) || $value === '') {
+        if (! is_string($value) || $value === '') {
             return false;
         }
 
-        if (!filter_var($value, FILTER_VALIDATE_URL)) {
+        if (! filter_var($value, FILTER_VALIDATE_URL)) {
             return false;
         }
 
@@ -767,7 +770,7 @@ class MercadoPagoCheckoutController extends Controller
 
     protected function parseWebhookSignatureHeader(?string $header): array
     {
-        if (!is_string($header) || trim($header) === '') {
+        if (! is_string($header) || trim($header) === '') {
             return [];
         }
 
