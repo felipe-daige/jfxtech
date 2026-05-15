@@ -684,4 +684,63 @@
     });
 })();
 </script>
+
+{{-- Configurações da Loja --}}
+<div class="border border-[var(--color-lab-border)] bg-white">
+    <div class="flex items-center justify-between gap-3 px-4 sm:px-6 py-4 border-b border-[var(--color-lab-border)]">
+        <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Configurações da Loja</p>
+    </div>
+    <div class="p-4 sm:p-6">
+        <form id="form-config-pix" class="flex items-end gap-4 max-w-xs">
+            @csrf
+            <div class="flex-1">
+                <label class="block font-mono text-[10px] uppercase tracking-widest text-gray-400 mb-2">Desconto PIX Global (%)</label>
+                <input type="number"
+                       name="desconto_pix_global"
+                       id="desconto_pix_global"
+                       value="{{ number_format($desconto_pix_global, 2, '.', '') }}"
+                       min="0" max="100" step="0.01"
+                       class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black">
+                <p class="font-mono text-[10px] text-gray-400 mt-1">Aplica a todos os produtos sem override individual</p>
+            </div>
+            <button type="submit"
+                    class="px-5 py-3 bg-black text-white font-mono text-[10px] uppercase tracking-widest hover:bg-gray-800 transition-colors whitespace-nowrap">
+                SALVAR
+            </button>
+        </form>
+        <p id="config-pix-feedback" class="font-mono text-xs mt-3 hidden"></p>
+    </div>
+</div>
+
+<script>
+document.getElementById('form-config-pix').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const feedback = document.getElementById('config-pix-feedback');
+    fetch('{{ route("admin.configuracoes.update") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+            desconto_pix_global: document.getElementById('desconto_pix_global').value
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            feedback.textContent = 'Salvo! Desconto PIX global: ' + data.desconto_pix_global + '%';
+            feedback.className = 'font-mono text-xs mt-3 text-green-600';
+        } else {
+            feedback.textContent = 'Erro ao salvar.';
+            feedback.className = 'font-mono text-xs mt-3 text-red-600';
+        }
+    })
+    .catch(() => {
+        feedback.textContent = 'Erro de conexão.';
+        feedback.className = 'font-mono text-xs mt-3 text-red-600';
+    });
+});
+</script>
 @endsection
