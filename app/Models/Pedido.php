@@ -20,6 +20,7 @@ class Pedido extends Model
         'valor_total',
         'frete_tipo',
         'frete_valor',
+        'frete_custo_real',
         'cupom_codigo',
         'valor_desconto',
         'customer_name',
@@ -34,6 +35,7 @@ class Pedido extends Model
     protected $casts = [
         'valor_total' => 'decimal:2',
         'frete_valor' => 'decimal:2',
+        'frete_custo_real' => 'decimal:2',
         'valor_desconto' => 'decimal:2',
     ];
 
@@ -101,5 +103,17 @@ class Pedido extends Model
     public function getPendenteAttribute(): bool
     {
         return $this->status === PedidoStatus::PENDENTE;
+    }
+
+    /**
+     * Accessor para o resultado de frete (frete cobrado - frete real pago)
+     */
+    public function getResultadoFreteAttribute(): ?float
+    {
+        if ($this->frete_custo_real === null) {
+            return null;
+        }
+
+        return (float) $this->frete_valor - (float) $this->frete_custo_real;
     }
 }

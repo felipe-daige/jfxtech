@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\FreteEstimativaService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,6 +25,9 @@ class Produto extends Model
         'custo_compra',
         'frete_compra',
         'peso',
+        'comprimento',
+        'largura',
+        'altura',
         'preco_original',
         'desconto_percentual',
         'em_promocao',
@@ -48,6 +52,9 @@ class Produto extends Model
         'ativo' => 'boolean',
         'tags' => 'array',
         'specs' => 'array',
+        'comprimento' => 'decimal:2',
+        'largura' => 'decimal:2',
+        'altura' => 'decimal:2',
     ];
 
     /**
@@ -192,13 +199,38 @@ class Produto extends Model
         return round((($precoEfetivo - $this->custo_efetivo) / $precoEfetivo) * 100, 2);
     }
 
+    public function getPesoDimensionalAttribute(): ?float
+    {
+        if (!$this->comprimento || !$this->largura || !$this->altura) return null;
+        return round(($this->comprimento * $this->largura * $this->altura) / 6000, 3);
+    }
+
+    public function getPesoCobrancaAttribute(): ?float
+    {
+        $pesoDimensional = $this->peso_dimensional;
+        if ($pesoDimensional === null) return $this->peso ? (float) $this->peso : null;
+        return max((float) $this->peso, $pesoDimensional);
+    }
+
+    public function getFreteEstimadoEntregaAttribute(): ?float
+    {
+        $pesoCobranca = $this->peso_cobranca;
+        if (!$pesoCobranca) return null;
+        return app(FreteEstimativaService::class)->calcularPiorCasoPAC($pesoCobranca);
+    }
+
     public function getCustoEfetivoAttribute(): ?float
     {
         if ($this->custo_compra === null) {
             return null;
         }
 
-        return round((float) $this->custo_compra + (float) ($this->frete_compra ?? 0), 2);
+        return round(
+            (float) $this->custo_compra
+            + (float) ($this->frete_compra ?? 0)
+            + (float) ($this->frete_estimado_entrega ?? 0),
+            2
+        );
     }
 
     /**

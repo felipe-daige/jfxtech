@@ -38,6 +38,12 @@ return [
     'frete_gratis_ativo' => env('FRETE_GRATIS_ATIVO', false),
     'frete_gratis_minimo' => env('FRETE_GRATIS_MINIMO', 0),
 
+    'melhor_envio' => [
+        'token'    => env('MELHOR_ENVIO_TOKEN'),
+        'app_name' => env('MELHOR_ENVIO_APP_NAME', 'JFXTech'),
+        'timeout'  => env('MELHOR_ENVIO_TIMEOUT', 5),
+    ],
+
     'mercadopago' => [
         'public_key' => env('MERCADO_PAGO_PUBLIC_KEY'),
         'access_token' => env('MERCADO_PAGO_ACCESS_TOKEN'),

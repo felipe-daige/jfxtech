@@ -170,6 +170,25 @@
                         <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Frete / desconto</p>
                         <p class="mt-2 font-mono text-lg font-bold text-black">R$ {{ number_format($summary['frete'], 2, ',', '.') }}</p>
                         <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">Desconto: R$ {{ number_format($summary['desconto'], 2, ',', '.') }}</p>
+                        @if($pedido->frete_custo_real !== null)
+                        <div class="mt-2 pt-2 border-t border-[var(--color-lab-border)] space-y-1">
+                            <div class="flex justify-between font-mono text-xs">
+                                <span class="text-gray-500">Frete cobrado</span>
+                                <span>R$ {{ number_format($pedido->frete_valor, 2, ',', '.') }}</span>
+                            </div>
+                            <div class="flex justify-between font-mono text-xs">
+                                <span class="text-gray-500">Frete real pago</span>
+                                <span>R$ {{ number_format($pedido->frete_custo_real, 2, ',', '.') }}</span>
+                            </div>
+                            <div class="flex justify-between font-mono text-xs font-bold border-t border-[var(--color-lab-border)] pt-1">
+                                <span>Resultado frete</span>
+                                @php $resultado = $pedido->resultado_frete; @endphp
+                                <span class="{{ $resultado >= 0 ? 'text-black' : 'text-red-600' }}">
+                                    {{ $resultado >= 0 ? '+' : '' }}R$ {{ number_format($resultado, 2, ',', '.') }}
+                                </span>
+                            </div>
+                        </div>
+                        @endif
                     </div>
                 </div>
 
@@ -641,6 +660,17 @@
                             class="font-mono text-[10px] uppercase tracking-widest px-3 py-2 border border-black text-black hover:bg-black hover:text-white transition-colors whitespace-nowrap">
                         Salvar
                     </button>
+                </div>
+                <div class="mt-3">
+                    <label class="block font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-1">Custo real do frete (R$)</label>
+                    <input type="number"
+                           step="0.01"
+                           min="0"
+                           id="frete-custo-real-input-{{ $pedido->id }}"
+                           name="frete_custo_real"
+                           value="{{ $pedido->frete_custo_real }}"
+                           placeholder="0,00"
+                           class="w-full font-mono text-sm px-3 py-2 border border-[var(--color-lab-border)] bg-white focus:outline-none focus:border-black transition-colors">
                 </div>
                 <p id="rastreio-feedback-{{ $pedido->id }}" class="font-mono text-[10px] text-green-700 mt-1 hidden">Salvo!</p>
                 @if($pedido->codigo_rastreio)

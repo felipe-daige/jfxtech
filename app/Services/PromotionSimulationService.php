@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\PedidoStatus;
 use App\Models\ItemPedido;
 use App\Models\Produto;
+use App\Services\FreteEstimativaService;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 
@@ -33,6 +34,7 @@ class PromotionSimulationService
                 'preco_original',
                 'custo_compra',
                 'frete_compra',
+                'peso',
                 'desconto_percentual',
                 'em_promocao',
                 'ativo',
@@ -47,7 +49,7 @@ class PromotionSimulationService
 
         $items = ItemPedido::query()
             ->with([
-                'produto:id,nome,marca,preco,preco_original,custo_compra,frete_compra,desconto_percentual,em_promocao,ativo',
+                'produto:id,nome,marca,preco,preco_original,custo_compra,frete_compra,peso,desconto_percentual,em_promocao,ativo',
                 'produtoVariante:id,produto_id,custo_compra,frete_compra',
             ])
             ->whereIn('produto_id', $resolvedIds)
@@ -303,7 +305,11 @@ class PromotionSimulationService
                 ? (float) $item->produtoVariante->frete_compra
                 : (float) ($item->produto?->frete_compra ?? 0);
 
-            return round($custoCompra + $freteCompra, 2);
+            $freteEntrega = $item->produto?->peso
+                ? app(FreteEstimativaService::class)->calcularPiorCasoPAC((float) $item->produto->peso)
+                : 0.0;
+
+            return round($custoCompra + $freteCompra + $freteEntrega, 2);
         }
 
         return $item->produto?->custo_efetivo;

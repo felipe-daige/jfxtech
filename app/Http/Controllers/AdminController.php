@@ -15,6 +15,8 @@ use App\Models\ProdutoFornecedorOferta;
 use App\Models\ProdutoImagem;
 use App\Models\ProdutoVariante;
 use App\Services\CouponPartnerProgressService;
+use App\Services\FreteEstimativaService;
+use App\Services\FreteRateioService;
 use App\Services\PromotionSimulationService;
 use App\Support\ProdutoDescricaoFormatter;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -352,6 +354,9 @@ class AdminController extends Controller
             'custo_compra' => $produto->custo_compra !== null ? number_format($produto->custo_compra, 2, ',', '.') : '',
             'frete_compra' => $produto->frete_compra !== null ? number_format($produto->frete_compra, 2, ',', '.') : '',
             'peso' => $produto->peso ? number_format($produto->peso, 3, ',', '.') : '',
+            'comprimento' => $produto->comprimento ? number_format($produto->comprimento, 2, '.', '') : '',
+            'largura' => $produto->largura ? number_format($produto->largura, 2, '.', '') : '',
+            'altura' => $produto->altura ? number_format($produto->altura, 2, '.', '') : '',
             'desconto_percentual' => $produto->desconto_percentual,
             'em_promocao' => $produto->em_promocao,
             'destaque' => $produto->destaque,
@@ -383,6 +388,9 @@ class AdminController extends Controller
             'custo_compra' => 'nullable|string',
             'frete_compra' => 'nullable|string',
             'peso' => 'nullable|numeric|min:0',
+            'comprimento' => 'nullable|numeric|min:0',
+            'largura' => 'nullable|numeric|min:0',
+            'altura' => 'nullable|numeric|min:0',
             'estoque' => 'required|integer|min:0',
             'categoria_id' => 'required|exists:categorias,id',
             'em_promocao' => 'nullable|boolean',
@@ -448,6 +456,9 @@ class AdminController extends Controller
             'custo_compra' => $request->filled('custo_compra') ? $custoCompra : null,
             'frete_compra' => $request->filled('frete_compra') ? $freteCompra : null,
             'peso' => $request->peso, // Peso em KG
+            'comprimento' => $request->comprimento,
+            'largura' => $request->largura,
+            'altura' => $request->altura,
             'preco_original' => $emPromocao ? $preco : null, // Preço original (sem desconto)
             'desconto_percentual' => $descontoPercentual,
             'em_promocao' => $emPromocao,
@@ -490,6 +501,9 @@ class AdminController extends Controller
             'custo_compra' => 'nullable|string',
             'frete_compra' => 'nullable|string',
             'peso' => 'nullable|numeric|min:0',
+            'comprimento' => 'nullable|numeric|min:0',
+            'largura' => 'nullable|numeric|min:0',
+            'altura' => 'nullable|numeric|min:0',
             'estoque' => 'required|integer|min:0',
             'categoria_id' => 'required|exists:categorias,id',
             'em_promocao' => 'nullable|boolean',
@@ -556,6 +570,9 @@ class AdminController extends Controller
             'custo_compra' => $request->filled('custo_compra') ? $custoCompra : null,
             'frete_compra' => $request->filled('frete_compra') ? $freteCompra : null,
             'peso' => $request->peso, // Peso em KG
+            'comprimento' => $request->comprimento,
+            'largura' => $request->largura,
+            'altura' => $request->altura,
             'preco_original' => $emPromocao ? $preco : null, // Preço original (sem desconto)
             'desconto_percentual' => $descontoPercentual,
             'em_promocao' => $emPromocao,
@@ -890,7 +907,7 @@ class AdminController extends Controller
         }
 
         $pedido = Pedido::with([
-            'itens.produto:id,nome,custo_compra,frete_compra',
+            'itens.produto:id,nome,custo_compra,frete_compra,peso',
             'itens.produtoVariante:id,produto_id,custo_compra,frete_compra',
         ])->findOrFail($id);
 
@@ -1813,10 +1830,50 @@ class AdminController extends Controller
                 ? (float) $item->produtoVariante->frete_compra
                 : (float) ($item->produto?->frete_compra ?? 0);
 
-            return round($custoCompra + $freteCompra, 2);
+            $freteEntrega = $item->produto?->peso
+                ? app(FreteEstimativaService::class)->calcularPiorCasoPAC((float) $item->produto->peso)
+                : 0.0;
+
+            return round($custoCompra + $freteCompra + $freteEntrega, 2);
         }
 
         return $item->produto?->custo_efetivo;
+    }
+
+    /**
+     * Retorna o custo de aquisição puro (custo_compra + frete_compra),
+     * SEM o frete estimado de entrega. Usado em conjunto com o rateio de
+     * frete por pedido para evitar multiplicar o custo de envio por item.
+     *
+     * Retorna null quando custo_compra não está cadastrado.
+     */
+    private function resolveItemAcquisitionCost(ItemPedido $item): ?float
+    {
+        if ($item->produtoVariante) {
+            $custoCompra = $item->produtoVariante->custo_compra !== null
+                ? (float) $item->produtoVariante->custo_compra
+                : ($item->produto?->custo_compra !== null ? (float) $item->produto->custo_compra : null);
+
+            if ($custoCompra === null) {
+                return null;
+            }
+
+            $freteCompra = $item->produtoVariante->frete_compra !== null
+                ? (float) $item->produtoVariante->frete_compra
+                : (float) ($item->produto?->frete_compra ?? 0);
+
+            return round($custoCompra + $freteCompra, 2);
+        }
+
+        // Produto sem variante: custo_compra + frete_compra (sem frete de entrega)
+        if ($item->produto?->custo_compra === null) {
+            return null;
+        }
+
+        return round(
+            (float) $item->produto->custo_compra + (float) ($item->produto->frete_compra ?? 0),
+            2
+        );
     }
 
     private function resolveItemCostSource(ItemPedido $item): string
@@ -1995,7 +2052,7 @@ class AdminController extends Controller
         $items = ItemPedido::query()
             ->with([
                 'pedido:id,status,created_at,updated_at',
-                'produto:id,nome,slug,custo_compra,frete_compra',
+                'produto:id,nome,slug,custo_compra,frete_compra,peso',
                 'produtoVariante:id,produto_id,valores,custo_compra,frete_compra',
             ])
             ->whereNotNull('custo_unitario_declarado')
@@ -2171,7 +2228,7 @@ class AdminController extends Controller
         $itensQuery = ItemPedido::query()
             ->with([
                 'pedido:id,status,created_at,valor_total,frete_valor,valor_desconto,cupom_codigo',
-                'produto:id,custo_compra,frete_compra',
+                'produto:id,custo_compra,frete_compra,peso',
                 'produtoVariante:id,produto_id,custo_compra,frete_compra',
             ])
             ->where('produto_id', $produto->id)
@@ -2265,7 +2322,7 @@ class AdminController extends Controller
         $itens = ItemPedido::query()
             ->with([
                 'pedido:id,status,created_at,valor_total,frete_valor,valor_desconto,cupom_codigo',
-                'produto:id,custo_compra,frete_compra',
+                'produto:id,custo_compra,frete_compra,peso',
                 'produtoVariante:id,produto_id,custo_compra,frete_compra',
             ])
             ->where('produto_id', $produto->id)
@@ -2344,7 +2401,7 @@ class AdminController extends Controller
         $estornos_total = $performanceRevenueSummary['estornos_total'];
 
         $itensPerformance = ItemPedido::with([
-            'produto:id,custo_compra,frete_compra',
+            'produto:id,custo_compra,frete_compra,peso',
             'produtoVariante:id,produto_id,custo_compra,frete_compra',
         ])
             ->where(fn ($query) => $this->applyActiveItemFilter($query))
@@ -2369,6 +2426,13 @@ class AdminController extends Controller
         $lucro_bruto_total = $receita_total - $custo_total;
         $custos_operacionais_total = (float) CustoOperacional::sum('valor');
         $lucro_liquido_total = round($lucro_bruto_total - $custos_operacionais_total, 2);
+
+        $frete_cobrado_total = (float) Pedido::whereIn('status', $performanceStatuses)->sum('frete_valor');
+        $frete_custo_real_total = (float) Pedido::whereIn('status', $performanceStatuses)->whereNotNull('frete_custo_real')->sum('frete_custo_real');
+        $frete_pedidos_com_custo_real = Pedido::whereIn('status', $performanceStatuses)->whereNotNull('frete_custo_real')->count();
+        $frete_resultado_total = $frete_pedidos_com_custo_real > 0
+            ? round($frete_cobrado_total - $frete_custo_real_total, 2)
+            : null;
         $margem_bruta_percentual = $receita_total > 0
             ? round(($lucro_bruto_total / $receita_total) * 100, 2)
             : 0;
@@ -2556,7 +2620,11 @@ class AdminController extends Controller
             'sla_enviado_sem_entregar',
             'custos_operacionais',
             'custo_operacional_tipos',
-            'cost_comparison'
+            'cost_comparison',
+            'frete_cobrado_total',
+            'frete_custo_real_total',
+            'frete_resultado_total',
+            'frete_pedidos_com_custo_real'
         );
     }
 
@@ -2711,14 +2779,32 @@ class AdminController extends Controller
         $partnerCommission = $this->resolvePartnerCommissionContext($pedido);
         $revenueContext = $this->buildOrderRevenueContext($pedido);
 
-        $items = $pedido->itens->map(function (ItemPedido $item) use ($revenueContext) {
+        // Calcula rateio de frete por item com base no peso proporcional do pedido.
+        // Substitui o frete_estimado_entrega individual por um valor rateado do custo
+        // total de envio, evitando multiplicar o frete por cada item do pedido.
+        $rateioFrete = app(FreteRateioService::class)->calcularRateio($pedido->itens);
+
+        $items = $pedido->itens->map(function (ItemPedido $item) use ($revenueContext, $rateioFrete) {
             $isCanceled = $this->itemIsCanceled($item);
             $receitaOriginal = round((float) $item->preco * (int) $item->quantidade, 2);
             $receitaLiquidaOriginal = $revenueContext['item_net_revenues'][$item->id] ?? $receitaOriginal;
             $descontoRateado = $revenueContext['item_discounts'][$item->id] ?? 0.0;
             $estorno = $revenueContext['item_refunds'][$item->id] ?? 0.0;
             $receita = $isCanceled ? 0.0 : $receitaLiquidaOriginal;
-            $custoUnitario = $isCanceled ? null : $this->resolveItemCost($item);
+
+            // Custo com frete rateado proporcionalmente pelo peso do pedido.
+            // Se o rateio não está disponível (sem peso cadastrado), cai de volta
+            // para resolveItemCost que usa o frete estimado individual do produto.
+            if ($isCanceled) {
+                $custoUnitario = null;
+            } elseif (array_key_exists($item->id, $rateioFrete)) {
+                $custoAquisicao = $this->resolveItemAcquisitionCost($item);
+                $custoUnitario = $custoAquisicao !== null
+                    ? round($custoAquisicao + $rateioFrete[$item->id], 2)
+                    : null;
+            } else {
+                $custoUnitario = $this->resolveItemCost($item);
+            }
             $custoTotal = $custoUnitario !== null ? round($custoUnitario * (int) $item->quantidade, 2) : null;
             $lucroUnitario = $custoUnitario !== null ? round((float) $item->preco - $custoUnitario, 2) : null;
             $lucroTotal = $custoTotal !== null ? round($receita - $custoTotal, 2) : null;
@@ -3015,9 +3101,13 @@ class AdminController extends Controller
 
         $validated = $request->validate([
             'codigo_rastreio' => 'nullable|string|max:50',
+            'frete_custo_real' => 'nullable|numeric|min:0',
         ]);
 
-        $pedido->update(['codigo_rastreio' => $validated['codigo_rastreio']]);
+        $pedido->update([
+            'codigo_rastreio' => $validated['codigo_rastreio'],
+            'frete_custo_real' => $validated['frete_custo_real'] ?? null,
+        ]);
 
         return response()->json(['success' => true]);
     }

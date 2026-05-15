@@ -155,6 +155,31 @@
                         </div>
                     </div>
 
+                    <!-- Secao de Peso e Dimensoes -->
+                    <div>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <div>
+                                <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Peso Real (kg)</label>
+                                <input type="number" step="0.001" name="peso" id="peso" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black" placeholder="0.000">
+                            </div>
+                            <div>
+                                <label class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] block mb-2">Dimensões da Embalagem (cm)</label>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div>
+                                        <input type="number" step="0.01" name="comprimento" id="comprimento" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black" placeholder="C">
+                                    </div>
+                                    <div>
+                                        <input type="number" step="0.01" name="largura" id="largura" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black" placeholder="L">
+                                    </div>
+                                    <div>
+                                        <input type="number" step="0.01" name="altura" id="altura" class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black" placeholder="A">
+                                    </div>
+                                </div>
+                                <p class="text-[10px] text-gray-400 mt-1 font-mono">Peso dimensional = C×L×A / 6000. Se maior que o peso real, os Correios cobram pelo dimensional.</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Secao de Promocao -->
                     <div>
                         <div class="flex items-center mb-4">

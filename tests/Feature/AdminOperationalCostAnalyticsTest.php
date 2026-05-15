@@ -58,7 +58,7 @@ class AdminOperationalCostAnalyticsTest extends TestCase
     public function test_dashboard_analytics_subtracts_operational_costs_from_net_profit(): void
     {
         $admin = User::factory()->create(['admin' => true]);
-        $produto = Produto::factory()->create(['custo_compra' => 100.00]);
+        $produto = Produto::factory()->create(['custo_compra' => 100.00, 'peso' => null]);
         $pedido = Pedido::create([
             'user_id' => $admin->id,
             'status' => 'entregue',
@@ -92,8 +92,8 @@ class AdminOperationalCostAnalyticsTest extends TestCase
     public function test_dashboard_analytics_compares_real_costs_and_counts_canceled_items_as_refunds(): void
     {
         $admin = User::factory()->create(['admin' => true]);
-        $produtoConfirmado = Produto::factory()->create(['nome' => 'Produto confirmado', 'custo_compra' => 80.00]);
-        $produtoCancelado = Produto::factory()->create(['nome' => 'Produto estornado', 'custo_compra' => 120.00]);
+        $produtoConfirmado = Produto::factory()->create(['nome' => 'Produto confirmado', 'custo_compra' => 80.00, 'peso' => null]);
+        $produtoCancelado = Produto::factory()->create(['nome' => 'Produto estornado', 'custo_compra' => 120.00, 'peso' => null]);
         $pedido = Pedido::create([
             'user_id' => $admin->id,
             'status' => 'processando',

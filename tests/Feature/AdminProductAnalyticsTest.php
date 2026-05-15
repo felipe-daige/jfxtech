@@ -57,6 +57,7 @@ class AdminProductAnalyticsTest extends TestCase
             'preco' => 120.00,
             'custo_compra' => 60.00,
             'ativo' => true,
+            'peso' => null,
         ]);
 
         $this->createOrderWithItem($admin, $produto, 2, 100.00, 'entregue', now()->subDays(10));
@@ -112,6 +113,7 @@ class AdminProductAnalyticsTest extends TestCase
         $produto = Produto::factory()->create([
             'nome' => 'Mouse com Cupom',
             'custo_compra' => 50.00,
+            'peso' => null,
         ]);
 
         $this->createOrderWithItem($admin, $produto, 1, 100.00, 'entregue', now()->subDays(5), 'ALPHA10');
@@ -158,6 +160,7 @@ class AdminProductAnalyticsTest extends TestCase
             'nome' => 'Produto com Custo Real',
             'preco' => 120.00,
             'custo_compra' => 60.00,
+            'peso' => null,
         ]);
 
         $pedido = Pedido::create([

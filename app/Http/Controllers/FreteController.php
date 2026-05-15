@@ -4,93 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Models\Pedido;
 use App\Services\CheckoutOrderService;
+use App\Services\FreteEstimativaService;
+use App\Services\MelhorEnvioService;
 use Illuminate\Http\Request;
 
 class FreteController extends Controller
 {
+    private string $cepOrigem = '86010000';
+
     public function __construct(
-        protected CheckoutOrderService $checkoutOrderService
+        protected CheckoutOrderService $checkoutOrderService,
+        protected FreteEstimativaService $freteEstimativaService,
+        protected MelhorEnvioService $melhorEnvioService,
     ) {
     }
-
-    /**
-     * Tabela de frete manual baseada em região e peso
-     */
-    private $tabelaFrete = [
-        'pac' => [
-            'pr_londrina' => [
-                '0-0.5' => 14.50,
-                '0.5-1' => 18.00,
-                '1-2' => 22.00,
-                '2-3' => 30.00,
-                '3-5' => 40.00,
-                '5-10' => 60.00
-            ],
-            'sp' => [
-                '0-0.5' => 17.00,
-                '0.5-1' => 21.00,
-                '1-2' => 25.00,
-                '2-3' => 34.00,
-                '3-5' => 45.00,
-                '5-10' => 65.00
-            ],
-            'rj' => [
-                '0-0.5' => 20.00,
-                '0.5-1' => 24.00,
-                '1-2' => 29.00,
-                '2-3' => 39.00,
-                '3-5' => 50.00,
-                '5-10' => 70.00
-            ],
-            'outras_regioes' => [
-                '0-0.5' => 23.00,
-                '0.5-1' => 28.00,
-                '1-2' => 33.00,
-                '2-3' => 44.00,
-                '3-5' => 55.00,
-                '5-10' => 75.00
-            ]
-        ],
-        'sedex' => [
-            'pr_londrina' => [
-                '0-0.5' => 22.00,
-                '0.5-1' => 27.00,
-                '1-2' => 32.00,
-                '2-3' => 42.00,
-                '3-5' => 55.00,
-                '5-10' => 80.00
-            ],
-            'sp' => [
-                '0-0.5' => 25.00,
-                '0.5-1' => 30.00,
-                '1-2' => 36.00,
-                '2-3' => 46.00,
-                '3-5' => 60.00,
-                '5-10' => 85.00
-            ],
-            'rj' => [
-                '0-0.5' => 28.00,
-                '0.5-1' => 34.00,
-                '1-2' => 40.00,
-                '2-3' => 51.00,
-                '3-5' => 65.00,
-                '5-10' => 90.00
-            ],
-            'outras_regioes' => [
-                '0-0.5' => 32.00,
-                '0.5-1' => 38.00,
-                '1-2' => 45.00,
-                '2-3' => 57.00,
-                '3-5' => 70.00,
-                '5-10' => 95.00
-            ]
-        ]
-    ];
-
-    /**
-     * CEP de origem da loja (Londrina - PR)
-     */
-    private $cepOrigem = '86010000';
 
     /**
      * Calcular frete baseado no CEP de destino e peso
@@ -103,90 +30,46 @@ class FreteController extends Controller
         ]);
 
         $cepDestino = $request->cep_destino;
-        $pesoTotal = $request->peso_total;
+        $pesoTotal  = (float) $request->peso_total;
 
-        // Determinar região de destino
-        $regiao = $this->determinarRegiao($cepDestino);
-        
-        // Determinar faixa de peso
-        $faixaPeso = $this->determinarFaixaPeso($pesoTotal);
+        // Tentar cotação via API Melhor Envio
+        $apiResultado = $this->melhorEnvioService->calcular($pesoTotal, $cepDestino);
+        $source       = $apiResultado !== null ? 'api' : 'tabela';
 
-        // Calcular valores para PAC e SEDEX
+        // Fallback para tabela estática quando a API não está disponível
+        $regiao = $this->freteEstimativaService->determinarRegiao($cepDestino);
+
         $valores = [
-            'pac' => [
-                'nome' => 'PAC',
+            'pac' => $apiResultado['pac'] ?? [
+                'nome'      => 'PAC',
                 'descricao' => 'Entrega em 4 a 7 dias úteis',
-                'valor' => $this->tabelaFrete['pac'][$regiao][$faixaPeso],
-                'prazo' => '4-7 dias úteis'
+                'valor'     => $this->freteEstimativaService->calcularPorRegiao($pesoTotal, $regiao, 'pac'),
+                'prazo'     => '4-7 dias úteis',
             ],
-            'sedex' => [
-                'nome' => 'SEDEX',
-                'descricao' => 'Entrega em 4 a 7 dias úteis',
-                'valor' => $this->tabelaFrete['sedex'][$regiao][$faixaPeso],
-                'prazo' => '4-7 dias úteis'
+            'sedex' => $apiResultado['sedex'] ?? [
+                'nome'      => 'SEDEX',
+                'descricao' => 'Entrega em 1 a 3 dias úteis',
+                'valor'     => $this->freteEstimativaService->calcularPorRegiao($pesoTotal, $regiao, 'sedex'),
+                'prazo'     => '1-3 dias úteis',
             ],
             'retirada' => [
-                'nome' => 'Retirada na Loja',
+                'nome'      => 'Retirada na Loja',
                 'descricao' => 'Retire seu pedido em nossa loja em Londrina, PR',
-                'valor' => 0.00,
-                'prazo' => 'Combinado'
-            ]
+                'valor'     => 0.00,
+                'prazo'     => 'Combinado',
+            ],
         ];
 
         return response()->json([
-            'success' => true,
-            'cep_origem' => $this->cepOrigem,
+            'success'     => true,
+            'cep_origem'  => $this->cepOrigem,
             'cep_destino' => $cepDestino,
-            'peso_total' => $pesoTotal,
-            'regiao' => $regiao,
-            'faixa_peso' => $faixaPeso,
-            'opcoes' => $valores
+            'peso_total'  => $pesoTotal,
+            'regiao'      => $regiao,
+            'faixa_peso'  => $this->freteEstimativaService->determinarFaixaPeso($pesoTotal),
+            'source'      => $source,
+            'opcoes'      => $valores,
         ]);
-    }
-
-    /**
-     * Determinar região baseada no CEP
-     */
-    private function determinarRegiao($cep)
-    {
-        $prefixo = (int) substr($cep, 0, 2);
-
-        // PR — CEPs 80000-87999 (todo o estado do Paraná)
-        if ($prefixo >= 80 && $prefixo <= 87) {
-            return 'pr_londrina';
-        }
-
-        // SP — CEPs 01000-19999 (capital + interior de SP)
-        if ($prefixo >= 1 && $prefixo <= 19) {
-            return 'sp';
-        }
-
-        // RJ — CEPs 20000-28999
-        if ($prefixo >= 20 && $prefixo <= 28) {
-            return 'rj';
-        }
-
-        return 'outras_regioes';
-    }
-
-    /**
-     * Determinar faixa de peso
-     */
-    private function determinarFaixaPeso($peso)
-    {
-        if ($peso <= 0.5) {
-            return '0-0.5';
-        } elseif ($peso <= 1) {
-            return '0.5-1';
-        } elseif ($peso <= 2) {
-            return '1-2';
-        } elseif ($peso <= 3) {
-            return '2-3';
-        } elseif ($peso <= 5) {
-            return '3-5';
-        } else {
-            return '5-10';
-        }
     }
 
     /**

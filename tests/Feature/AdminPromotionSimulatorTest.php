@@ -46,11 +46,13 @@ class AdminPromotionSimulatorTest extends TestCase
             'nome' => 'Produto A',
             'preco' => 120.00,
             'custo_compra' => 80.00,
+            'peso' => null,
         ]);
         $produtoB = Produto::factory()->create([
             'nome' => 'Produto B',
             'preco' => 90.00,
             'custo_compra' => 50.00,
+            'peso' => null,
         ]);
 
         $pedido = $this->createPedido($user, 330.00, now()->subDays(5));
@@ -100,11 +102,13 @@ class AdminPromotionSimulatorTest extends TestCase
             'nome' => 'Produto Histórico',
             'preco' => 100.00,
             'custo_compra' => 60.00,
+            'peso' => null,
         ]);
         $produtoSemCusto = Produto::factory()->create([
             'nome' => 'Produto Sem Custo',
             'preco' => 70.00,
             'custo_compra' => null,
+            'peso' => null,
         ]);
 
         $pedido = $this->createPedido($user, 100.00, now()->subDays(3));
@@ -143,6 +147,7 @@ class AdminPromotionSimulatorTest extends TestCase
             'nome' => 'Produto Variante',
             'preco' => 150.00,
             'custo_compra' => 100.00,
+            'peso' => null,
         ]);
         $variante = ProdutoVariante::factory()->create([
             'produto_id' => $produto->id,

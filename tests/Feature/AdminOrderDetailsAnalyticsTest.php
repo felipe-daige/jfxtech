@@ -33,6 +33,7 @@ class AdminOrderDetailsAnalyticsTest extends TestCase
             'nome' => 'Mouse Competition',
             'preco' => 250.00,
             'custo_compra' => 180.00,
+            'peso' => null,
         ]);
 
         $variante = ProdutoVariante::factory()->create([
@@ -44,6 +45,7 @@ class AdminOrderDetailsAnalyticsTest extends TestCase
             'nome' => 'Teclado Hall Effect',
             'preco' => 280.00,
             'custo_compra' => 90.00,
+            'peso' => null,
         ]);
 
         ItemPedido::create([
@@ -185,10 +187,12 @@ class AdminOrderDetailsAnalyticsTest extends TestCase
         $mouse = Produto::factory()->create([
             'nome' => 'Mouse Parceiro',
             'custo_compra' => 40.00,
+            'peso' => null,
         ]);
         $teclado = Produto::factory()->create([
             'nome' => 'Teclado Parceiro',
             'custo_compra' => 100.00,
+            'peso' => null,
         ]);
 
         ItemPedido::create([
@@ -235,6 +239,7 @@ class AdminOrderDetailsAnalyticsTest extends TestCase
             'preco' => 100.00,
             'custo_compra' => 40.00,
             'frete_compra' => 5.00,
+            'peso' => null,
         ]);
 
         ItemPedido::create([
@@ -377,6 +382,7 @@ class AdminOrderDetailsAnalyticsTest extends TestCase
         $produto = Produto::factory()->create([
             'nome' => 'Mouse custo comparado',
             'custo_compra' => 80.00,
+            'peso' => null,
         ]);
 
         ItemPedido::create([

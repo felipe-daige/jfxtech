@@ -84,6 +84,7 @@ class AdminOrderPreparationCostTest extends TestCase
         $produto = Produto::factory()->create([
             'custo_compra' => 50.00,
             'frete_compra' => 7.50,
+            'peso' => null,
         ]);
         $item = ItemPedido::create([
             'pedido_id' => $pedido->id,
@@ -197,6 +198,7 @@ class AdminOrderPreparationCostTest extends TestCase
         $produto = Produto::factory()->create([
             'nome' => 'Produto custo real na lista',
             'custo_compra' => 80.00,
+            'peso' => null,
         ]);
 
         ItemPedido::create([
@@ -227,6 +229,7 @@ class AdminOrderPreparationCostTest extends TestCase
         $produto = Produto::factory()->create([
             'nome' => 'Produto com variante',
             'custo_compra' => 80.00,
+            'peso' => null,
         ]);
         $variante = ProdutoVariante::factory()->create([
             'produto_id' => $produto->id,

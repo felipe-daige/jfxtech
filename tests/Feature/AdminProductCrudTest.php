@@ -104,19 +104,33 @@ class AdminProductCrudTest extends TestCase
 
     public function test_product_effective_cost_includes_purchase_freight_only_when_purchase_cost_exists(): void
     {
+        // Without peso, only acquisition costs are included
         $produto = Produto::factory()->create([
             'preco' => 200.00,
             'custo_compra' => 120.00,
             'frete_compra' => 15.50,
+            'peso' => null,
         ]);
 
         $this->assertSame(135.50, $produto->custo_efetivo);
         $this->assertSame(64.50, $produto->lucro_bruto_unitario);
 
+        // With peso, outbound freight estimate (PAC worst case) is also included
+        $produtoComPeso = Produto::factory()->create([
+            'preco' => 200.00,
+            'custo_compra' => 120.00,
+            'frete_compra' => 15.50,
+            'peso' => 0.5, // PAC outras_regioes = R$23.00
+        ]);
+
+        $this->assertSame(158.50, $produtoComPeso->custo_efetivo);
+        $this->assertSame(41.50, $produtoComPeso->lucro_bruto_unitario);
+
         $produtoSemCusto = Produto::factory()->create([
             'preco' => 200.00,
             'custo_compra' => null,
             'frete_compra' => 15.50,
+            'peso' => null,
         ]);
 
         $this->assertNull($produtoSemCusto->custo_efetivo);

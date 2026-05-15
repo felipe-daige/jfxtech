@@ -9,9 +9,11 @@
         ? round($produto->preco * (1 - $produto->desconto_percentual / 100), 2)
         : (float) $produto->preco;
 
-    $custoTotal = (float) ($produto->custo_compra ?? 0) + (float) ($produto->frete_compra ?? 0);
-    $lucro      = $custoTotal > 0 ? $precoVenda - $custoTotal : null;
-    $margem     = ($lucro !== null && $precoVenda > 0) ? ($lucro / $precoVenda * 100) : null;
+    $custoAquisicao    = (float) ($produto->custo_compra ?? 0) + (float) ($produto->frete_compra ?? 0);
+    $freteEntrega      = $produto->peso ? (float) $produto->frete_estimado_entrega : null;
+    $custoTotal        = $custoAquisicao + ($freteEntrega ?? 0);
+    $lucro             = $custoAquisicao > 0 ? $precoVenda - $custoTotal : null;
+    $margem            = ($lucro !== null && $precoVenda > 0) ? ($lucro / $precoVenda * 100) : null;
 
     $imagens = $produto->imagens->sortBy('ordem');
     $capa    = $imagens->firstWhere('capa', true) ?? $imagens->first();
@@ -122,10 +124,18 @@
             <p class="text-xs text-gray-400 mt-0.5">{{ $produto->estoque > 0 ? 'em estoque' : 'esgotado' }}</p>
             @if($produto->peso)
                 <p class="text-xs text-gray-400 mt-2">Peso: {{ number_format($produto->peso, 3, ',', '.') }} kg</p>
+                @if($produto->peso_dimensional)
+                <p class="text-xs text-gray-400 mt-1">
+                    Dimensional: {{ number_format($produto->peso_dimensional, 3, ',', '.') }} kg
+                    @if($produto->peso_cobranca > $produto->peso)
+                        <span class="text-orange-600">(cobra por {{ number_format($produto->peso_cobranca, 3, ',', '.') }} kg)</span>
+                    @endif
+                </p>
+                @endif
             @endif
         </div>
 
-        @if($custoTotal > 0)
+        @if($custoAquisicao > 0 || $freteEntrega !== null)
         <div class="border border-[var(--color-lab-border)] bg-white p-4 font-mono text-xs space-y-1.5">
             <p class="text-[10px] uppercase tracking-widest text-gray-400 mb-3">Financeiro</p>
             <div class="flex justify-between">
@@ -134,8 +144,14 @@
             </div>
             @if($produto->frete_compra)
             <div class="flex justify-between">
-                <span class="text-gray-500">Frete compra</span>
+                <span class="text-gray-500">Frete entrada</span>
                 <span>R$ {{ number_format($produto->frete_compra, 2, ',', '.') }}</span>
+            </div>
+            @endif
+            @if($freteEntrega !== null)
+            <div class="flex justify-between">
+                <span class="text-gray-500">Frete saída <span class="text-[9px] text-gray-400">(est.)</span></span>
+                <span>R$ {{ number_format($freteEntrega, 2, ',', '.') }}</span>
             </div>
             @endif
             <div class="flex justify-between border-t border-[var(--color-lab-border)] pt-1.5 mt-1">
@@ -153,6 +169,9 @@
                     {{ number_format($margem, 1, ',', '.') }}%
                 </span>
             </div>
+            @endif
+            @if($freteEntrega !== null && $custoAquisicao === 0.0)
+            <p class="text-[9px] text-gray-400 mt-2">Cadastre o custo de compra para ver margem.</p>
             @endif
         </div>
         @endif

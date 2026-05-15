@@ -149,6 +149,10 @@ function editarProduto(id) {
             document.getElementById('frete_compra').value = data.frete_compra ? 'R$ ' + data.frete_compra : '';
             document.getElementById('estoque').value = data.estoque;
             document.getElementById('categoria_id').value = data.categoria_id;
+            const pesoEl = document.getElementById('peso'); if (pesoEl) pesoEl.value = data.peso || '';
+            const comprEl = document.getElementById('comprimento'); if (comprEl) comprEl.value = data.comprimento || '';
+            const largEl = document.getElementById('largura'); if (largEl) largEl.value = data.largura || '';
+            const altEl = document.getElementById('altura'); if (altEl) altEl.value = data.altura || '';
 
             // Preencher campos de promoção
             document.getElementById('em_promocao').checked = data.em_promocao;
@@ -2017,14 +2021,21 @@ function collectGruposFromUI() {
 }
 
 window.salvarRastreio = async function(pedidoId) {
-    var input    = document.getElementById('rastreio-input-' + pedidoId);
-    var btn      = document.getElementById('rastreio-btn-' + pedidoId);
-    var feedback = document.getElementById('rastreio-feedback-' + pedidoId);
+    var input         = document.getElementById('rastreio-input-' + pedidoId);
+    var freteInput    = document.getElementById('frete-custo-real-input-' + pedidoId);
+    var btn           = document.getElementById('rastreio-btn-' + pedidoId);
+    var feedback      = document.getElementById('rastreio-feedback-' + pedidoId);
     if (!input || !btn) return;
 
     var originalText = btn.textContent;
     btn.disabled = true;
     btn.textContent = '...';
+
+    var payload = { codigo_rastreio: input.value.trim().toUpperCase() || null };
+    if (freteInput) {
+        var freteVal = freteInput.value.trim();
+        payload.frete_custo_real = freteVal !== '' ? parseFloat(freteVal) : null;
+    }
 
     try {
         var url = resolveAdminRoute(window.routes.adminPedidosRastreio || '', { id: pedidoId });
@@ -2035,7 +2046,7 @@ window.salvarRastreio = async function(pedidoId) {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                 'Accept': 'application/json',
             },
-            body: JSON.stringify({ codigo_rastreio: input.value.trim().toUpperCase() || null }),
+            body: JSON.stringify(payload),
         });
 
         var data = await res.json();
