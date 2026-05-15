@@ -236,13 +236,35 @@
 
                     <!-- Total do Pedido -->
                     <div class="border-t border-gray-200 mt-6 pt-4 space-y-2">
+                        @php
+                            $subtotalItens = $pedido->itens->sum(fn($i) => $i->preco * $i->quantidade);
+                        @endphp
+                        <div class="flex justify-between items-center text-sm text-gray-600">
+                            <span class="font-mono text-xs uppercase tracking-widest text-gray-500">Subtotal:</span>
+                            <span class="font-mono">R$ {{ number_format($subtotalItens, 2, ',', '.') }}</span>
+                        </div>
+                        @if($pedido->frete_tipo)
+                        @php
+                            $freteLabel = match(strtolower($pedido->frete_tipo)) {
+                                'pac' => 'PAC',
+                                'sedex' => 'SEDEX',
+                                'retirada' => 'Retirada',
+                                'gratis' => 'Grátis',
+                                default => strtoupper($pedido->frete_tipo),
+                            };
+                        @endphp
+                        <div class="flex justify-between items-center text-sm text-gray-600">
+                            <span class="font-mono text-xs uppercase tracking-widest text-gray-500">Frete <span class="normal-case font-bold text-gray-700">({{ $freteLabel }})</span>:</span>
+                            <span class="font-mono">{{ $pedido->frete_valor > 0 ? 'R$ ' . number_format($pedido->frete_valor, 2, ',', '.') : 'Grátis' }}</span>
+                        </div>
+                        @endif
                         @if($pedido->cupom_codigo)
                         <div class="flex justify-between items-center text-sm text-green-700">
                             <span>Cupom <span class="font-mono font-bold">{{ $pedido->cupom_codigo }}</span>:</span>
                             <span class="font-mono font-bold">- R$ {{ number_format($pedido->valor_desconto, 2, ',', '.') }}</span>
                         </div>
                         @endif
-                        <div class="flex justify-between items-center">
+                        <div class="flex justify-between items-center border-t border-gray-200 pt-3 mt-1">
                             <span class="text-2xl font-bold text-gray-900">Total do Pedido:</span>
                             <span class="text-3xl font-mono font-bold">R$ {{ number_format($pedido->valor_total, 2, ',', '.') }}</span>
                         </div>

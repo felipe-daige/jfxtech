@@ -23,7 +23,7 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+    <div class="gap-4" style="display:grid;grid-template-columns:repeat(5,1fr)">
         <div class="border border-[var(--color-lab-border)] bg-white p-5">
             <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-2">Base total</p>
             <p class="font-mono text-2xl font-bold text-black">{{ $summary['total'] }}</p>

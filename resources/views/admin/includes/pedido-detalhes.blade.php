@@ -112,8 +112,16 @@
                     </div>
                     <div class="border border-[var(--color-lab-border)] bg-white px-4 py-4">
                         <p class="font-mono text-[9px] uppercase tracking-[0.18em] text-[var(--color-lab-muted)]">Frete</p>
-                        <p class="mt-2 font-mono text-xl font-bold text-black">{{ $shippingLabel }}</p>
-                        <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">Valor: R$ {{ number_format($summary['frete'], 2, ',', '.') }}</p>
+                        <div class="mt-2 flex items-start justify-between gap-2">
+                            <div>
+                                <p class="font-mono text-[9px] uppercase tracking-[0.14em] text-[var(--color-lab-muted)]">Escolhido</p>
+                                <p class="mt-1 font-mono text-lg font-bold text-black">{{ $shippingLabel }}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-mono text-[9px] uppercase tracking-[0.14em] text-[var(--color-lab-muted)]">Estimativa</p>
+                                <p class="mt-1 font-mono text-lg font-bold text-black">R$ {{ number_format($summary['frete'], 2, ',', '.') }}</p>
+                            </div>
+                        </div>
                     </div>
                     <div class="border border-[var(--color-lab-border)] {{ $productMarginTone }} px-4 py-4">
                         <p class="font-mono text-[9px] uppercase tracking-[0.18em]">Margem produtos</p>
@@ -167,9 +175,21 @@
                         <p class="mt-1 font-mono text-[10px]">Lucro líquido real sobre o ticket</p>
                     </div>
                     <div class="border border-[var(--color-lab-border)] bg-white px-4 py-4">
-                        <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Frete / desconto</p>
-                        <p class="mt-2 font-mono text-lg font-bold text-black">R$ {{ number_format($summary['frete'], 2, ',', '.') }}</p>
-                        <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">Desconto: R$ {{ number_format($summary['desconto'], 2, ',', '.') }}</p>
+                        <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Frete</p>
+                        <div class="mt-2 space-y-1.5">
+                            <div class="flex items-center justify-between">
+                                <p class="font-mono text-[10px] text-[var(--color-lab-muted)]">Escolhido</p>
+                                <p class="font-mono text-sm font-bold text-black">{{ $shippingLabel }}</p>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <p class="font-mono text-[10px] text-[var(--color-lab-muted)]">Estimativa</p>
+                                <p class="font-mono text-sm font-bold text-black">R$ {{ number_format($summary['frete'], 2, ',', '.') }}</p>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <p class="font-mono text-[10px] text-[var(--color-lab-muted)]">Desconto</p>
+                                <p class="font-mono text-sm font-bold text-black">R$ {{ number_format($summary['desconto'], 2, ',', '.') }}</p>
+                            </div>
+                        </div>
                         @if($pedido->frete_custo_real !== null)
                         <div class="mt-2 pt-2 border-t border-[var(--color-lab-border)] space-y-1">
                             <div class="flex justify-between font-mono text-xs">
