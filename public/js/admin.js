@@ -91,6 +91,8 @@ function abrirModalProduto() {
     // Limpar campos de promoção
     document.getElementById('em_promocao').checked = false;
     document.getElementById('desconto_percentual').value = '';
+    const descontoPix = document.getElementById('desconto_pix');
+    if (descontoPix) descontoPix.value = '';
     toggleCamposPromocao();
 
     // Reaplicar máscara após reset
@@ -157,6 +159,10 @@ function editarProduto(id) {
             // Preencher campos de promoção
             document.getElementById('em_promocao').checked = data.em_promocao;
             document.getElementById('desconto_percentual').value = data.desconto_percentual || '';
+            const descontoPix = document.getElementById('desconto_pix');
+            if (descontoPix) {
+                descontoPix.value = data.desconto_pix !== null && data.desconto_pix !== undefined ? data.desconto_pix : '';
+            }
 
             // Preencher campo destaque
             document.getElementById('destaque').checked = data.destaque;

@@ -197,6 +197,17 @@
                             </div>
                         </div>
 
+                        <div id="campo-desconto-pix" class="mt-3">
+                            <label for="desconto_pix" class="block font-mono text-[10px] uppercase tracking-widest text-gray-400 mb-1">Desconto PIX deste produto (%)</label>
+                            <input type="number"
+                                   name="desconto_pix"
+                                   id="desconto_pix"
+                                   min="0" max="100" step="0.01"
+                                   class="w-full px-4 py-3 border border-[var(--color-lab-border)] text-sm font-mono focus:outline-none focus:border-black"
+                                   placeholder="Vazio = usa global">
+                            <p class="font-mono text-[10px] text-gray-400 mt-1" id="desconto-pix-hint">Deixe vazio para herdar o global</p>
+                        </div>
+
                         <div id="resumoPromocao" class="mt-3 p-4 border border-[var(--color-lab-border)] bg-[var(--color-lab-bg)] hidden">
                             <div class="font-mono text-sm text-black space-y-1">
                                 <div class="flex justify-between">
