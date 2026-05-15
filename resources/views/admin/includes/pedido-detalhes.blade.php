@@ -112,14 +112,24 @@
                     </div>
                     <div class="border border-[var(--color-lab-border)] bg-white px-4 py-4">
                         <p class="font-mono text-[9px] uppercase tracking-[0.18em] text-[var(--color-lab-muted)]">Frete</p>
+                        @php $freteGratis = (float)$summary['frete'] == 0; @endphp
                         <div class="mt-2 flex items-start justify-between gap-2">
                             <div>
                                 <p class="font-mono text-[9px] uppercase tracking-[0.14em] text-[var(--color-lab-muted)]">Escolhido</p>
-                                <p class="mt-1 font-mono text-lg font-bold text-black">{{ $shippingLabel }}</p>
+                                <div class="mt-1 flex items-center gap-1.5 flex-wrap">
+                                    <p class="font-mono text-lg font-bold text-black">{{ $shippingLabel }}</p>
+                                    @if($freteGratis)
+                                        <span class="px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-widest border border-emerald-400 text-emerald-700 bg-emerald-50">Grátis</span>
+                                    @else
+                                        <span class="px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-widest border border-[var(--color-lab-border)] text-[var(--color-lab-muted)]">Pago</span>
+                                    @endif
+                                </div>
                             </div>
                             <div class="text-right">
                                 <p class="font-mono text-[9px] uppercase tracking-[0.14em] text-[var(--color-lab-muted)]">Estimativa</p>
-                                <p class="mt-1 font-mono text-lg font-bold text-black">R$ {{ number_format($summary['frete'], 2, ',', '.') }}</p>
+                                <p class="mt-1 font-mono text-lg font-bold {{ $freteGratis ? 'text-emerald-700' : 'text-black' }}">
+                                    {{ $freteGratis ? 'Grátis' : 'R$ ' . number_format($summary['frete'], 2, ',', '.') }}
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -177,13 +187,22 @@
                     <div class="border border-[var(--color-lab-border)] bg-white px-4 py-4">
                         <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Frete</p>
                         <div class="mt-2 space-y-1.5">
-                            <div class="flex items-center justify-between">
+                            <div class="flex items-center justify-between gap-2">
                                 <p class="font-mono text-[10px] text-[var(--color-lab-muted)]">Escolhido</p>
-                                <p class="font-mono text-sm font-bold text-black">{{ $shippingLabel }}</p>
+                                <div class="flex items-center gap-1.5">
+                                    <p class="font-mono text-sm font-bold text-black">{{ $shippingLabel }}</p>
+                                    @if($freteGratis)
+                                        <span class="px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-widest border border-emerald-400 text-emerald-700 bg-emerald-50">Grátis</span>
+                                    @else
+                                        <span class="px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-widest border border-[var(--color-lab-border)] text-[var(--color-lab-muted)]">Pago</span>
+                                    @endif
+                                </div>
                             </div>
                             <div class="flex items-center justify-between">
                                 <p class="font-mono text-[10px] text-[var(--color-lab-muted)]">Estimativa</p>
-                                <p class="font-mono text-sm font-bold text-black">R$ {{ number_format($summary['frete'], 2, ',', '.') }}</p>
+                                <p class="font-mono text-sm font-bold {{ $freteGratis ? 'text-emerald-700' : 'text-black' }}">
+                                    {{ $freteGratis ? 'Grátis' : 'R$ ' . number_format($summary['frete'], 2, ',', '.') }}
+                                </p>
                             </div>
                             <div class="flex items-center justify-between">
                                 <p class="font-mono text-[10px] text-[var(--color-lab-muted)]">Desconto</p>
