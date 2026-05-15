@@ -116,10 +116,19 @@
                         @if($produto->em_promocao && $produto->preco_original && $produto->preco_original > $produto->preco)
                             <span class="text-gray-400 text-lg line-through font-mono block mb-1">R$ {{ number_format($produto->preco_original, 2, ',', '.') }}</span>
                         @endif
-                        <span class="text-3xl font-mono font-bold">R$ {{ number_format($produto->preco, 2, ',', '.') }}</span>
-                        @if($produto->em_promocao && $produto->desconto_percentual > 0)
-                            <span class="ml-2 text-sm font-mono text-red-600">(-{{ number_format($produto->desconto_percentual, 0) }}%)</span>
-                        @endif
+                        @php
+                            $fatorPix = 1 - ($produto->getDescontoPix() / 100);
+                            $precoPix = $produto->preco_com_desconto * $fatorPix;
+                            $valorParcela = $produto->preco_com_desconto / 10;
+                        @endphp
+                        <div class="flex items-baseline gap-2 mb-1">
+                            <span class="text-3xl font-mono font-bold" id="price-pix" data-desconto-pix="{{ $produto->getDescontoPix() }}">R$ {{ number_format($precoPix, 2, ',', '.') }}</span>
+                            <span class="text-xs font-mono font-bold bg-black text-white px-2 py-0.5 uppercase tracking-widest">PIX</span>
+                            @if($produto->em_promocao && $produto->desconto_percentual > 0)
+                                <span class="text-sm font-mono text-red-600">(-{{ number_format($produto->desconto_percentual, 0) }}%)</span>
+                            @endif
+                        </div>
+                        <span class="text-sm font-mono text-gray-500" id="price-installment">ou 10x de R$ {{ number_format($valorParcela, 2, ',', '.') }} sem juros</span>
                     </div>
 
 
