@@ -20,6 +20,8 @@ Route::get('/contato', [SiteController::class, 'contato'])->name('site.contato')
 Route::view('/garantia', 'site.garantia')->name('site.garantia');
 Route::view('/trocas-e-devolucoes', 'site.trocas-devolucoes')->name('site.trocas-devolucoes');
 Route::view('/rastreamento', 'site.rastreamento')->name('site.rastreamento');
+Route::view('/termos-e-condicoes', 'site.termos')->name('site.termos');
+Route::view('/politica-de-privacidade', 'site.privacidade')->name('site.privacidade');
 Route::get('/busca-rapida', [SiteController::class, 'buscaRapida'])->name('site.busca_rapida');
 
 // Blog
@@ -136,6 +138,9 @@ Route::prefix('admin')->middleware('auth')->name('admin.')->group(function () {
         Route::put('/cupons/{id}/pagamentos/{pid}', [App\Http\Controllers\AdminCupomController::class, 'updatePagamento'])->name('cupons.pagamentos.update');
         Route::delete('/cupons/{id}/pagamentos/{pid}', [App\Http\Controllers\AdminCupomController::class, 'destroyPagamento'])->name('cupons.pagamentos.destroy');
         Route::get('/cupons/{id}/usos-pendentes', [App\Http\Controllers\AdminCupomController::class, 'usosPendentes'])->name('cupons.usosPendentes');
+
+        // Configurações
+        Route::post('/configuracoes', [App\Http\Controllers\AdminConfiguracaoController::class, 'update'])->name('configuracoes.update');
     });
 
     Route::middleware('admin:'.User::ADMIN_PERMISSION_ANALYTICS)->group(function () {
