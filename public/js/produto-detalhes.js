@@ -459,8 +459,10 @@ document.addEventListener('DOMContentLoaded', function() {
         var variantes = JSON.parse(variantesDataEl.textContent);
         var selecao = {}; // { grupoId: valorId }
         var opcaoBtns = document.querySelectorAll('.opcao-btn');
-        var priceEl = document.querySelector('.text-3xl.font-mono.font-bold');
+        var priceEl = document.getElementById('price-pix');
         var precoOriginalTexto = priceEl ? priceEl.textContent.trim() : null;
+        var installmentEl = document.getElementById('price-installment');
+        var installmentOriginalTexto = installmentEl ? installmentEl.textContent.trim() : null;
         var unitsEl = document.getElementById('stock-units');
         var stockUnitsOriginalTexto = unitsEl ? unitsEl.textContent.trim() : null;
         var descricaoSectionInit = document.getElementById('descricao-section');
@@ -602,6 +604,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         quantityInput.value = 1;
                     }
                     if (priceEl && precoOriginalTexto) priceEl.textContent = precoOriginalTexto;
+                    if (installmentEl && installmentOriginalTexto) installmentEl.textContent = installmentOriginalTexto;
                     if (unitsEl && stockUnitsOriginalTexto) unitsEl.textContent = stockUnitsOriginalTexto;
                     var descSection = document.getElementById('descricao-section');
                     if (descSection && initialDescricaoHtml !== null) { descSection.innerHTML = initialDescricaoHtml; descSection.style.display = ''; }
@@ -662,14 +665,22 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     if (quantityInput) quantityInput.setAttribute('max', 0);
                     if (priceEl && precoOriginalTexto) priceEl.textContent = precoOriginalTexto;
+                    if (installmentEl && installmentOriginalTexto) installmentEl.textContent = installmentOriginalTexto;
                     if (unitsEl && stockUnitsOriginalTexto) unitsEl.textContent = stockUnitsOriginalTexto;
                     return;
                 }
 
                 // Update price display
-                priceEl = document.querySelector('.text-3xl.font-mono.font-bold');
+                priceEl = document.getElementById('price-pix');
                 if (priceEl) {
-                    priceEl.textContent = 'R$ ' + varianteEncontrada.preco_efetivo.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    var descontoPix = parseFloat(priceEl.dataset.descontoPix) || 5;
+                    var pixPreco = varianteEncontrada.preco_efetivo * (1 - descontoPix / 100);
+                    priceEl.textContent = 'R$ ' + pixPreco.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                }
+                installmentEl = document.getElementById('price-installment');
+                if (installmentEl) {
+                    var parcelaValor = varianteEncontrada.preco_efetivo / 10;
+                    installmentEl.textContent = 'ou 10x de R$ ' + parcelaValor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' sem juros';
                 }
 
                 // Update stock display
