@@ -322,7 +322,7 @@
                                     class="metodo-btn border-2 border-black bg-black text-white p-3 font-mono transition-colors text-left"
                                     data-metodo="pix">
                                     <div class="text-xs font-bold uppercase tracking-widest">PIX</div>
-                                    <div class="text-[10px] text-white/70 mt-0.5">5% de desconto</div>
+                                    <div class="text-[10px] text-white/70 mt-0.5">{{ number_format($markupCartao * 100, 0) }}% de desconto</div>
                                 </button>
                                 <button type="button" id="metodo-card-btn"
                                     class="metodo-btn border-2 border-[var(--color-lab-border)] bg-white text-black p-3 font-mono transition-colors text-left hover:border-black"
