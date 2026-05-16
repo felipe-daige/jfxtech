@@ -118,8 +118,8 @@
                         @endif
                         @php
                             $descontoPix = $produto->getDescontoPix();
-                            $precoPix = $produto->preco_com_desconto * (1 - $descontoPix / 100);
-                            $valorParcela = $produto->preco_com_desconto / 10;
+                            $precoPix = $produto->preco_com_desconto;
+                            $valorParcela = $produto->preco_cartao / 10;
                         @endphp
                         <div class="flex items-baseline gap-2 mb-1">
                             <span class="text-3xl font-mono font-bold" id="price-pix" data-desconto-pix="{{ $descontoPix }}">R$ {{ number_format($precoPix, 2, ',', '.') }}</span>
@@ -128,7 +128,7 @@
                                 <span class="text-sm font-mono text-red-600">(-{{ number_format($produto->desconto_percentual, 0) }}%)</span>
                             @endif
                         </div>
-                        <span class="text-sm font-mono text-gray-500" id="price-installment">ou 10x de R$ {{ number_format($valorParcela, 2, ',', '.') }} sem juros</span>
+                        <span class="text-sm font-mono text-gray-500" id="price-installment">ou 10x de R$ {{ number_format($valorParcela, 2, ',', '.') }} no cartão</span>
                     </div>
 
 
