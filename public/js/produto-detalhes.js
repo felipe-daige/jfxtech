@@ -674,13 +674,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 priceEl = document.getElementById('price-pix');
                 if (priceEl) {
                     var descontoPix = parseFloat(priceEl.dataset.descontoPix) || 5;
-                    var pixPreco = varianteEncontrada.preco_efetivo * (1 - descontoPix / 100);
+                    var pixPreco = varianteEncontrada.preco_efetivo;
                     priceEl.textContent = 'R$ ' + pixPreco.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 }
                 installmentEl = document.getElementById('price-installment');
                 if (installmentEl) {
-                    var parcelaValor = varianteEncontrada.preco_efetivo / 10;
-                    installmentEl.textContent = 'ou 10x de R$ ' + parcelaValor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' sem juros';
+                    var descontoPix = parseFloat(priceEl ? priceEl.dataset.descontoPix : '5') || 5;
+                    var cardPreco = varianteEncontrada.preco_efetivo * (1 + descontoPix / 100);
+                    var parcelaValor = cardPreco / 10;
+                    installmentEl.textContent = 'ou 10x de R$ ' + parcelaValor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' no cartão';
                 }
 
                 // Update stock display
