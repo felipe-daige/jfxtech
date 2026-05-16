@@ -13,7 +13,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
 </head>
 <body class="min-h-screen flex flex-col bg-[var(--color-lab-bg)] text-[var(--color-lab-ink)] antialiased">
-    @php($subtotalProdutos = $carrinho->itens->sum(fn ($item) => $item->preco * $item->quantidade))
+    @php
+        $subtotalProdutos = $carrinho->itens->sum(fn ($item) => $item->preco * $item->quantidade);
+        $markupCartao = (float) \App\Models\Configuracao::get('desconto_pix_global', 5.0) / 100;
+    @endphp
     @include('includes.header')
 
     <main class="flex-grow">
@@ -311,6 +314,25 @@
                             </div>
                         </div>
 
+                        <!-- Método de Pagamento -->
+                        <div class="mt-4">
+                            <p class="text-xs font-mono text-gray-500 uppercase tracking-widest mb-2">Pagar com:</p>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button type="button" id="metodo-pix-btn"
+                                    class="metodo-btn border-2 border-black bg-black text-white p-3 font-mono transition-colors text-left"
+                                    data-metodo="pix">
+                                    <div class="text-xs font-bold uppercase tracking-widest">PIX</div>
+                                    <div class="text-[10px] text-white/70 mt-0.5">5% de desconto</div>
+                                </button>
+                                <button type="button" id="metodo-card-btn"
+                                    class="metodo-btn border-2 border-[var(--color-lab-border)] bg-white text-black p-3 font-mono transition-colors text-left hover:border-black"
+                                    data-metodo="card">
+                                    <div class="text-xs font-bold uppercase tracking-widest">Cartão</div>
+                                    <div class="text-[10px] text-gray-500 mt-0.5">Preço cheio</div>
+                                </button>
+                            </div>
+                        </div>
+
                         <!-- Continue Button -->
                         <button id="continue-btn" class="w-full mt-6 bg-black text-white font-bold py-3 px-6 tracking-widest uppercase text-sm hover:bg-gray-900 transition-colors">
                             Continuar para Pagamento
@@ -471,6 +493,8 @@
     // --- Cupom de desconto ---
     let descontoAtual = cupomAplicado.desconto || 0;
     let freteAtual = (typeof savedFreteValue === 'number' && savedFreteValue > 0) ? savedFreteValue : 0;
+    let metodoPagamento = 'pix';
+    const MARKUP_CARTAO = {{ $markupCartao }};
 
     function formatarBRL(valor) {
         return 'R$ ' + valor.toFixed(2).replace('.', ',');
@@ -487,7 +511,9 @@
     function atualizarTotalComDesconto(frete) {
         const fv = (typeof frete === 'number') ? frete : freteAtual;
         const subtotal = parseFloat('{{ $subtotalProdutos }}');
-        const total = Math.max(0, subtotal - descontoAtual + fv);
+        const subtotalLiquido = Math.max(0, subtotal - descontoAtual);
+        const markupFactor = metodoPagamento === 'card' ? (1 + MARKUP_CARTAO) : 1.0;
+        const total = subtotalLiquido * markupFactor + fv;
         $('#total-valor').text(formatarBRL(total));
     }
 
@@ -512,6 +538,21 @@
     }
 
     $(document).ready(function () {
+        // Toggle PIX / Cartão
+        document.querySelectorAll('.metodo-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                metodoPagamento = btn.dataset.metodo;
+                document.querySelectorAll('.metodo-btn').forEach(function(b) {
+                    b.classList.remove('bg-black', 'text-white', 'border-black');
+                    b.classList.add('bg-white', 'text-black', 'border-[var(--color-lab-border)]');
+                    b.querySelector('div:last-child').style.color = '';
+                });
+                btn.classList.remove('bg-white', 'text-black', 'border-[var(--color-lab-border)]');
+                btn.classList.add('bg-black', 'text-white', 'border-black');
+                atualizarTotalComDesconto();
+            });
+        });
+
         // Restaurar cupom se já estava aplicado (ex: usuário voltou à página)
         if (cupomAplicado.codigo && cupomAplicado.desconto > 0) {
             mostrarCupomAplicado(
@@ -651,6 +692,7 @@
         @endif
 
         dadosEndereco.payer_document = payerDocument;
+        dadosEndereco.payment_method_category = metodoPagamento;
 
         // Disable button
         const continueBtn = $('#continue-btn');
