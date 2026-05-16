@@ -7,6 +7,7 @@ use App\Models\Cupom;
 use App\Models\CupomUso;
 use App\Models\Endereco;
 use App\Models\Pagamento;
+use App\Models\Configuracao;
 use App\Models\Pedido;
 use App\Services\CheckoutOrderService;
 use App\Services\MercadoPagoService;
@@ -48,6 +49,7 @@ class MercadoPagoCheckoutController extends Controller
             'estado' => 'required|string|size:2',
             'pais' => 'nullable|string|size:2',
             'frete_tipo' => 'required|in:pac,sedex,retirada,gratis',
+            'payment_method_category' => 'nullable|in:pix,card',
         ]);
 
         $pedido = $this->checkoutOrderService->resolveActiveOrder($request, ['itens.produto', 'endereco'], [PedidoStatus::CARRINHO, PedidoStatus::PENDENTE]);
@@ -81,7 +83,11 @@ class MercadoPagoCheckoutController extends Controller
 
         $subtotal = $pedido->itens->sum(fn ($item) => (float) $item->preco * (int) $item->quantidade);
         $desconto = (float) ($pedido->valor_desconto ?? 0);
-        $valorTotal = round(max(0, $subtotal - $desconto) + (float) $frete['valor'], 2);
+        $isCard = ($validated['payment_method_category'] ?? 'pix') === 'card';
+        $descontoPix = (float) Configuracao::get('desconto_pix_global', 5.0);
+        $markupFactor = $isCard ? (1 + $descontoPix / 100) : 1.0;
+        $subtotalLiquido = max(0, $subtotal - $desconto);
+        $valorTotal = round($subtotalLiquido * $markupFactor + (float) $frete['valor'], 2);
 
         DB::transaction(function () use ($request, $validated, $pedido, $frete, $valorTotal, $customerName, $customerEmail, $customerPhone): void {
             $endereco = $this->persistEndereco($pedido, $validated);
@@ -109,7 +115,7 @@ class MercadoPagoCheckoutController extends Controller
                 'pedido_id' => $pedido->id,
                 'public_key' => config('services.mercadopago.public_key'),
                 'amount' => $valorTotal,
-                'subtotal' => round($subtotal, 2),
+                'subtotal' => round($subtotalLiquido * $markupFactor, 2),
                 'desconto' => round($desconto, 2),
                 'frete' => $frete,
                 'payer' => [

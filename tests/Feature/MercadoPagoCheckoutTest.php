@@ -108,6 +108,63 @@ class MercadoPagoCheckoutTest extends TestCase
         $this->assertEquals(50.00, (float) $pedido->valor_total);
     }
 
+    public function test_prepare_applies_card_markup_when_payment_method_category_is_card(): void
+    {
+        $user = User::factory()->create(['phone' => '(43) 99999-9999']);
+        $pedido = $this->makeCart($user, 100.00, 2); // subtotal = 200
+
+        $response = $this->actingAs($user)->postJson(route('site.checkout.mercadopago.prepare'), [
+            'customer_name' => 'Cliente Teste',
+            'customer_email' => 'cliente@example.com',
+            'customer_phone' => '(43) 99999-9999',
+            'cep' => '86010-000',
+            'rua' => 'Rua Teste',
+            'numero' => '123',
+            'bairro' => 'Centro',
+            'cidade' => 'Londrina',
+            'estado' => 'PR',
+            'pais' => 'BR',
+            'frete_tipo' => 'pac',
+            'payment_method_category' => 'card',
+        ]);
+
+        // subtotal = 200, markup 5% = 210, frete PAC = 18 → total = 228
+        $response->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('checkout.amount', 228);
+
+        $pedido->refresh();
+        $this->assertEquals(228.00, (float) $pedido->valor_total);
+    }
+
+    public function test_prepare_does_not_apply_markup_when_payment_method_category_is_pix(): void
+    {
+        $user = User::factory()->create(['phone' => '(43) 99999-9999']);
+        $pedido = $this->makeCart($user, 100.00, 2); // subtotal = 200
+
+        $response = $this->actingAs($user)->postJson(route('site.checkout.mercadopago.prepare'), [
+            'customer_name' => 'Cliente Teste',
+            'customer_email' => 'cliente@example.com',
+            'customer_phone' => '(43) 99999-9999',
+            'cep' => '86010-000',
+            'rua' => 'Rua Teste',
+            'numero' => '123',
+            'bairro' => 'Centro',
+            'cidade' => 'Londrina',
+            'estado' => 'PR',
+            'pais' => 'BR',
+            'frete_tipo' => 'pac',
+            'payment_method_category' => 'pix',
+        ]);
+
+        // subtotal = 200, sem markup, frete PAC = 18 → total = 218
+        $response->assertOk()
+            ->assertJsonPath('checkout.amount', 218);
+
+        $pedido->refresh();
+        $this->assertEquals(218.00, (float) $pedido->valor_total);
+    }
+
     public function test_pay_persists_gateway_response_and_marks_order_paid(): void
     {
         $user = User::factory()->create();
