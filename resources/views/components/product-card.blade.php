@@ -101,15 +101,14 @@
                     <span class="text-xs text-gray-400 line-through block font-mono">R$ {{ number_format($produto->preco_original, 2, ',', '.') }}</span>
                 @endif
                 @php
-                    $fatorPix = 1 - ($produto->getDescontoPix() / 100);
-                    $precoPix = $produto->preco_com_desconto * $fatorPix;
-                    $valorParcela = $produto->preco_com_desconto / 10;
+                    $precoPix = $produto->preco_com_desconto;
+                    $valorParcela = $produto->preco_cartao / 10;
                 @endphp
                 <div class="flex items-center gap-1.5 mb-0.5">
                     <span class="font-mono font-bold text-lg whitespace-nowrap">R$ {{ number_format($precoPix, 2, ',', '.') }}</span>
                     <span class="text-[10px] font-mono font-bold bg-black text-white px-1.5 py-0.5 uppercase tracking-widest leading-none">PIX</span>
                 </div>
-                <span class="text-xs font-mono text-gray-400 whitespace-nowrap">10x R$ {{ number_format($valorParcela, 2, ',', '.') }}</span>
+                <span class="text-xs font-mono text-gray-400 whitespace-nowrap">10x R$ {{ number_format($valorParcela, 2, ',', '.') }} no cartão</span>
             </div>
             <a href="{{ route('site.produto.detalhes', $produto->slug) }}" class="text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-black transition-colors flex items-center gap-1 sm:self-center">
                 DETALHES
