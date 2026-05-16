@@ -188,6 +188,11 @@ class Produto extends Model
         return (float) ($this->desconto_pix ?? Configuracao::get('desconto_pix_global', 5.0));
     }
 
+    public function getPrecoCartaoAttribute(): float
+    {
+        return round($this->preco_com_desconto * (1 + $this->getDescontoPix() / 100), 2);
+    }
+
     public function getLucroBrutoUnitarioAttribute(): ?float
     {
         if ($this->custo_efetivo === null) {
