@@ -485,78 +485,168 @@
         <div class="px-5 py-4 sm:px-6 border-b border-[var(--color-lab-border)]">
             <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                    <p class="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--color-lab-muted)]">Custo real vs sistema</p>
-                    <h4 class="mt-1 text-lg font-bold tracking-tight text-black">Comparativo do preço confirmado</h4>
+                    <p class="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--color-lab-muted)]">Receita vs custo</p>
+                    <h4 class="mt-1 text-lg font-bold tracking-tight text-black">Margem por item vendido</h4>
                 </div>
-                <p class="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">{{ $costComparisonSummary['items_count'] ?? 0 }} item(ns) com custo real</p>
+                @if(($summary['itens_sem_custo'] ?? 0) > 0)
+                    <p class="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">{{ $summary['itens_sem_custo'] }} item(ns) sem custo cadastrado</p>
+                @endif
             </div>
         </div>
 
         <div class="p-4 sm:p-6 space-y-4">
-            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+            {{-- 4 summary cards --}}
+            <div class="grid grid-cols-2 xl:grid-cols-4 gap-3">
                 <div class="border border-[var(--color-lab-border)] bg-[var(--color-lab-bg)] px-4 py-4">
-                    <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Custo real</p>
-                    <p class="mt-2 font-mono text-xl font-bold text-black">R$ {{ number_format($costComparisonSummary['real_total'] ?? 0, 2, ',', '.') }}</p>
+                    <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Receita (itens)</p>
+                    <p class="mt-2 font-mono text-xl font-bold text-black">R$ {{ number_format($summary['receita_itens'] ?? 0, 2, ',', '.') }}</p>
+                    <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">Após desconto de cupom</p>
                 </div>
                 <div class="border border-[var(--color-lab-border)] bg-[var(--color-lab-bg)] px-4 py-4">
-                    <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Custo sistema</p>
-                    <p class="mt-2 font-mono text-xl font-bold text-black">R$ {{ number_format($costComparisonSummary['catalog_total'] ?? 0, 2, ',', '.') }}</p>
+                    <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Custo total</p>
+                    <p class="mt-2 font-mono text-xl font-bold text-black">R$ {{ number_format($summary['custo_total_estimado'] ?? 0, 2, ',', '.') }}</p>
+                    <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">{{ $costModeLabel }}</p>
                 </div>
                 <div class="border border-[var(--color-lab-border)] bg-[var(--color-lab-bg)] px-4 py-4">
-                    @php $deltaPedido = $costComparisonSummary['delta_total'] ?? 0; @endphp
-                    <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Diferença</p>
-                    <p class="mt-2 font-mono text-xl font-bold {{ $deltaPedido > 0 ? 'text-red-600' : ($deltaPedido < 0 ? 'text-emerald-700' : 'text-black') }}">
-                        {{ $deltaPedido > 0 ? '+ ' : ($deltaPedido < 0 ? '- ' : '') }}R$ {{ number_format(abs($deltaPedido), 2, ',', '.') }}
+                    @php $lucro = $summary['lucro_produtos_estimado'] ?? null; @endphp
+                    <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Lucro bruto</p>
+                    <p class="mt-2 font-mono text-xl font-bold {{ $lucro !== null && $lucro < 0 ? 'text-red-600' : 'text-black' }}">
+                        @if($lucro !== null)
+                            R$ {{ number_format($lucro, 2, ',', '.') }}
+                        @else
+                            N/A
+                        @endif
                     </p>
                 </div>
                 <div class="border border-[var(--color-lab-border)] bg-[var(--color-lab-bg)] px-4 py-4">
-                    <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Sem custo sistema</p>
-                    <p class="mt-2 font-mono text-xl font-bold text-black">{{ $costComparisonSummary['missing_catalog_count'] ?? 0 }}</p>
+                    @php $margem = $summary['margem_produtos_percentual'] ?? null; @endphp
+                    <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)]">Margem</p>
+                    @if($margem !== null)
+                        <p class="mt-2 font-mono text-xl font-bold {{ $margem < 0 ? 'text-red-600' : 'text-black' }}">{{ number_format($margem, 1, ',', '.') }}%</p>
+                    @else
+                        <p class="mt-2 font-mono text-xl font-bold text-gray-400">N/A</p>
+                        @if(($summary['itens_sem_custo'] ?? 0) > 0)
+                            <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">{{ $summary['itens_sem_custo'] }} sem custo</p>
+                        @endif
+                    @endif
                 </div>
             </div>
 
-            @if(($costComparison['rows'] ?? collect())->count())
+            {{-- Per-item table --}}
+            @php $activeItems = collect($items)->reject(fn($item) => $item['is_canceled'])->values(); @endphp
+            @if($activeItems->count())
                 <div class="overflow-x-auto border border-[var(--color-lab-border)]">
-                    <table class="w-full min-w-[780px] text-sm">
+                    <table class="w-full min-w-[860px] text-sm">
                         <thead>
                             <tr class="border-b border-[var(--color-lab-border)] bg-[var(--color-lab-bg)]">
                                 <th class="px-4 py-3 text-left font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Produto</th>
                                 <th class="px-4 py-3 text-right font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Qtd</th>
-                                <th class="px-4 py-3 text-right font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Real un.</th>
-                                <th class="px-4 py-3 text-right font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Sistema un.</th>
-                                <th class="px-4 py-3 text-right font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Dif. total</th>
-                                <th class="px-4 py-3 text-right font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">%</th>
+                                <th class="px-4 py-3 text-right font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Venda/un.</th>
+                                <th class="px-4 py-3 text-right font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Custo/un.</th>
+                                <th class="px-4 py-3 text-right font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Lucro/un.</th>
+                                <th class="px-4 py-3 text-right font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Lucro total</th>
+                                <th class="px-4 py-3 text-right font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Margem</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($costComparison['rows'] as $row)
+                            @foreach($activeItems as $row)
                                 <tr class="border-b border-[var(--color-lab-border)] last:border-b-0">
                                     <td class="px-4 py-3">
                                         <p class="font-mono text-xs font-bold text-black break-words">{{ $row['produto_nome'] }}</p>
-                                        <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">{{ $row['variant_label'] ?: $row['status_preparacao_label'] }}</p>
+                                        @if(!empty($row['variant_label']))
+                                            <p class="mt-0.5 font-mono text-[10px] text-[var(--color-lab-muted)]">{{ $row['variant_label'] }}</p>
+                                        @endif
+                                        <span class="mt-1 inline-block font-mono text-[9px] uppercase tracking-[0.14em] px-1.5 py-0.5 {{ $row['cost_source'] === 'declarado' ? 'border border-black text-black' : 'text-gray-400' }}">
+                                            {{ $row['cost_source'] === 'declarado' ? 'Custo real' : ($row['cost_source'] === 'catalogo' ? 'Catálogo' : 'Sem custo') }}
+                                        </span>
                                     </td>
                                     <td class="px-4 py-3 text-right font-mono text-xs text-black">{{ $row['quantidade'] }}</td>
-                                    <td class="px-4 py-3 text-right font-mono text-xs text-black">R$ {{ number_format($row['real_unit_cost'], 2, ',', '.') }}</td>
-                                    <td class="px-4 py-3 text-right font-mono text-xs {{ $row['catalog_unit_cost'] === null ? 'text-gray-400' : 'text-black' }}">
-                                        {{ $row['catalog_unit_cost'] !== null ? 'R$ ' . number_format($row['catalog_unit_cost'], 2, ',', '.') : 'Sem custo' }}
+                                    <td class="px-4 py-3 text-right font-mono text-xs text-black">R$ {{ number_format($row['preco_unitario'], 2, ',', '.') }}</td>
+                                    <td class="px-4 py-3 text-right font-mono text-xs {{ $row['custo_unitario'] === null ? 'text-gray-400' : 'text-black' }}">
+                                        {{ $row['custo_unitario'] !== null ? 'R$ ' . number_format($row['custo_unitario'], 2, ',', '.') : 'Sem custo' }}
                                     </td>
-                                    <td class="px-4 py-3 text-right font-mono text-xs font-bold {{ $row['delta_total'] > 0 ? 'text-red-600' : ($row['delta_total'] < 0 ? 'text-emerald-700' : 'text-black') }}">
-                                        @if($row['delta_total'] === null)
-                                            N/A
-                                        @else
-                                            {{ $row['delta_total'] > 0 ? '+ ' : ($row['delta_total'] < 0 ? '- ' : '') }}R$ {{ number_format(abs($row['delta_total']), 2, ',', '.') }}
-                                        @endif
+                                    <td class="px-4 py-3 text-right font-mono text-xs {{ $row['lucro_unitario'] === null ? 'text-gray-400' : ($row['lucro_unitario'] < 0 ? 'text-red-600' : 'text-black') }}">
+                                        {{ $row['lucro_unitario'] !== null ? 'R$ ' . number_format($row['lucro_unitario'], 2, ',', '.') : 'N/A' }}
                                     </td>
-                                    <td class="px-4 py-3 text-right font-mono text-xs text-[var(--color-lab-muted)]">
-                                        {{ $row['delta_percent'] !== null ? number_format($row['delta_percent'], 1, ',', '.') . '%' : 'N/A' }}
+                                    <td class="px-4 py-3 text-right font-mono text-xs {{ $row['lucro_total'] === null ? 'text-gray-400' : ($row['lucro_total'] < 0 ? 'text-red-600' : 'text-black') }}">
+                                        {{ $row['lucro_total'] !== null ? 'R$ ' . number_format($row['lucro_total'], 2, ',', '.') : 'N/A' }}
+                                    </td>
+                                    <td class="px-4 py-3 text-right font-mono text-xs {{ $row['margem_percentual'] === null ? 'text-gray-400' : ($row['margem_percentual'] < 0 ? 'text-red-600 font-bold' : 'text-black') }}">
+                                        {{ $row['margem_percentual'] !== null ? number_format($row['margem_percentual'], 1, ',', '.') . '%' : 'N/A' }}
                                     </td>
                                 </tr>
                             @endforeach
                         </tbody>
+                        <tfoot>
+                            <tr class="border-t-2 border-[var(--color-lab-border)] bg-[var(--color-lab-bg)]">
+                                <td class="px-4 py-3 font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Total</td>
+                                <td class="px-4 py-3 text-right font-mono text-xs font-bold text-black">{{ $summary['unidades'] ?? '—' }}</td>
+                                <td class="px-4 py-3 text-right font-mono text-xs font-bold text-black">R$ {{ number_format($summary['receita_itens'] ?? 0, 2, ',', '.') }}</td>
+                                <td class="px-4 py-3 text-right font-mono text-xs font-bold text-black">R$ {{ number_format($summary['custo_total_estimado'] ?? 0, 2, ',', '.') }}</td>
+                                <td class="px-4 py-3"></td>
+                                @php $lucroTotal = $summary['lucro_produtos_estimado'] ?? null; @endphp
+                                <td class="px-4 py-3 text-right font-mono text-xs font-bold {{ $lucroTotal !== null && $lucroTotal < 0 ? 'text-red-600' : 'text-black' }}">
+                                    {{ $lucroTotal !== null ? 'R$ ' . number_format($lucroTotal, 2, ',', '.') : '—' }}
+                                </td>
+                                @php $margemTotal = $summary['margem_produtos_percentual'] ?? null; @endphp
+                                <td class="px-4 py-3 text-right font-mono text-xs font-bold {{ $margemTotal === null ? 'text-gray-400' : ($margemTotal < 0 ? 'text-red-600' : 'text-black') }}">
+                                    {{ $margemTotal !== null ? number_format($margemTotal, 1, ',', '.') . '%' : 'N/A' }}
+                                </td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             @else
-                <p class="font-mono text-xs text-[var(--color-lab-muted)]">Nenhum custo real confirmado para comparar neste pedido.</p>
+                <p class="font-mono text-xs text-[var(--color-lab-muted)]">Todos os itens do pedido foram cancelados.</p>
+            @endif
+
+            {{-- Audit section: shown only when there are declared costs to compare --}}
+            @if($hasDeclaredCosts && ($costComparison['rows'] ?? collect())->count())
+                <details class="border border-[var(--color-lab-border)]">
+                    <summary class="px-4 py-3 cursor-pointer font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-lab-muted)] hover:text-black select-none list-none flex items-center justify-between">
+                        <span>Auditoria — custo declarado vs catálogo</span>
+                        <span>{{ $costComparison['rows']->count() }} item(ns)</span>
+                    </summary>
+                    <div class="border-t border-[var(--color-lab-border)] overflow-x-auto">
+                        <table class="w-full min-w-[780px] text-sm">
+                            <thead>
+                                <tr class="border-b border-[var(--color-lab-border)] bg-[var(--color-lab-bg)]">
+                                    <th class="px-4 py-3 text-left font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Produto</th>
+                                    <th class="px-4 py-3 text-right font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Qtd</th>
+                                    <th class="px-4 py-3 text-right font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Declarado/un.</th>
+                                    <th class="px-4 py-3 text-right font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Catálogo/un.</th>
+                                    <th class="px-4 py-3 text-right font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Dif. total</th>
+                                    <th class="px-4 py-3 text-right font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">%</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($costComparison['rows'] as $row)
+                                    <tr class="border-b border-[var(--color-lab-border)] last:border-b-0">
+                                        <td class="px-4 py-3">
+                                            <p class="font-mono text-xs font-bold text-black break-words">{{ $row['produto_nome'] }}</p>
+                                            <p class="mt-1 font-mono text-[10px] text-[var(--color-lab-muted)]">{{ $row['variant_label'] ?: $row['status_preparacao_label'] }}</p>
+                                        </td>
+                                        <td class="px-4 py-3 text-right font-mono text-xs text-black">{{ $row['quantidade'] }}</td>
+                                        <td class="px-4 py-3 text-right font-mono text-xs text-black">R$ {{ number_format($row['real_unit_cost'], 2, ',', '.') }}</td>
+                                        <td class="px-4 py-3 text-right font-mono text-xs {{ $row['catalog_unit_cost'] === null ? 'text-gray-400' : 'text-black' }}">
+                                            {{ $row['catalog_unit_cost'] !== null ? 'R$ ' . number_format($row['catalog_unit_cost'], 2, ',', '.') : 'Sem custo' }}
+                                        </td>
+                                        <td class="px-4 py-3 text-right font-mono text-xs font-bold {{ $row['delta_total'] > 0 ? 'text-red-600' : ($row['delta_total'] < 0 ? 'text-emerald-700' : 'text-black') }}">
+                                            @if($row['delta_total'] === null)
+                                                N/A
+                                            @else
+                                                {{ $row['delta_total'] > 0 ? '+ ' : ($row['delta_total'] < 0 ? '- ' : '') }}R$ {{ number_format(abs($row['delta_total']), 2, ',', '.') }}
+                                            @endif
+                                        </td>
+                                        <td class="px-4 py-3 text-right font-mono text-xs text-[var(--color-lab-muted)]">
+                                            {{ $row['delta_percent'] !== null ? number_format($row['delta_percent'], 1, ',', '.') . '%' : 'N/A' }}
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </details>
             @endif
         </div>
     </section>

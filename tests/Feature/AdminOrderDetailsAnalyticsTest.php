@@ -400,7 +400,7 @@ class AdminOrderDetailsAnalyticsTest extends TestCase
         $response->assertOk();
         $html = html_entity_decode((string) $response->json('html'), ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
-        $this->assertStringContainsString('Custo real vs sistema', $html);
+        $this->assertStringContainsString('Auditoria — custo declarado vs catálogo', $html);
         $this->assertStringContainsString('Mouse custo comparado', $html);
         $this->assertStringContainsString('R$ 90,00', $html);
         $this->assertStringContainsString('R$ 80,00', $html);
