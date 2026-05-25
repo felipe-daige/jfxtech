@@ -556,8 +556,15 @@
                                         @if(!empty($row['variant_label']))
                                             <p class="mt-0.5 font-mono text-[10px] text-[var(--color-lab-muted)]">{{ $row['variant_label'] }}</p>
                                         @endif
-                                        <span class="mt-1 inline-block font-mono text-[9px] uppercase tracking-[0.14em] px-1.5 py-0.5 {{ $row['cost_source'] === 'declarado' ? 'border border-black text-black' : 'text-gray-400' }}">
-                                            {{ $row['cost_source'] === 'declarado' ? 'Custo real' : ($row['cost_source'] === 'catalogo' ? 'Catálogo' : 'Sem custo') }}
+                                        @php
+                                            $csLabel = match($row['cost_source']) {
+                                                'declarado' => 'declarado',
+                                                'variante', 'produto' => 'catalogo',
+                                                default => 'sem_custo',
+                                            };
+                                        @endphp
+                                        <span class="mt-1 inline-block font-mono text-[9px] uppercase tracking-[0.14em] px-1.5 py-0.5 {{ $csLabel === 'declarado' ? 'border border-black text-black' : 'text-gray-400' }}">
+                                            {{ $csLabel === 'declarado' ? 'Custo real' : ($csLabel === 'catalogo' ? 'Catálogo' : 'Sem custo') }}
                                         </span>
                                     </td>
                                     <td class="px-4 py-3 text-right font-mono text-xs text-black">{{ $row['quantidade'] }}</td>
