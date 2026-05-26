@@ -252,8 +252,9 @@ class AdminController extends Controller
         $viewMode = in_array($request->get('view_mode'), ['cards', 'lista']) ? $request->get('view_mode') : 'cards';
         $produtos = $query->orderBy('created_at', 'desc')->paginate($perPage);
         $categorias = Categoria::all();
+        $salesMetrics = $this->buildProductSalesMetrics($produtos->pluck('id')->all());
 
-        return view('admin.produtos', compact('produtos', 'categorias', 'perPage', 'viewMode'));
+        return view('admin.produtos', compact('produtos', 'categorias', 'perPage', 'viewMode', 'salesMetrics'));
     }
 
     // Pesquisar produtos via AJAX
@@ -299,9 +300,10 @@ class AdminController extends Controller
         $perPage = min((int) $request->get('per_page', 24), 96);
         $viewMode = in_array($request->get('view_mode'), ['cards', 'lista']) ? $request->get('view_mode') : 'cards';
         $produtos = $query->orderBy('created_at', 'desc')->paginate($perPage);
+        $salesMetrics = $this->buildProductSalesMetrics($produtos->pluck('id')->all());
 
         $partial = $viewMode === 'lista' ? 'admin.includes.produtos-lista-linhas' : 'admin.includes.produtos-lista';
-        $html = view($partial, compact('produtos'))->render();
+        $html = view($partial, compact('produtos', 'salesMetrics'))->render();
 
         $categorias = \App\Models\Categoria::all();
         $paginacaoHtml = view('admin.includes.paginacao', [
@@ -992,6 +994,7 @@ class AdminController extends Controller
             'status' => ['required', Rule::in(PedidoStatus::adminValues())],
             'codigo_rastreio' => ['nullable', 'string', 'max:50', Rule::requiredIf(fn () => $request->input('status') === PedidoStatus::ENVIADO)],
             'nota_fiscal_imagem' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:4096'],
+            'send_email' => ['nullable', 'boolean'],
         ]);
 
         $updates = ['status' => $validated['status']];
@@ -1020,6 +1023,10 @@ class AdminController extends Controller
 
             $pedido->update($updates);
         });
+
+        if ($request->boolean('send_email') && in_array($validated['status'], PedidoStatus::notificationValues(), true)) {
+            app(\App\Services\OrderEmailNotificationService::class)->send($pedido);
+        }
 
         return redirect()->route('admin.pedidos')->with('success', 'Status do pedido atualizado com sucesso!');
     }
@@ -1927,7 +1934,35 @@ class AdminController extends Controller
 
     private function buildOrderRevenueContext(Pedido $pedido): array
     {
-        $pedido->loadMissing('itens');
+        $pedido->loadMissing('itens', 'pagamentos');
+
+        // Pedido inteiramente cancelado — só é estorno se houve pagamento aprovado
+        if ($pedido->status === PedidoStatus::CANCELADO) {
+            $tevePagamento = $pedido->pagamentos->contains(fn ($p) => $p->status === 'pago');
+            if ($tevePagamento) {
+                $netProductsTotal = max(0.0, round((float) $pedido->valor_total - (float) ($pedido->frete_valor ?? 0), 2));
+                return [
+                    'gross_total' => $netProductsTotal,
+                    'net_products_total' => $netProductsTotal,
+                    'active_revenue' => 0.0,
+                    'estorno_total' => $netProductsTotal,
+                    'item_gross_revenues' => [],
+                    'item_net_revenues' => [],
+                    'item_discounts' => [],
+                    'item_refunds' => [],
+                ];
+            }
+            return [
+                'gross_total' => 0.0,
+                'net_products_total' => 0.0,
+                'active_revenue' => 0.0,
+                'estorno_total' => 0.0,
+                'item_gross_revenues' => [],
+                'item_net_revenues' => [],
+                'item_discounts' => [],
+                'item_refunds' => [],
+            ];
+        }
 
         $items = $pedido->itens->values();
         $grossTotal = round((float) $items->sum(fn (ItemPedido $item) => (float) $item->preco * (int) $item->quantidade), 2);
@@ -1987,6 +2022,38 @@ class AdminController extends Controller
             'item_discounts' => $itemDiscounts,
             'item_refunds' => $itemRefunds,
         ];
+    }
+
+    private function buildProductSalesMetrics(array $productIds): array
+    {
+        if (empty($productIds)) {
+            return [];
+        }
+
+        $activeStatuses = array_values(array_filter(
+            PedidoStatus::performanceValues(),
+            fn ($s) => $s !== PedidoStatus::CANCELADO,
+        ));
+
+        return \DB::table('itens_pedido as ip')
+            ->join('pedidos as p', 'p.id', '=', 'ip.pedido_id')
+            ->whereIn('p.status', $activeStatuses)
+            ->whereIn('ip.produto_id', $productIds)
+            ->where(function ($q) {
+                $q->whereNull('ip.status_preparacao')
+                  ->orWhere('ip.status_preparacao', '<>', ItemPedido::STATUS_PREPARACAO_CANCELADO);
+            })
+            ->groupBy('ip.produto_id')
+            ->select([
+                'ip.produto_id',
+                \DB::raw('SUM(ip.preco * ip.quantidade) as receita_bruta'),
+                \DB::raw('SUM(ip.quantidade) as unidades_vendidas'),
+                \DB::raw('COUNT(DISTINCT ip.pedido_id) as pedidos_count'),
+                \DB::raw('MAX(p.created_at) as ultimo_pedido_em'),
+            ])
+            ->get()
+            ->keyBy('produto_id')
+            ->toArray();
     }
 
     private function buildPerformanceRevenueSummary(): array
@@ -2409,13 +2476,19 @@ class AdminController extends Controller
         $receita_total = $performanceRevenueSummary['receita_total'];
         $estornos_total = $performanceRevenueSummary['estornos_total'];
 
+        // Exclui CANCELADO: pedidos cancelados são contados como estorno, não como custo ativo
+        $activePerformanceStatuses = array_values(array_filter(
+            PedidoStatus::performanceValues(),
+            fn ($s) => $s !== PedidoStatus::CANCELADO,
+        ));
+
         $itensPerformance = ItemPedido::with([
             'produto:id,custo_compra,frete_compra,peso',
             'produtoVariante:id,produto_id,custo_compra,frete_compra',
         ])
             ->where(fn ($query) => $this->applyActiveItemFilter($query))
-            ->whereHas('pedido', function ($query) {
-                $query->whereIn('status', PedidoStatus::performanceValues());
+            ->whereHas('pedido', function ($query) use ($activePerformanceStatuses) {
+                $query->whereIn('status', $activePerformanceStatuses);
             })->get();
 
         $custo_total = 0;
@@ -3092,6 +3165,8 @@ class AdminController extends Controller
 
             $pedido->update($updates);
         });
+
+        app(\App\Services\OrderEmailNotificationService::class)->send($pedido);
 
         return response()->json([
             'success' => true,

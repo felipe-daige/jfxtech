@@ -744,6 +744,7 @@ function alterarStatus(pedidoId, statusAtual) {
     document.getElementById('novoStatus').value = statusAtual;
     alternarCampoCodigoRastreio(statusAtual);
     alternarCampoCustosPreparacao(statusAtual);
+    alternarCheckboxEmail(statusAtual);
     document.getElementById('modalStatus').classList.remove('hidden');
 }
 
@@ -789,6 +790,32 @@ function alternarCampoCodigoRastreio(status) {
 
     if (!requiresTracking) {
         input.value = '';
+    }
+}
+
+var EMAIL_ASSUNTOS = {
+    'pago':        'Pagamento aprovado',
+    'processando': 'Pedido em processamento',
+    'enviado':     'Pedido enviado para entrega',
+    'entregue':    'Pedido entregue',
+    'cancelado':   'Pedido cancelado'
+};
+
+function alternarCheckboxEmail(status) {
+    var wrapper  = document.getElementById('emailNotificacaoWrapper');
+    var checkbox = document.getElementById('sendEmailCheckbox');
+    var texto    = document.getElementById('emailAssuntoTexto');
+
+    if (!wrapper || !checkbox || !texto) return;
+
+    var mostra = Object.prototype.hasOwnProperty.call(EMAIL_ASSUNTOS, status);
+    wrapper.classList.toggle('hidden', !mostra);
+
+    if (mostra) {
+        checkbox.checked = true;
+        texto.textContent = EMAIL_ASSUNTOS[status];
+    } else {
+        checkbox.checked = false;
     }
 }
 
@@ -1005,6 +1032,7 @@ document.addEventListener('DOMContentLoaded', function () {
         novoStatus.addEventListener('change', function () {
             alternarCampoCodigoRastreio(this.value);
             alternarCampoCustosPreparacao(this.value);
+            alternarCheckboxEmail(this.value);
         });
     }
 

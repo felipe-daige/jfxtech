@@ -323,6 +323,18 @@
                             <p class="mt-3 font-mono text-[10px] text-[var(--color-lab-muted)]">Obrigatório ao marcar como Em preparação. O valor é unitário, item cancelado entra como estorno e os analytics passam a usar este custo declarado.</p>
                         </div>
                     </div>
+
+                    <div id="emailNotificacaoWrapper" class="mt-4 hidden">
+                        <div class="border border-[var(--color-lab-border)] bg-[var(--color-lab-bg)] px-4 py-3">
+                            <p class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)] mb-2">Notificação ao cliente</p>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" name="send_email" id="sendEmailCheckbox" value="1" checked
+                                    class="w-4 h-4 accent-black cursor-pointer">
+                                <span class="font-mono text-xs text-black">Enviar e-mail ao cliente</span>
+                            </label>
+                            <p id="emailAssuntoTexto" class="mt-1 ml-6 font-mono text-[10px] text-[var(--color-lab-muted)]"></p>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="p-6 border-t border-[var(--color-lab-border)] flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">

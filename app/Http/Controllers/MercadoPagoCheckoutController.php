@@ -11,6 +11,7 @@ use App\Models\Configuracao;
 use App\Models\Pedido;
 use App\Services\CheckoutOrderService;
 use App\Services\MercadoPagoService;
+use App\Services\OrderEmailNotificationService;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -25,6 +26,7 @@ class MercadoPagoCheckoutController extends Controller
     public function __construct(
         protected MercadoPagoService $mercadoPagoService,
         protected CheckoutOrderService $checkoutOrderService,
+        protected OrderEmailNotificationService $orderEmailService,
     ) {}
 
     public function prepare(Request $request)
@@ -438,6 +440,8 @@ class MercadoPagoCheckoutController extends Controller
             $this->recordCouponUse($pedido);
         }
 
+        $this->orderEmailService->send($pedido);
+
         return $pagamento;
     }
 
@@ -738,7 +742,8 @@ class MercadoPagoCheckoutController extends Controller
         $secret = (string) config('services.mercadopago.webhook_secret');
 
         if ($secret === '') {
-            return true;
+            Log::warning('mercado_pago.webhook.secret_not_configured');
+            return false;
         }
 
         $xSignature = (string) $request->header('x-signature', '');

@@ -8,6 +8,7 @@ use App\Models\Endereco;
 use App\Models\ItemPedido;
 use App\Models\User;
 use App\Services\CheckoutOrderService;
+use App\Services\OrderEmailNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +17,8 @@ use Illuminate\Support\Facades\Hash;
 class PedidoController extends Controller
 {
     public function __construct(
-        protected CheckoutOrderService $checkoutOrderService
+        protected CheckoutOrderService $checkoutOrderService,
+        protected OrderEmailNotificationService $orderEmailService,
     ) {
     }
 
@@ -232,6 +234,8 @@ class PedidoController extends Controller
             'status' => PedidoStatus::ENTREGUE,
         ]);
 
+        $this->orderEmailService->send($pedido);
+
         return redirect($this->checkoutOrderService->orderUrl($pedido))
             ->with('success', 'Entrega confirmada com sucesso.');
     }
@@ -256,6 +260,8 @@ class PedidoController extends Controller
         }
 
         $pedido->update(['status' => PedidoStatus::CANCELADO]);
+
+        $this->orderEmailService->send($pedido);
 
         return redirect()->route('site.pedidos.index')
             ->with('success', 'Pedido #' . $pedido->id . ' cancelado com sucesso.');

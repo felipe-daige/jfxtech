@@ -6,6 +6,7 @@ use App\Enums\PedidoStatus;
 use App\Mail\OrderStatusMail;
 use App\Models\Pedido;
 use App\Models\User;
+use App\Services\OrderEmailNotificationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
@@ -35,6 +36,7 @@ class OrderEmailNotificationTest extends TestCase
         ]);
 
         $pedido->update(['status' => PedidoStatus::PAGO]);
+        app(OrderEmailNotificationService::class)->send($pedido);
 
         Mail::assertQueued(OrderStatusMail::class, function (OrderStatusMail $mail) use ($pedido) {
             return $mail->pedido->id === $pedido->id
@@ -58,6 +60,7 @@ class OrderEmailNotificationTest extends TestCase
         ]);
 
         $pedido->update(['status' => PedidoStatus::PAGO]);
+        app(OrderEmailNotificationService::class)->send($pedido);
 
         Mail::assertQueued(OrderStatusMail::class, function (OrderStatusMail $mail) use ($pedido) {
             return $mail->pedido->id === $pedido->id
@@ -77,8 +80,10 @@ class OrderEmailNotificationTest extends TestCase
             'codigo_rastreio' => 'BR123456789BR',
         ]);
 
+        $emailService = app(OrderEmailNotificationService::class);
         foreach ([PedidoStatus::PROCESSANDO, PedidoStatus::ENVIADO, PedidoStatus::ENTREGUE, PedidoStatus::CANCELADO] as $status) {
             $pedido->update(['status' => $status]);
+            $emailService->send($pedido);
         }
 
         Mail::assertQueued(OrderStatusMail::class, fn (OrderStatusMail $mail) => $mail->eventType === PedidoStatus::PROCESSANDO);
