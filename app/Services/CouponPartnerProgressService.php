@@ -22,7 +22,13 @@ class CouponPartnerProgressService
 
     public function eligibleOrderStatuses(): array
     {
-        return PedidoStatus::performanceValues();
+        // Cancelado não conta como venda realizada para fins de comissão do parceiro
+        return [
+            PedidoStatus::PAGO,
+            PedidoStatus::PROCESSANDO,
+            PedidoStatus::ENVIADO,
+            PedidoStatus::ENTREGUE,
+        ];
     }
 
     public function progressForUser(User $user): array

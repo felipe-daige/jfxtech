@@ -312,6 +312,8 @@ class MercadoPagoCheckoutTest extends TestCase
 
     public function test_approved_payment_records_coupon_usage_only_once_for_duplicate_notifications(): void
     {
+        config(['services.mercadopago.webhook_secret' => 'mp_test_secret']);
+
         $user = User::factory()->create();
         $pedido = $this->makeCart($user, 100.00, 1, 'pendente');
         $pedido->update([
@@ -366,12 +368,16 @@ class MercadoPagoCheckoutTest extends TestCase
             ],
         ])->assertOk();
 
-        $this->postJson(route('site.checkout.mercadopago.webhook'), [
-            'type' => 'payment',
-            'data' => [
-                'id' => '123456789',
-            ],
-        ])->assertOk();
+        $timestamp = '1704908010';
+        $requestId = 'req-valid-signature';
+        $manifest = sprintf('id:%s;request-id:%s;ts:%s;', '123456789', $requestId, $timestamp);
+        $signature = hash_hmac('sha256', $manifest, 'mp_test_secret');
+
+        $this->postJson(
+            route('site.checkout.mercadopago.webhook', ['data.id' => '123456789', 'type' => 'payment']),
+            ['type' => 'payment', 'data' => ['id' => '123456789']],
+            ['X-Signature' => "ts={$timestamp},v1={$signature}", 'X-Request-Id' => $requestId],
+        )->assertOk();
 
         $cupom->refresh();
 
@@ -810,6 +816,8 @@ class MercadoPagoCheckoutTest extends TestCase
 
     public function test_webhook_updates_existing_payment_status(): void
     {
+        config(['services.mercadopago.webhook_secret' => 'mp_test_secret']);
+
         $user = User::factory()->create();
         $pedido = $this->makeCart($user, 90.00, 1, 'pendente');
         $pedido->update([
@@ -847,12 +855,16 @@ class MercadoPagoCheckoutTest extends TestCase
                 ]);
         });
 
-        $response = $this->postJson(route('site.checkout.mercadopago.webhook'), [
-            'type' => 'payment',
-            'data' => [
-                'id' => '555',
-            ],
-        ]);
+        $timestamp = '1704908010';
+        $requestId = 'req-valid-signature';
+        $manifest = sprintf('id:%s;request-id:%s;ts:%s;', '555', $requestId, $timestamp);
+        $signature = hash_hmac('sha256', $manifest, 'mp_test_secret');
+
+        $response = $this->postJson(
+            route('site.checkout.mercadopago.webhook', ['data.id' => '555', 'type' => 'payment']),
+            ['type' => 'payment', 'data' => ['id' => '555']],
+            ['X-Signature' => "ts={$timestamp},v1={$signature}", 'X-Request-Id' => $requestId],
+        );
 
         $response->assertOk()->assertJson([
             'received' => true,

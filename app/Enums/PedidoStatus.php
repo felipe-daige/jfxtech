@@ -36,6 +36,7 @@ final class PedidoStatus
         self::PROCESSANDO,
         self::ENVIADO,
         self::ENTREGUE,
+        self::CANCELADO,
     ];
 
     private const ACTIONABLE_STATUS = [

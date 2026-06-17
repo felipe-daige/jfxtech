@@ -573,8 +573,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 var available = selected || optionHasAvailableVariant(grupoId, valorId);
 
                 btn.disabled = !available;
-                btn.style.display = available ? '' : 'none';
-                btn.setAttribute('aria-hidden', available ? 'false' : 'true');
+                btn.classList.toggle('opcao-indisponivel', !available);
+                btn.setAttribute('aria-disabled', available ? 'false' : 'true');
             });
         }
 

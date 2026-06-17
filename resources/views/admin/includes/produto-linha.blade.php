@@ -1,3 +1,13 @@
+@php
+    $smLinha = $salesMetrics[$produto->id] ?? null;
+    $precoEfetivoLinha = $produto->em_promocao && $produto->desconto_percentual > 0
+        ? round($produto->preco * (1 - $produto->desconto_percentual / 100), 2)
+        : (float) $produto->preco;
+    $custoEfetivoLinha = ($produto->custo_compra ?? 0) + ($produto->frete_compra ?? 0);
+    $margemLinha = ($custoEfetivoLinha > 0 && $precoEfetivoLinha > 0)
+        ? round(($precoEfetivoLinha - $custoEfetivoLinha) / $precoEfetivoLinha * 100, 1)
+        : null;
+@endphp
 <div class="flex flex-col sm:flex-row sm:items-center gap-3 px-4 py-4 border-b border-[var(--color-lab-border)] bg-white hover:bg-[var(--color-lab-bg)] transition-colors min-h-[56px]">
     <div class="flex items-start gap-3 w-full min-w-0">
         <input type="checkbox"
@@ -192,6 +202,26 @@
                 </svg>
                 <span>Destaque</span>
             </span>
+        @endif
+    </div>
+
+    {{-- Margem (visível a partir de xl) --}}
+    <div class="hidden xl:flex flex-col items-end flex-shrink-0 w-20">
+        <span class="font-mono text-[9px] uppercase tracking-widest text-[var(--color-lab-muted)]">Margem</span>
+        <span class="font-mono text-xs font-bold mt-0.5
+            {{ $margemLinha === null ? 'text-gray-400' : ($margemLinha < 0 ? 'text-red-600' : ($margemLinha < 20 ? 'text-yellow-600' : 'text-black')) }}">
+            {{ $margemLinha !== null ? number_format($margemLinha, 1, ',', '.') . '%' : '—' }}
+        </span>
+    </div>
+
+    {{-- Receita (visível a partir de xl) --}}
+    <div class="hidden xl:flex flex-col items-end flex-shrink-0 w-28">
+        <span class="font-mono text-[9px] uppercase tracking-widest text-[var(--color-lab-muted)]">Receita</span>
+        <span class="font-mono text-xs font-bold text-black mt-0.5">
+            {{ $smLinha ? 'R$&nbsp;' . number_format($smLinha->receita_bruta, 0, ',', '.') : '—' }}
+        </span>
+        @if($smLinha)
+            <span class="font-mono text-[9px] text-[var(--color-lab-muted)]">{{ $smLinha->unidades_vendidas }} un.</span>
         @endif
     </div>
 </div>

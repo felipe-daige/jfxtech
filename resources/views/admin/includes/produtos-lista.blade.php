@@ -131,46 +131,73 @@
         </div>
     </div>
 
-    <div class="space-y-3 border-t border-[var(--color-lab-border)] pt-3">
-        <!-- Preco -->
-        <div class="flex items-start justify-between gap-3">
-            <span class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Preco:</span>
-            @if($produto->em_promocao && $produto->desconto_percentual > 0)
-                <div class="text-right">
-                    <div class="font-mono text-sm font-bold text-black">R$ {{ number_format($produto->preco, 2, ',', '.') }}</div>
-                    <div class="font-mono text-[10px] text-[var(--color-lab-muted)] line-through">R$ {{ number_format($produto->preco_original, 2, ',', '.') }}</div>
-                    <div class="font-mono text-[10px] font-bold text-black">{{ $produto->desconto_percentual }}% OFF</div>
-                </div>
-            @else
-                <span class="font-mono text-sm font-bold text-black">R$ {{ number_format($produto->preco, 2, ',', '.') }}</span>
-            @endif
-        </div>
+    @php
+        $sm = $salesMetrics[$produto->id] ?? null;
+        $precoEfetivo = $produto->em_promocao && $produto->desconto_percentual > 0
+            ? round($produto->preco * (1 - $produto->desconto_percentual / 100), 2)
+            : (float) $produto->preco;
+        $custoEfetivo = ($produto->custo_compra ?? 0) + ($produto->frete_compra ?? 0);
+        $margemCard = ($custoEfetivo > 0 && $precoEfetivo > 0)
+            ? round(($precoEfetivo - $custoEfetivo) / $precoEfetivo * 100, 1)
+            : null;
+    @endphp
 
-        <!-- Estoque -->
+    <div class="space-y-3 border-t border-[var(--color-lab-border)] pt-3">
+        <!-- Preco + Estoque numa linha -->
         <div class="flex items-center justify-between gap-3">
-            <span class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Estoque:</span>
-            <span class="font-mono text-sm font-bold text-black">{{ $produto->estoque }}</span>
+            <div>
+                <span class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Preço</span>
+                @if($produto->em_promocao && $produto->desconto_percentual > 0)
+                    <div class="font-mono text-sm font-bold text-black">R$ {{ number_format($precoEfetivo, 2, ',', '.') }}</div>
+                    <div class="font-mono text-[10px] text-[var(--color-lab-muted)] line-through">R$ {{ number_format($produto->preco, 2, ',', '.') }}</div>
+                @else
+                    <div class="font-mono text-sm font-bold text-black">R$ {{ number_format($produto->preco, 2, ',', '.') }}</div>
+                @endif
+            </div>
+            <div class="text-right">
+                <span class="font-mono text-[10px] uppercase tracking-widest text-[var(--color-lab-muted)]">Estoque</span>
+                <div class="font-mono text-sm font-bold {{ $produto->estoque <= 0 && $produto->ativo ? 'text-red-600' : 'text-black' }}">{{ $produto->estoque }}</div>
+            </div>
         </div>
 
         <!-- Status e Destaque -->
-        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div class="flex flex-wrap items-center gap-2">
-                @if($produto->ativo)
-                    <span class="inline-block px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest border border-black text-black">
-                        Ativo
-                    </span>
-                @else
-                    <span class="inline-block px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest border border-gray-300 text-gray-400">
-                        Inativo
-                    </span>
-                @endif
+        <div class="flex flex-wrap items-center gap-2">
+            @if($produto->ativo)
+                <span class="inline-block px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest border border-black text-black">Ativo</span>
+            @else
+                <span class="inline-block px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest border border-gray-300 text-gray-400">Inativo</span>
+            @endif
+            @if($produto->destaque)
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest bg-black text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <span>Destaque</span>
+                </span>
+            @endif
+        </div>
 
-                @if($produto->destaque)
-                    <span class="inline-block px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest bg-black text-white flex items-center space-x-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                        <span>Destaque</span>
-                    </span>
+        <!-- Analytics strip -->
+        <div class="border-t border-[var(--color-lab-border)] pt-3 grid grid-cols-3 gap-3">
+            <div>
+                <p class="font-mono text-[9px] uppercase tracking-widest text-[var(--color-lab-muted)]">Receita</p>
+                <p class="font-mono text-xs font-bold text-black mt-0.5">
+                    {{ $sm ? 'R$&nbsp;' . number_format($sm->receita_bruta, 0, ',', '.') : '—' }}
+                </p>
+            </div>
+            <div>
+                <p class="font-mono text-[9px] uppercase tracking-widest text-[var(--color-lab-muted)]">Vendas</p>
+                <p class="font-mono text-xs font-bold text-black mt-0.5">
+                    {{ $sm ? $sm->unidades_vendidas . ' un.' : '—' }}
+                </p>
+                @if($sm)
+                    <p class="font-mono text-[9px] text-[var(--color-lab-muted)]">{{ $sm->pedidos_count }} pedido(s)</p>
                 @endif
+            </div>
+            <div>
+                <p class="font-mono text-[9px] uppercase tracking-widest text-[var(--color-lab-muted)]">Margem</p>
+                <p class="font-mono text-xs font-bold mt-0.5
+                    {{ $margemCard === null ? 'text-gray-400' : ($margemCard < 0 ? 'text-red-600' : ($margemCard < 20 ? 'text-yellow-600' : 'text-black')) }}">
+                    {{ $margemCard !== null ? number_format($margemCard, 1, ',', '.') . '%' : '—' }}
+                </p>
             </div>
         </div>
     </div>
